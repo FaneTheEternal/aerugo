@@ -7,6 +7,8 @@ use crate::shorts::is_game::{IsGame, SimpleGame};
 use crate::types::utility::GameState;
 use sdl2::image::InitFlag;
 use sdl2::render::BlendMode;
+use std::time::{Instant, Duration};
+use std::thread;
 
 
 #[allow(dead_code)]
@@ -17,7 +19,7 @@ pub struct MainWrapper {
 
     pps: u8,
     // Polls per second
-    pps_ns: u32,    // nanoseconds between Polls
+    pps_ns: u64,    // nanoseconds between Polls
 }
 
 type PpsOpt = Option<u8>;
@@ -37,7 +39,7 @@ impl MainWrapper {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
-        let pps_ns = 1_000_000_000u32 / pps as u32;
+        let pps_ns = 1_000_000_000u64 / pps as u64;
 
         MainWrapper {
             user_actions,
@@ -63,7 +65,17 @@ impl MainWrapper {
 
         let mut event_pump = self.sdl_context.event_pump().unwrap();
 
+        const COUNTING_FPS: bool = false;
+        const FPS_BATCH: u64 = 1000;
+
+        let mut start_time = Instant::now();
+        let mut fps_counter = 0;
+
         'main_loop: loop {
+            if COUNTING_FPS && fps_counter > FPS_BATCH {
+                start_time = Instant::now();
+                fps_counter = 0;
+            }
             for event in event_pump.poll_iter() {
                 match event {
                     Event::Quit { .. } => {
@@ -82,6 +94,14 @@ impl MainWrapper {
                 GameState::Exit => break 'main_loop,
                 _ => println!("Mute unexpected game state!"),
             }
+            if COUNTING_FPS && fps_counter == FPS_BATCH {
+                let duration_time = start_time.elapsed();
+                let secs = duration_time.as_secs();
+                println!("{} FPS", FPS_BATCH / secs);
+            }
+            if COUNTING_FPS { fps_counter += 1; }
+
+            thread::sleep(Duration::from_nanos(self.pps_ns));
         }
     }
 }
