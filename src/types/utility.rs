@@ -1,12 +1,10 @@
 #![allow(dead_code)]
 
+#[derive(PartialEq)]
 pub enum GameState {
     None,
     Exit,
     NOP,
-    SetSettings {
-        settings: Settings
-    },
 }
 
 pub enum Settings {

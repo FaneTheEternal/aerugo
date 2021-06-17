@@ -46,8 +46,8 @@ impl RootWidget {
         RootWidget {
             context,
             child: ContainerWidget::expand(
-                SLClosuresWidget::new(Box::new(COLUMN3)),
-                // SFClosureWidget::new(Box::new(SIMPLE)),
+                // SLClosuresWidget::new(Box::new(COLUMN3)),
+                SFClosureWidget::new(Box::new(SIMPLE)),
                 None,
                 None,
                 Indent::All(0),

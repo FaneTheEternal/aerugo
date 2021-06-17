@@ -1,14 +1,15 @@
 use sdl2::{VideoSubsystem};
 use sdl2::Sdl;
 use sdl2::event::Event;
+use sdl2::image::InitFlag;
+use sdl2::render::BlendMode;
 
 use crate::control::user_actions::UserActions;
 use crate::shorts::is_game::{IsGame, SimpleGame};
 use crate::types::utility::GameState;
-use sdl2::image::InitFlag;
-use sdl2::render::BlendMode;
+
 use std::time::{Instant, Duration};
-use std::thread;
+use std::{thread};
 
 
 #[allow(dead_code)]
@@ -61,11 +62,12 @@ impl MainWrapper {
         let builder = window.into_canvas();
         let mut canvas = builder.build().expect("Cant create canvas");
         canvas.set_blend_mode(BlendMode::Blend);
+
         game.init(canvas);
 
         let mut event_pump = self.sdl_context.event_pump().unwrap();
 
-        const COUNTING_FPS: bool = false;
+        const COUNTING_FPS: bool = true;
         const FPS_BATCH: u64 = 1000;
 
         let mut start_time = Instant::now();
@@ -76,6 +78,7 @@ impl MainWrapper {
                 start_time = Instant::now();
                 fps_counter = 0;
             }
+            self.user_actions.tick();
             for event in event_pump.poll_iter() {
                 match event {
                     Event::Quit { .. } => {
@@ -83,9 +86,9 @@ impl MainWrapper {
                     }
                     Event::KeyDown { keycode: Some(keycode), repeat: false, .. } => self.user_actions.push_key(keycode),
                     Event::KeyUp { keycode: Some(keycode), repeat: false, .. } => self.user_actions.release_key(keycode),
-                    Event::MouseMotion { x, y, .. } => self.user_actions.move_mouse(x, y),
-                    Event::MouseButtonDown { mouse_btn, .. } => self.user_actions.push_mouse(mouse_btn),
-                    Event::MouseButtonUp { mouse_btn, .. } => self.user_actions.release_mouse(mouse_btn),
+                    Event::MouseMotion { x, y, .. } => self.user_actions.mouse.r#move(x, y),
+                    Event::MouseButtonDown { mouse_btn, .. } => self.user_actions.mouse.click(mouse_btn),
+                    Event::MouseButtonUp { mouse_btn, .. } => self.user_actions.mouse.release(mouse_btn),
                     _ => {}
                 }
             }

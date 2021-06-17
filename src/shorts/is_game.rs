@@ -50,6 +50,7 @@ pub struct _SimpleGame<'a> {
     wink: Surface<'a>,
     wink_path: &'a Path,
 
+    context: Option<BuildContext>,
     interface: Option<RootWidget>,
 }
 
@@ -62,6 +63,7 @@ impl<'a> IsGame for SimpleGame<'a> {
             0: _SimpleGame {
                 wink: Surface::load_bmp(Path::new("bpm/wink_clean.bmp")).expect("Cant load wink file"),
                 wink_path,
+                context: None,
                 interface: None,
             },
             1: Game {
@@ -83,9 +85,9 @@ impl<'a> IsGame for SimpleGame<'a> {
         canvas.clear();
 
         let (width, height) = canvas.output_size().unwrap();
-        self.0.interface = Some(RootWidget::new(
-            BuildContext::ini(texture_creator, ttf_context, rect!(width, height))
-        ));
+        let context = BuildContext::ini(texture_creator, ttf_context, rect!(width, height));
+        self.0.context.replace(context.clone());
+        self.0.interface = Some(RootWidget::new(context));
         self.1.release(canvas);
     }
 
@@ -103,6 +105,9 @@ impl<'a> IsGame for SimpleGame<'a> {
         }
         self.0.interface.as_mut().unwrap().update(_actions.clone());
         self.render();
+        if state == GameState::NOP {
+            state = self.0.context.as_ref().unwrap().state_machine.borrow().extract_state();
+        }
         state
     }
 

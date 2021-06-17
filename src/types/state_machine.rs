@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::fmt::Formatter;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
+use crate::types::utility::GameState;
 
 pub struct SimpleCore {
     pub x: u32,
@@ -73,5 +74,9 @@ impl SimpleCore {
         if self.x < bound.width() {
             self.x += 1;
         }
+    }
+
+    pub fn extract_state(&self) -> GameState {
+        GameState::NOP
     }
 }

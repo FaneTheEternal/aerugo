@@ -2,14 +2,14 @@
 
 use sdl2::mouse::MouseButton;
 use std::collections::hash_set::IntoIter;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 use sdl2::keyboard::Keycode;
 
 #[derive(Clone)]
 pub struct UserActions {
     keyboard: HashSet<Keycode>,
-    mouse: UserMouse,
+    pub mouse: UserMouse,
 }
 
 unsafe impl Send for UserActions {}
@@ -19,6 +19,10 @@ impl UserActions {
         let keyboard = HashSet::new();
         let mouse = UserMouse::new();
         UserActions {keyboard, mouse}
+    }
+
+    pub fn tick(&mut self) {
+        self.mouse.tick()
     }
 
     pub fn push_key(&mut self, key: Keycode) {
@@ -32,18 +36,6 @@ impl UserActions {
     pub fn dump_keys(&self) -> IntoIter<Keycode> {
         self.keyboard.clone().into_iter()
     }
-
-    pub fn push_mouse(&mut self, button: MouseButton) {
-        self.mouse.click(button);
-    }
-
-    pub fn release_mouse(&mut self, button: MouseButton) {
-        self.mouse.release(button);
-    }
-
-    pub fn move_mouse(&mut self, x: i32, y: i32) {
-        self.mouse.r#move(x, y);
-    }
 }
 
 
@@ -51,7 +43,8 @@ impl UserActions {
 pub struct UserMouse {
     x: i32,
     y: i32,
-    buttons: HashSet<MouseButton>,
+    buttons: HashMap<MouseButton, (i32, i32)>,
+    released: HashMap<MouseButton, ((i32, i32), (i32, i32))>,
 }
 
 unsafe impl Send for UserMouse {}
@@ -61,28 +54,27 @@ impl UserMouse {
         UserMouse{
             x: -1,
             y: -1,
-            buttons: HashSet::new()
+            buttons: Default::default(),
+            released: Default::default()
         }
     }
 
     pub fn click(&mut self, button: MouseButton) {
-        self.buttons.insert(button);
+        self.buttons.insert(button, (self.x, self.y));
     }
 
     pub fn release(&mut self, button: MouseButton) {
-        self.buttons.remove(&button);
+        let start = self.buttons.remove(&button).unwrap();
+        let end = (self.x, self.y);
+        self.released.insert(button, (start, end));
+    }
+
+    pub fn tick(&mut self) {
+        self.released.clear()
     }
 
     pub fn r#move(&mut self, x: i32, y: i32) {
         self.x = x;
         self.y = y;
-    }
-
-    pub fn left(&self) -> bool {
-        self.buttons.contains(&MouseButton::Left)
-    }
-    
-    pub fn right(&self) -> bool {
-        self.buttons.contains(&MouseButton::Right)
     }
 }
