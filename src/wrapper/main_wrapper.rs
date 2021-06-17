@@ -1,13 +1,12 @@
-use std::time::{Duration};
-
 use sdl2::{VideoSubsystem};
 use sdl2::Sdl;
 use sdl2::event::Event;
 
 use crate::control::user_actions::UserActions;
-use crate::traits::is_game::{IsGame, SimpleGame};
+use crate::shorts::is_game::{IsGame, SimpleGame};
 use crate::types::utility::GameState;
 use sdl2::image::InitFlag;
+use sdl2::render::BlendMode;
 
 
 #[allow(dead_code)]
@@ -28,7 +27,7 @@ impl MainWrapper {
     pub fn new(_pps: PpsOpt) -> MainWrapper {
         let pps = match _pps {
             Some(n) => n,
-            _ => 144u8,
+            _ => 60u8,
         };
         MainWrapper::build(pps)
     }
@@ -50,8 +49,6 @@ impl MainWrapper {
     }
 
     pub fn run(&mut self) {
-        // let (tx, rx) = mpsc::channel();
-
         let mut game = SimpleGame::new();
         let title = game.get_title();
         let window = self.video_subsystem.window(&title, 800, 600)
@@ -60,7 +57,8 @@ impl MainWrapper {
             .unwrap();
         let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG).unwrap();
         let builder = window.into_canvas();
-        let canvas = builder.build().expect("Cant create canvas");
+        let mut canvas = builder.build().expect("Cant create canvas");
+        canvas.set_blend_mode(BlendMode::Blend);
         game.init(canvas);
 
         let mut event_pump = self.sdl_context.event_pump().unwrap();
@@ -79,13 +77,11 @@ impl MainWrapper {
                     _ => {}
                 }
             }
-            let state = game.tick(&self.user_actions);
-            match state {
+            match game.tick_actions(&self.user_actions.clone()) {
                 GameState::NOP => {}
                 GameState::Exit => break 'main_loop,
                 _ => println!("Mute unexpected game state!"),
             }
-            ::std::thread::sleep(Duration::new(0, self.pps_ns));
         }
     }
 }

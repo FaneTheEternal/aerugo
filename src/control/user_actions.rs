@@ -1,17 +1,19 @@
+#![allow(dead_code)]
+
 use sdl2::mouse::MouseButton;
 use std::collections::hash_set::IntoIter;
 use std::collections::HashSet;
 
 use sdl2::keyboard::Keycode;
 
-#[allow(dead_code)]
+#[derive(Clone)]
 pub struct UserActions {
     keyboard: HashSet<Keycode>,
     mouse: UserMouse,
 }
 
+unsafe impl Send for UserActions {}
 
-#[allow(dead_code)]
 impl UserActions {
     pub fn new() -> UserActions {
         let keyboard = HashSet::new();
@@ -45,14 +47,15 @@ impl UserActions {
 }
 
 
-#[allow(dead_code)]
+#[derive(Clone)]
 pub struct UserMouse {
     x: i32,
     y: i32,
     buttons: HashSet<MouseButton>,
 }
 
-#[allow(dead_code)]
+unsafe impl Send for UserMouse {}
+
 impl UserMouse {
     pub fn new() -> UserMouse {
         UserMouse{
