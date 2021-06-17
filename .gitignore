@@ -6,3 +6,4 @@
 /msvc/
 
 *.dll
+/svgs/
