@@ -27,10 +27,17 @@ fn fmt_vec(children: &Vec<Box<dyn Widget>>) -> String {
     s
 }
 
+struct ChildrenCache {
+    base_rect: Rect,
+    self_rect: Rect,
+    children_rects: Vec<Rect>,
+}
+
 pub struct RowWidget {
     children: Vec<Box<dyn Widget>>,
 
     context: Option<BuildContext>,
+    cache: Option<ChildrenCache>,
 }
 
 impl RowWidget {
@@ -38,6 +45,7 @@ impl RowWidget {
         Box::new(RowWidget {
             children,
             context: None,
+            cache: None,
         })
     }
 }
@@ -45,6 +53,24 @@ impl RowWidget {
 impl Widget for RowWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let mut context = context;
+
+        {  // try pass with cache
+            if self.cache.is_some() {
+                let cache = self.cache.as_ref().unwrap();
+                if cache.base_rect == context.rect {
+                    let mut check = true;
+                    self.children.iter_mut().enumerate().for_each(|(i, e)| {
+                        let cached = cache.children_rects[i].clone();
+                        let child = e.update(context.with_rect(cached.clone())).unwrap();
+                        check &= cached == child;
+                    });
+                    if check {
+                        return Ok(cache.self_rect);
+                    }
+                }
+            }
+        }
+
         let mut flex_total = 0;
         let mut static_size = 0;
         self.children.iter_mut().for_each(|e| {
@@ -60,6 +86,7 @@ impl Widget for RowWidget {
         let mut x = context.rect.x();
         let mut height = 0;
         let mut flex_filled = 0;
+        let mut children_rects = Vec::new();
         self.children.iter_mut().for_each(|e| {
             let flex = e.flex() as u32;
             let mut rect = context.rect;
@@ -68,6 +95,7 @@ impl Widget for RowWidget {
                 rect = e.update(context.with_rect(rect)).unwrap();
                 x += rect.width() as i32;
                 if height < rect.height() { height = rect.height() }
+                children_rects.push(rect);
             } else {
                 let width = if flex_filled + flex == flex_total {
                     // fill all available
@@ -81,11 +109,18 @@ impl Widget for RowWidget {
                 dyn_size += rect.width();
                 if height < rect.height() { height = rect.height() }
                 flex_filled += flex;
+                children_rects.push(rect);
             }
         });
-        context.rect.resize(static_size + dyn_size, height);
-        self.context.replace(context.clone());
-        Ok(context.rect)
+        let mut rect = context.rect.clone();
+        rect.resize(static_size + dyn_size, height);
+        self.context.replace(context.with_rect(rect.clone()));
+        self.cache.replace(ChildrenCache{
+            base_rect: context.rect,
+            self_rect: rect,
+            children_rects
+        });
+        Ok(rect)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
@@ -109,11 +144,11 @@ impl Widget for RowWidget {
     }
 }
 
-
 pub struct ColumnWidget {
     children: Vec<Box<dyn Widget>>,
 
     context: Option<BuildContext>,
+    cache: Option<ChildrenCache>,
 }
 
 impl ColumnWidget {
@@ -121,6 +156,7 @@ impl ColumnWidget {
         Box::new(ColumnWidget {
             children,
             context: None,
+            cache: None,
         })
     }
 }
@@ -128,6 +164,22 @@ impl ColumnWidget {
 impl Widget for ColumnWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let mut context = context;
+        {  // try pass with cache
+            if self.cache.is_some() {
+                let cache = self.cache.as_ref().unwrap();
+                if cache.base_rect == context.rect {
+                    let mut check = true;
+                    for (i, child) in self.children.iter_mut().enumerate() {
+                        let cached = cache.children_rects.get(i).unwrap().clone();
+                        let child_rect = child.update(context.with_rect(cached.clone()))?;
+                        check &= cached == child_rect;
+                    }
+                    if check {
+                        return Ok(cache.self_rect);
+                    }
+                }
+            }
+        }
         let mut flex_total = 0;
         let mut static_size = 0;
         self.children.iter_mut().for_each(|e| {
@@ -143,6 +195,7 @@ impl Widget for ColumnWidget {
         let mut y = context.rect.y();
         let mut width = 0;
         let mut flex_filled = 0;
+        let mut children_rects = Vec::new();
         self.children.iter_mut().for_each(|e| {
             let flex = e.flex() as u32;
             if flex == 0 {
@@ -166,10 +219,17 @@ impl Widget for ColumnWidget {
                 if width < rect.width() { width = rect.width() }
                 flex_filled += flex;
             }
+            children_rects.push(e.rect());
         });
-        context.rect.resize(width, static_size + dyn_size);
-        self.context.replace(context.clone());
-        Ok(context.rect)
+        let mut rect = context.rect;
+        rect.resize(width, static_size + dyn_size);
+        self.cache.replace(ChildrenCache {
+            base_rect: context.rect,
+            self_rect: rect,
+            children_rects,
+        });
+        self.context.replace(context.with_rect(rect));
+        Ok(rect)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {

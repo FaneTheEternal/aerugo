@@ -50,7 +50,7 @@ impl RootWidget {
                 SFClosureWidget::new(Box::new(SIMPLE)),
                 None,
                 None,
-                Indent::All(0),
+                Indent::All(10),
                 Color::GRAY,
                 None,
             ),

@@ -158,6 +158,12 @@ impl Indent {
     }
 }
 
+struct ContainerCache {
+    pub base_rect: Rect,
+    pub self_rect: Rect,
+    pub child_rect: Rect,
+}
+
 pub struct ContainerWidget {
     child: Box<dyn Widget>,
 
@@ -170,6 +176,7 @@ pub struct ContainerWidget {
     flex: u8,
 
     context: Option<BuildContext>,
+    cache: Option<ContainerCache>,
 }
 
 impl ContainerWidget {
@@ -220,6 +227,7 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
+            cache: None
         })
     }
 
@@ -252,6 +260,7 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
+            cache: None
         })
     }
 
@@ -299,13 +308,38 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
+            cache: None
         })
+    }
+
+    pub fn colored(
+        child: Box<dyn Widget>,
+        color: Color) -> Box<ContainerWidget> {
+        ContainerWidget::expand(
+            child,
+            CrossAxisX::Center,
+            CrossAxisY::Center,
+            None,
+            color,
+            None,
+        )
     }
 }
 
 impl Widget for ContainerWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
+        // try pass with cache
+        if self.cache.is_some() {
+            let cache = self.cache.as_ref().unwrap();
+            if cache.base_rect == context.rect {
+                let check = self.child.update(context.with_rect(cache.child_rect))?;
+                if check == cache.child_rect {
+                    return Ok(cache.self_rect);
+                }
+            }
+        }
+
         if self.tight {
             let mut child_rect = match self.child.update(context.clone()) {
                 Ok(r) => { r }
@@ -315,6 +349,11 @@ impl Widget for ContainerWidget {
             child_rect.center_on(rect.center());
             self.child.update(context.with_rect(child_rect))?;
             self.context.replace(context.with_rect(rect));
+            self.cache.replace(ContainerCache{
+                base_rect: context.rect,
+                self_rect: rect,
+                child_rect
+            });
             Ok(rect)
         } else {
             let rect = self.indent.transform_inside(context.rect);
@@ -327,6 +366,11 @@ impl Widget for ContainerWidget {
             self.child.update(context.with_rect(child_rect))?;
             // println!("{}: {:?}|{:?}", self.fmt(), context.rect, child_rect);
             self.context.replace(context.with_rect(rect));
+            self.cache.replace(ContainerCache{
+                base_rect: context.rect,
+                self_rect: context.rect,
+                child_rect
+            });
             Ok(context.rect)
         }
     }
@@ -362,14 +406,15 @@ impl Widget for ContainerWidget {
 }
 
 pub struct BoundWidget {
-    child: Box<dyn Widget>,
+    child: Option<Box<dyn Widget>>,
     bound: Rect,
 
     context: Option<BuildContext>,
 }
 
 impl BoundWidget {
-    pub fn new(child: Box<dyn Widget>, bound: Rect) -> Box<dyn Widget> {
+    pub fn new(child: Option<Box<dyn Widget>>, bound: Rect) -> Box<dyn Widget>
+    {
         Box::new(BoundWidget { child, bound, context: None })
     }
 }
@@ -378,12 +423,16 @@ impl Widget for BoundWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let mut context = context;
         context.rect.resize(self.bound.width(), self.bound.height());
-        self.child.update(context.clone())?;
+        if self.child.is_some() {
+            self.child.as_mut().unwrap().update(context.clone())?;
+        }
         Ok(context.rect)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
-        self.child.render(canvas)
+        if self.child.is_some() {
+            self.child.as_mut().unwrap().render(canvas)
+        } else { Ok(()) }
     }
 
     fn rect(&self) -> Rect {
@@ -399,6 +448,10 @@ impl Widget for BoundWidget {
     }
 
     fn fmt(&self) -> String {
-        format!("BoundWidget({})", self.child.str())
+        let child = match &self.child {
+            Some(child) => { child.str() }
+            None => { format!("None") }
+        };
+        format!("BoundWidget({})", child)
     }
 }

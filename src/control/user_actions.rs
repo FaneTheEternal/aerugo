@@ -5,6 +5,7 @@ use std::collections::hash_set::IntoIter;
 use std::collections::{HashSet, HashMap};
 
 use sdl2::keyboard::Keycode;
+use sdl2::rect::Rect;
 
 #[derive(Clone)]
 pub struct UserActions {
@@ -76,5 +77,17 @@ impl UserMouse {
     pub fn r#move(&mut self, x: i32, y: i32) {
         self.x = x;
         self.y = y;
+    }
+
+    pub fn is_in(&self, rect: Rect) -> bool {
+        rect.contains_point((self.x, self.y))
+    }
+
+    pub fn is_pushed(&self, button: MouseButton) -> Option<(i32, i32)> {
+         self.buttons.get(&button).cloned()
+    }
+
+    pub fn is_released(&self, button: MouseButton) -> Option<((i32, i32), (i32, i32))> {
+         self.released.get(&button).cloned()
     }
 }

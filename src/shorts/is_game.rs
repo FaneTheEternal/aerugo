@@ -15,6 +15,7 @@ use crate::widgets::base::{BuildContext, Widget};
 use crate::shorts::utility::*;
 use crate::rect;
 use self::sdl2::pixels::Color;
+use std::time::Instant;
 
 
 pub trait IsGame {
@@ -103,8 +104,13 @@ impl<'a> IsGame for SimpleGame<'a> {
                 _ => {}
             }
         }
+        // println!("##############################");
+        // let mut start_time = Instant::now();
         self.0.interface.as_mut().unwrap().update(_actions.clone());
+        // println!("Update: {}ms", start_time.elapsed().as_millis());
+        // start_time = Instant::now();
         self.render();
+        // println!("Render: {}ms", start_time.elapsed().as_millis());
         if state == GameState::NOP {
             state = self.0.context.as_ref().unwrap().state_machine.borrow().extract_state();
         }
