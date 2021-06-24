@@ -2,6 +2,8 @@
 
 use crate::widgets::base::{BuildContext, Widget};
 use crate::shorts::utility::Rect;
+use crate::widgets::utility::fmt_vec;
+
 use sdl2::render::WindowCanvas;
 use std::borrow::BorrowMut;
 
@@ -18,13 +20,6 @@ fn render_vec(children: &mut Vec<Box<dyn Widget>>, canvas: &mut WindowCanvas) ->
     } else {
         Err(errors)
     }
-}
-
-fn fmt_vec(children: &Vec<Box<dyn Widget>>) -> String {
-    let mut s = String::new();
-    children.iter()
-        .for_each(|e| { s.push_str(e.str().as_str()) });
-    s
 }
 
 struct ChildrenCache {
@@ -52,7 +47,7 @@ impl RowWidget {
 
 impl Widget for RowWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
-        let mut context = context;
+        let context = context;
 
         {  // try pass with cache
             if self.cache.is_some() {
@@ -115,16 +110,22 @@ impl Widget for RowWidget {
         let mut rect = context.rect.clone();
         rect.resize(static_size + dyn_size, height);
         self.context.replace(context.with_rect(rect.clone()));
-        self.cache.replace(ChildrenCache{
+        self.cache.replace(ChildrenCache {
             base_rect: context.rect,
             self_rect: rect,
-            children_rects
+            children_rects,
         });
         Ok(rect)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         render_vec(self.children.borrow_mut(), canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.children.iter_mut().for_each(|e| {
+            e.touch();
+        });
     }
 
     fn rect(&self) -> Rect {
@@ -163,7 +164,7 @@ impl ColumnWidget {
 
 impl Widget for ColumnWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
-        let mut context = context;
+        let context = context;
         {  // try pass with cache
             if self.cache.is_some() {
                 let cache = self.cache.as_ref().unwrap();
@@ -223,6 +224,10 @@ impl Widget for ColumnWidget {
         });
         let mut rect = context.rect;
         rect.resize(width, static_size + dyn_size);
+        // println!("##{}##", self.fmt());
+        // println!("{:?}", context.rect);
+        // println!("{:?}", rect);
+        // println!("{:?}", children_rects);
         self.cache.replace(ChildrenCache {
             base_rect: context.rect,
             self_rect: rect,
@@ -234,6 +239,12 @@ impl Widget for ColumnWidget {
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         render_vec(self.children.borrow_mut(), canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.children.iter_mut().for_each(|e| {
+            e.touch();
+        })
     }
 
     fn rect(&self) -> Rect {
@@ -250,5 +261,73 @@ impl Widget for ColumnWidget {
 
     fn fmt(&self) -> String {
         format!("ColumnWidget({})", fmt_vec(self.children.as_ref()))
+    }
+}
+
+
+pub struct StackWidget {
+    children: Vec<Box<dyn Widget>>,
+    flex: u8,
+
+    context: Option<BuildContext>,
+}
+
+impl StackWidget {
+    pub fn new<Flex>(children: Vec<Box<dyn Widget>>, flex: Flex) -> Box<StackWidget>
+        where Flex: Into<Option<u8>>,
+    {
+        let flex = match flex.into() {
+            None => { 1 }
+            Some(n) => { n }
+        };
+        Box::new(StackWidget {
+            children,
+            flex,
+            context: None,
+        })
+    }
+}
+
+impl Widget for StackWidget {
+    fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
+        let context = context;
+        let mut errors = Vec::new();
+        self.children.iter_mut().for_each(|e| {
+            match e.update(context.clone()) {
+                Ok(_) => {}
+                Err(e) => { errors.push(e) }
+            }
+        });
+        if errors.is_empty() {
+            Ok(context.rect)
+        } else {
+            Err(errors.join("; "))
+        }
+    }
+
+    fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
+        render_vec(self.children.as_mut(), canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.children.iter_mut().for_each(|e| {
+            e.touch();
+        })
+    }
+
+    fn rect(&self) -> Rect {
+        self.context.as_ref().unwrap().rect
+    }
+
+    fn flex(&self) -> u8 {
+        self.flex
+    }
+
+    fn str(&self) -> String {
+        format!("StackWidget")
+    }
+
+    fn fmt(&self) -> String {
+        format!("StackWidget({})", fmt_vec(self.children.as_ref()))
     }
 }

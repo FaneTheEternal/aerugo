@@ -1,4 +1,5 @@
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
+
 extern crate sdl2;
 
 use sdl2::keyboard::Keycode;
@@ -100,19 +101,32 @@ impl<'a> IsGame for SimpleGame<'a> {
         let mut state = GameState::NOP;
         for key in _actions.dump_keys() {
             match key {
-                Keycode::Escape => state = GameState::Exit,
+                Keycode::Escape => { state = GameState::Exit }
                 _ => {}
             }
         }
-        // println!("##############################");
-        // let mut start_time = Instant::now();
-        self.0.interface.as_mut().unwrap().update(_actions.clone());
-        // println!("Update: {}ms", start_time.elapsed().as_millis());
-        // start_time = Instant::now();
-        self.render();
-        // println!("Render: {}ms", start_time.elapsed().as_millis());
-        if state == GameState::NOP {
-            state = self.0.context.as_ref().unwrap().state_machine.borrow().extract_state();
+        if _actions.old_keyboard.contains(&Keycode::N) | true {
+            const DEBUG_FRAME: bool = false;
+            const DEBUG_FRAME_PARTIAL: bool = false;
+            if DEBUG_FRAME | DEBUG_FRAME_PARTIAL { println!("##############################") }
+            let mut start_time = Instant::now();
+            let time = Instant::now();
+            self.0.interface.as_mut().unwrap().update(_actions.clone());
+            if DEBUG_FRAME_PARTIAL {
+                println!("Update: {}ms", start_time.elapsed().as_millis());
+                start_time = Instant::now();
+            }
+            self.render();
+            if DEBUG_FRAME_PARTIAL {
+                println!("Render: {}ms", start_time.elapsed().as_millis());
+                start_time = Instant::now();
+            }
+            self.0.interface.as_mut().unwrap().touch();
+            if DEBUG_FRAME_PARTIAL { println!("Touch: {}ms", start_time.elapsed().as_millis()) }
+            if DEBUG_FRAME { println!("Frame time: {}ms", time.elapsed().as_millis()) }
+            if state == GameState::NOP {
+                state = self.0.context.as_ref().unwrap().state_machine.borrow().extract_state();
+            }
         }
         state
     }

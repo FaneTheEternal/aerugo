@@ -59,7 +59,10 @@ impl MainWrapper {
             .build()
             .unwrap();
         let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG).unwrap();
-        let builder = window.into_canvas();
+        let mut builder = window.into_canvas();
+        // builder = builder.software();
+        builder = builder.accelerated();
+        builder = builder.target_texture();
         let mut canvas = builder.build().expect("Cant create canvas");
         canvas.set_blend_mode(BlendMode::Blend);
 

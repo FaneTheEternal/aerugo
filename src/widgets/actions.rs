@@ -4,6 +4,8 @@ use crate::widgets::base::{BuildContext, Widget};
 use crate::shorts::utility::Rect;
 use sdl2::render::WindowCanvas;
 use sdl2::mouse::MouseButton;
+use crate::widgets::container::ContainerWidget;
+use crate::widgets::text::TextWidget;
 
 pub type ActionClosure = Box<dyn FnMut(BuildContext)>;
 
@@ -27,12 +29,16 @@ impl ActionWidget {
 impl Widget for ActionWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
-        (self.closure)(context.clone());
         self.child.update(context)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         self.child.render(canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        (self.closure)(self.context.as_ref().unwrap().clone());
+        self.child.touch()
     }
 
     fn rect(&self) -> Rect {
@@ -106,6 +112,17 @@ impl ButtonWidget {
             ButtonWidget::stub(),
         )
     }
+
+    pub fn text_button_simple(text: String,
+                              on_clicked: ButtonClosure,
+    ) -> Box<ButtonWidget> {
+        ButtonWidget::simple(
+            ContainerWidget::center(
+                TextWidget::simple(text)
+            ),
+            on_clicked
+        )
+    }
 }
 
 impl Widget for ButtonWidget {
@@ -140,11 +157,31 @@ impl Widget for ButtonWidget {
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         let res = self.child.render(canvas);
-        if self.is_hover { (self.on_hover)(self.context.as_ref().unwrap().clone()) }
-        if self.is_free { (self.on_free)(self.context.as_ref().unwrap().clone()) }
-        if self.is_click { (self.on_click)(self.context.as_ref().unwrap().clone()) }
-        if self.is_clicked { (self.on_clicked)(self.context.as_ref().unwrap().clone()) }
         res
+    }
+
+    fn touch(self: &mut Self) {
+        if self.is_hover {
+            // println!("is_hover");
+            (self.on_hover)(self.context.as_ref().unwrap().clone());
+            self.is_hover = false;
+        }
+        if self.is_free {
+            // println!("is_free");
+            (self.on_free)(self.context.as_ref().unwrap().clone());
+            self.is_free = false;
+        }
+        if self.is_click {
+            // println!("is_click");
+            (self.on_click)(self.context.as_ref().unwrap().clone());
+            self.is_click = false;
+        }
+        if self.is_clicked {
+            // println!("is_clicked");
+            (self.on_clicked)(self.context.as_ref().unwrap().clone());
+            self.is_clicked = false;
+        }
+        self.child.touch();
     }
 
     fn rect(&self) -> Rect {

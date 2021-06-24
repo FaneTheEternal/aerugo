@@ -9,7 +9,8 @@ use sdl2::rect::Rect;
 
 #[derive(Clone)]
 pub struct UserActions {
-    keyboard: HashSet<Keycode>,
+    pub keyboard: HashSet<Keycode>,
+    pub old_keyboard: HashSet<Keycode>,
     pub mouse: UserMouse,
 }
 
@@ -17,13 +18,16 @@ unsafe impl Send for UserActions {}
 
 impl UserActions {
     pub fn new() -> UserActions {
-        let keyboard = HashSet::new();
-        let mouse = UserMouse::new();
-        UserActions {keyboard, mouse}
+        UserActions {
+            keyboard: Default::default(),
+            old_keyboard: Default::default(),
+            mouse: UserMouse::new(),
+        }
     }
 
     pub fn tick(&mut self) {
-        self.mouse.tick()
+        self.old_keyboard.clear();
+        self.mouse.tick();
     }
 
     pub fn push_key(&mut self, key: Keycode) {
@@ -32,6 +36,7 @@ impl UserActions {
 
     pub fn release_key(&mut self, key: Keycode) {
         self.keyboard.remove(&key);
+        self.old_keyboard.insert(key);
     }
 
     pub fn dump_keys(&self) -> IntoIter<Keycode> {
@@ -52,11 +57,11 @@ unsafe impl Send for UserMouse {}
 
 impl UserMouse {
     pub fn new() -> UserMouse {
-        UserMouse{
+        UserMouse {
             x: -1,
             y: -1,
             buttons: Default::default(),
-            released: Default::default()
+            released: Default::default(),
         }
     }
 
@@ -84,10 +89,10 @@ impl UserMouse {
     }
 
     pub fn is_pushed(&self, button: MouseButton) -> Option<(i32, i32)> {
-         self.buttons.get(&button).cloned()
+        self.buttons.get(&button).cloned()
     }
 
     pub fn is_released(&self, button: MouseButton) -> Option<((i32, i32), (i32, i32))> {
-         self.released.get(&button).cloned()
+        self.released.get(&button).cloned()
     }
 }

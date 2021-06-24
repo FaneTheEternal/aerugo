@@ -8,8 +8,9 @@ use crate::widgets::text::TextWidget;
 use crate::widgets::container::*;
 use sdl2::pixels::Color;
 use crate::widgets::flex::*;
-use crate::widgets::closure::{ClosureWidget, SFClosureWidget, SLClosuresWidget};
+use crate::widgets::closure::*;
 use crate::widgets::snippets::*;
+use crate::fabula::widgets::base::{READ_MODE, FABULA_TEST};
 
 pub struct RootWidget {
     context: BuildContext,
@@ -24,6 +25,10 @@ impl Widget for RootWidget {
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         self.child.render(canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.child.touch()
     }
 
     fn rect(&self) -> Rect {
@@ -46,11 +51,12 @@ impl RootWidget {
         RootWidget {
             context,
             child: ContainerWidget::expand(
-                // SLClosuresWidget::new(Box::new(COLUMN3)),
-                SFClosureWidget::new(Box::new(SIMPLE)),
+                SFClosureWidget::new(Box::new(FABULA_TEST)),
+                // SFClosureWidget::new(Box::new(SIMPLE)),
+                // SLClosuresWidget::new(Box::new(READ_MODE)),
                 None,
                 None,
-                Indent::All(10),
+                Indent::All(0),
                 Color::GRAY,
                 None,
             ),

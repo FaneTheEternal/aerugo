@@ -41,6 +41,10 @@ impl Widget for ClosureWidget {
         self.calculated.as_mut().unwrap().render(canvas)
     }
 
+    fn touch(self: &mut Self) {
+        self.calculated.as_mut().unwrap().touch()
+    }
+
     fn rect(&self) -> Rect {
         self.calculated.as_ref().unwrap().rect()
     }
@@ -58,7 +62,10 @@ impl Widget for ClosureWidget {
     }
 }
 
-pub type SLClosure = Box<fn(BuildContext) -> Box<dyn Widget>>;
+/// Type for defining
+pub type _SLClosure = fn(BuildContext) -> Box<dyn Widget>;
+
+pub type SLClosure = Box<dyn FnMut(BuildContext) -> Box<dyn Widget>>;
 
 /// Stateless widget
 /// what build once time
@@ -93,6 +100,10 @@ impl Widget for SLClosuresWidget {
         self.calculated.as_mut().unwrap().render(canvas)
     }
 
+    fn touch(self: &mut Self) {
+        self.calculated.as_mut().unwrap().touch()
+    }
+
     fn rect(&self) -> Rect {
         self.calculated.as_ref().unwrap().rect()
     }
@@ -111,7 +122,9 @@ impl Widget for SLClosuresWidget {
 }
 
 pub type SFKey = Uuid;
-pub type SFClosure = Box<fn(BuildContext, SFKey) -> Box<dyn Widget>>;
+/// Type for defining
+pub type _SFClosure = fn(BuildContext, SFKey) -> Box<dyn Widget>;
+pub type SFClosure = Box<dyn FnMut(BuildContext, SFKey) -> Box<dyn Widget>>;
 
 pub struct SFClosureWidget{
     closure: SFClosure,
@@ -146,6 +159,10 @@ impl Widget for SFClosureWidget {
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
         self.calculated.as_mut().unwrap().render(canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.calculated.as_mut().unwrap().touch()
     }
 
     fn rect(&self) -> Rect {

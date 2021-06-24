@@ -118,6 +118,10 @@ impl Widget for TextWidget {
         canvas.copy(&texture, src, context.rect)
     }
 
+    fn touch(self: &mut Self) {
+        ()
+    }
+
     fn rect(&self) -> Rect {
         self.context.as_ref().unwrap().rect
     }

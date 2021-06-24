@@ -7,13 +7,14 @@ use std::rc::Rc;
 use crate::control::user_actions::UserActions;
 use sdl2::ttf::Sdl2TtfContext;
 use std::cell::RefCell;
-use crate::types::state_machine::SimpleCore;
 use std::collections::HashMap;
 use uuid::Uuid;
+use crate::fabula::core::CoreMachine;
 
 pub trait Widget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String>;
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String>;
+    fn touch(self: &mut Self);
     fn rect(&self) -> Rect;
     fn flex(&self) -> u8;
     fn str(&self) -> String;
@@ -30,7 +31,7 @@ pub struct BuildContext {
 
     pub widgets_states: Rc<RefCell<WidgetsStatesInspector>>,
 
-    pub state_machine: Rc<RefCell<SimpleCore>>,
+    pub state_machine: Rc<RefCell<CoreMachine>>,
 }
 
 impl BuildContext {
@@ -45,7 +46,7 @@ impl BuildContext {
             rect,
             abs_rect: Rc::new(rect),
             widgets_states: Rc::new(RefCell::new(WidgetsStatesInspector::new())),
-            state_machine: SimpleCore::new(),
+            state_machine: Rc::new(RefCell::new(CoreMachine::new())),
         }
     }
 

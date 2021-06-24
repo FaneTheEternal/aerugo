@@ -171,6 +171,7 @@ pub struct ContainerWidget {
     cross_axis_y: CrossAxisY,
     indent: Indent,
     color: Color,
+    supposed: bool,
     tight: bool,
 
     flex: u8,
@@ -227,7 +228,8 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
-            cache: None
+            cache: None,
+            supposed: color.a == 0,
         })
     }
 
@@ -260,7 +262,8 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
-            cache: None
+            cache: None,
+            supposed: color.a == 0,
         })
     }
 
@@ -308,8 +311,20 @@ impl ContainerWidget {
             context: None,
             tight,
             flex,
-            cache: None
+            cache: None,
+            supposed: color.a == 0,
         })
+    }
+
+    pub fn center(child: Box<dyn Widget>) -> Box<ContainerWidget> {
+        ContainerWidget::expand(
+            child,
+            CrossAxisX::Center,
+            CrossAxisY::Center,
+            None,
+            None,
+            None,
+        )
     }
 
     pub fn colored(
@@ -349,10 +364,10 @@ impl Widget for ContainerWidget {
             child_rect.center_on(rect.center());
             self.child.update(context.with_rect(child_rect))?;
             self.context.replace(context.with_rect(rect));
-            self.cache.replace(ContainerCache{
+            self.cache.replace(ContainerCache {
                 base_rect: context.rect,
                 self_rect: rect,
-                child_rect
+                child_rect,
             });
             Ok(rect)
         } else {
@@ -366,26 +381,28 @@ impl Widget for ContainerWidget {
             self.child.update(context.with_rect(child_rect))?;
             // println!("{}: {:?}|{:?}", self.fmt(), context.rect, child_rect);
             self.context.replace(context.with_rect(rect));
-            self.cache.replace(ContainerCache{
+            self.cache.replace(ContainerCache {
                 base_rect: context.rect,
                 self_rect: context.rect,
-                child_rect
+                child_rect,
             });
             Ok(context.rect)
         }
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
-        let rect = self.rect();
-        let color = canvas.draw_color();
-        canvas.set_draw_color(self.color);
-        if self.tight {
-            canvas.fill_rect(self.child.rect())?;
-        } else {
+        if !self.supposed {
+            let rect = self.rect();
+            let color = canvas.draw_color();
+            canvas.set_draw_color(self.color);
             canvas.fill_rect(rect)?;
+            canvas.set_draw_color(color);
         }
-        canvas.set_draw_color(color);
         self.child.render(canvas)
+    }
+
+    fn touch(self: &mut Self) {
+        self.child.touch()
     }
 
     fn rect(&self) -> Rect {
@@ -433,6 +450,13 @@ impl Widget for BoundWidget {
         if self.child.is_some() {
             self.child.as_mut().unwrap().render(canvas)
         } else { Ok(()) }
+    }
+
+    fn touch(self: &mut Self) {
+        match &mut self.child {
+            None => {}
+            Some(c) => { c.touch() }
+        }
     }
 
     fn rect(&self) -> Rect {
