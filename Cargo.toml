@@ -2,6 +2,7 @@
 name = "aerugo"
 version = "0.1.0"
 authors = ["FaneTheEternal <artemyev.vova@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
+bevy = "0.6"
