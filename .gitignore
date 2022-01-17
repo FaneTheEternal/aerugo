@@ -1,9 +1,3 @@
 /target
 
 /.idea/
-
-/gnu-mingw/
-/msvc/
-
-*.dll
-/svgs/
