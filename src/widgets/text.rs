@@ -1,11 +1,19 @@
 #![allow(dead_code)]
 
-use crate::widgets::base::{Widget, BuildContext};
+use crate::widgets::base::{_Widget, BuildContext};
 use crate::shorts::utility::Rect;
 use sdl2::render::{WindowCanvas};
 use sdl2::ttf::{FontStyle};
 use sdl2::pixels::Color;
 use sdl2::surface::Surface;
+
+struct TextCache {
+    /// source rect
+    base_rect: Rect,
+    /// result rect
+    self_rect: Rect,
+    surface: Surface<'static>,
+}
 
 pub struct TextWidget {
     data: String,
@@ -16,7 +24,7 @@ pub struct TextWidget {
 
     context: Option<BuildContext>,
 
-    is_init: bool,
+    cache: Option<TextCache>,
 
 }
 
@@ -38,7 +46,7 @@ impl TextWidget {
         };
         let font_size = match font_size.into() {
             Some(s) => s,
-            None => 20,
+            None => 10,
         };
         let font_style = match font_style.into() {
             Some(s) => s,
@@ -55,7 +63,7 @@ impl TextWidget {
             font_style,
             font_color,
             context: None,
-            is_init: false,
+            cache: None,
         })
     }
 
@@ -70,45 +78,59 @@ fn text_surface(context: BuildContext,
                 font_size: u16,
                 font_style: FontStyle,
                 font_color: Color,
+                max_width: u32,
 ) -> Result<Surface<'static>, String> {
     let context = context;
     let abs_rect = context.abs_rect;
     let abs = (abs_rect.width() + abs_rect.height()) / 2;
-    let font_size = abs as u16 * font_size / 1000;
+    let font_size = abs as u16 * font_size / 100;
     let mut font = context.ttf_context.load_font(font, font_size)?;
     font.set_style(font_style);
 
     let surface = font
         .render(text)
-        .blended(font_color);
+        .blended_wrapped(font_color, max_width);
     match surface {
         Ok(surface) => { Ok(surface) }
         Err(e) => { Err(e.to_string()) }
     }
 }
 
-impl Widget for TextWidget {
+impl _Widget for TextWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
-        let mut context = context;
+        let context = context;
+
+        {  // try pass with cache
+            if self.cache.is_some() {
+                let cache = self.cache.as_ref().unwrap();
+                if cache.base_rect == context.rect {
+                    return Ok(cache.self_rect);
+                }
+            }
+        }
+
         let surface = text_surface(
             context.clone(), self.data.as_str(), self.font.clone(),
-            self.font_size, self.font_style, self.font_color)?;
-        let rect = surface.rect();
-        if context.rect.width() > rect.width() {
-            context.rect.set_width(rect.width());
+            self.font_size, self.font_style, self.font_color, context.rect.width())?;
+        let mut rect = surface.rect();
+        rect.reposition(context.rect.top_left());
+        if rect.height() > context.rect.height() {
+            rect.set_height(context.rect.height());
         }
-        if context.rect.height() > rect.height() {
-            context.rect.set_height(rect.height());
-        }
-        self.context.replace(context.clone());
-        Ok(context.rect)
+        self.context.replace(context.with_rect(rect));
+
+        self.cache.replace(TextCache {
+            base_rect: context.rect,
+            self_rect: rect,
+            surface,
+        });
+        Ok(rect)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
+        // return Ok(());
         let context = self.context.as_ref().unwrap().clone();
-        let surface = text_surface(
-            context.clone(), self.data.as_str(), self.font.clone(),
-            self.font_size, self.font_style, self.font_color)?;
+        let surface = self.cache.as_ref().unwrap().surface.as_ref();
         let texture = match context.creator.create_texture_from_surface(surface) {
             Ok(t) => { t }
             Err(e) => { return Err(e.to_string()); }

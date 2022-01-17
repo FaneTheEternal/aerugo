@@ -10,8 +10,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use uuid::Uuid;
 use crate::fabula::core::CoreMachine;
+use crate::wrapper::main_wrapper::SVGPreload;
+use crate::wrapper::aerugo_wrapper::AerugoCore;
 
-pub trait Widget {
+pub trait _Widget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String>;
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String>;
     fn touch(self: &mut Self);
@@ -21,9 +23,12 @@ pub trait Widget {
     fn fmt(&self) -> String;
 }
 
+/// type of typical widget
+pub type Widget = Box<dyn _Widget>;
+
 #[derive(Clone)]
 pub struct BuildContext {
-    pub interactions: Option<UserActions>,
+    pub interactions: Option<Rc<UserActions>>,
     pub creator: Rc<TextureCreator<WindowContext>>,
     pub ttf_context: Rc<Sdl2TtfContext>,
     pub rect: Rect,
@@ -32,13 +37,19 @@ pub struct BuildContext {
     pub widgets_states: Rc<RefCell<WidgetsStatesInspector>>,
 
     pub state_machine: Rc<RefCell<CoreMachine>>,
+    pub aerugo: Rc<RefCell<AerugoCore>>,
+
+    pub svgs: Rc<SVGPreload>,
 }
 
 impl BuildContext {
     pub fn ini(creator: Rc<TextureCreator<WindowContext>>,
-               ttf_context: Rc<Sdl2TtfContext>,
                rect: Rect,
+               svgs: SVGPreload,
+               aerugo: Rc<RefCell<AerugoCore>>,
     ) -> BuildContext {
+        let aerugo = aerugo;
+        let ttf_context: Rc<Sdl2TtfContext> = aerugo.borrow_mut().ttf_context.clone();
         BuildContext {
             interactions: None,
             creator,
@@ -47,11 +58,13 @@ impl BuildContext {
             abs_rect: Rc::new(rect),
             widgets_states: Rc::new(RefCell::new(WidgetsStatesInspector::new())),
             state_machine: Rc::new(RefCell::new(CoreMachine::new())),
+            aerugo,
+            svgs: Rc::new(svgs),
         }
     }
 
     pub fn update(&mut self, interactions: UserActions) {
-        self.interactions = Some(interactions)
+        self.interactions.replace(Rc::from(interactions));
     }
 
     pub fn with_rect(&self, rect: Rect) -> BuildContext {
@@ -85,5 +98,48 @@ impl WidgetsStatesInspector {
         if self.states.contains_key(&key) {
             self.states.insert(key, true);
         }
+    }
+}
+
+/// Simple widget stub
+/// with size (0, 0)
+pub struct StubWidget {
+    context: Option<BuildContext>,
+}
+
+impl StubWidget {
+    pub fn new() -> Widget {
+        Box::new(StubWidget { context: None })
+    }
+}
+
+impl _Widget for StubWidget {
+    fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
+        let mut context = context;
+        context.rect.resize(0, 0);
+        self.context.replace(context);
+        Ok(self.rect())
+    }
+
+    fn render(self: &mut Self, _canvas: &mut WindowCanvas) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn touch(self: &mut Self) {}
+
+    fn rect(&self) -> Rect {
+        self.context.as_ref().unwrap().rect
+    }
+
+    fn flex(&self) -> u8 {
+        0
+    }
+
+    fn str(&self) -> String {
+        format!("StubWidget")
+    }
+
+    fn fmt(&self) -> String {
+        format!("StubWidget")
     }
 }

@@ -1,56 +1,54 @@
 #![allow(dead_code)]
 
-use crate::widgets::base::{BuildContext, Widget};
+use crate::widgets::base::{BuildContext, _Widget, Widget};
 use crate::shorts::utility::Rect;
 use sdl2::render::WindowCanvas;
 use uuid::Uuid;
 
-pub type ClosureType = Box<fn(BuildContext) -> Box<dyn Widget>>;
+pub type _Closure = fn(BuildContext);
+pub type Closure = Box<dyn FnMut(BuildContext)>;
 
 pub struct ClosureWidget {
-    closure: ClosureType,
-    calculated: Option<Box<dyn Widget>>,
+    child: Widget,
+    closure: Closure,
 
     context: Option<BuildContext>,
 }
 
 impl ClosureWidget {
-    pub fn new(closure: ClosureType) -> Box<ClosureWidget> {
-        Box::new(ClosureWidget{
+    pub fn new(child: Widget, closure: Closure) -> Box<ClosureWidget> {
+        Box::new(ClosureWidget {
+            child,
             closure,
-            calculated: None,
-            context: None
+            context: None,
         })
-    }
-
-    fn build(&self) -> Box<dyn Widget> {
-        let context = self.context.as_ref().unwrap().clone();
-        (self.closure)(context)
     }
 }
 
-impl Widget for ClosureWidget {
+impl _Widget for ClosureWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         self.context.replace(context.clone());
-        self.calculated.replace(self.build());
-        self.calculated.as_mut().unwrap().update(context)
+        self.child.update(context)
     }
 
     fn render(self: &mut Self, canvas: &mut WindowCanvas) -> Result<(), String> {
-        self.calculated.as_mut().unwrap().render(canvas)
+        self.child.render(canvas)
     }
 
     fn touch(self: &mut Self) {
-        self.calculated.as_mut().unwrap().touch()
+        self.child.touch();
+        if self.context.is_some() {
+            (self.closure)(self.context.clone().unwrap())
+        }
     }
 
     fn rect(&self) -> Rect {
-        self.calculated.as_ref().unwrap().rect()
+        self.child.rect()
     }
 
     fn flex(&self) -> u8 {
-        self.calculated.as_ref().unwrap().flex()
+        self.child.flex()
     }
 
     fn str(&self) -> String {
@@ -58,35 +56,35 @@ impl Widget for ClosureWidget {
     }
 
     fn fmt(&self) -> String {
-        format!("ClosuresWidget{{{}}}", self.calculated.as_ref().unwrap().fmt())
+        format!("ClosuresWidget({})", self.child.str())
     }
 }
 
 /// Type for defining
-pub type _SLClosure = fn(BuildContext) -> Box<dyn Widget>;
+pub type _SLClosure = fn(BuildContext) -> Widget;
 
-pub type SLClosure = Box<dyn FnMut(BuildContext) -> Box<dyn Widget>>;
+pub type SLClosure = Box<dyn FnMut(BuildContext) -> Box<dyn _Widget>>;
 
 /// Stateless widget
 /// what build once time
-pub struct SLClosuresWidget {
+pub struct SLClosureWidget {
     closure: SLClosure,
-    calculated: Option<Box<dyn Widget>>,
+    calculated: Option<Box<dyn _Widget>>,
 
     context: Option<BuildContext>,
 }
 
-impl SLClosuresWidget {
-    pub fn new(closure: SLClosure) -> Box<dyn Widget> {
-        Box::new(SLClosuresWidget{
+impl SLClosureWidget {
+    pub fn new(closure: SLClosure) -> Widget {
+        Box::new(SLClosureWidget {
             closure,
             calculated: None,
-            context: None
+            context: None,
         })
     }
 }
 
-impl Widget for SLClosuresWidget {
+impl _Widget for SLClosureWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         if self.calculated.is_none() {
@@ -123,12 +121,12 @@ impl Widget for SLClosuresWidget {
 
 pub type SFKey = Uuid;
 /// Type for defining
-pub type _SFClosure = fn(BuildContext, SFKey) -> Box<dyn Widget>;
-pub type SFClosure = Box<dyn FnMut(BuildContext, SFKey) -> Box<dyn Widget>>;
+pub type _SFClosure = fn(BuildContext, SFKey) -> Widget;
+pub type SFClosure = Box<dyn FnMut(BuildContext, SFKey) -> Box<dyn _Widget>>;
 
-pub struct SFClosureWidget{
+pub struct SFClosureWidget {
     closure: SFClosure,
-    calculated: Option<Box<dyn Widget>>,
+    calculated: Option<Box<dyn _Widget>>,
     key: SFKey,
 
     context: Option<BuildContext>,
@@ -136,22 +134,22 @@ pub struct SFClosureWidget{
 
 impl SFClosureWidget {
     pub fn new(closure: SFClosure) -> Box<SFClosureWidget> {
-        Box::new(SFClosureWidget{
+        Box::new(SFClosureWidget {
             closure,
             calculated: None,
             key: Uuid::new_v4(),
-            context: None
+            context: None,
         })
     }
 }
 
-impl Widget for SFClosureWidget {
+impl _Widget for SFClosureWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         let wanna_update = context.widgets_states.borrow().known_state(self.key);
         if self.calculated.is_none() || wanna_update {
             context.widgets_states.borrow_mut().register(self.key);
-            let inner: Box<dyn Widget> = (self.closure)(context.clone(), self.key);
+            let inner: Widget = (self.closure)(context.clone(), self.key);
             self.calculated.replace(inner);
         }
         self.calculated.as_mut().unwrap().update(context)

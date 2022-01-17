@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::sync::mpsc::TryRecvError;
+
 #[derive(PartialEq)]
 pub enum GameState {
     None,
@@ -13,11 +15,11 @@ pub enum Settings {
     },
     ReSize {
         size: ScreenSize
-    }
+    },
 }
 
 pub struct ScreenSize {
-    ratio: Ratio
+    ratio: Ratio,
 }
 
 pub trait RatioTrait {
@@ -67,3 +69,52 @@ pub enum FourToThree {
 //         }
 //     }
 // }
+
+pub struct FutureLoader<T: 'static + Send + Clone> {
+    loaded: Option<T>,
+    taker: std::sync::mpsc::Receiver<T>,
+    killer: std::sync::mpsc::Sender<()>,
+}
+
+impl<T: Send + Clone> FutureLoader<T> {
+    pub fn make(f: fn() -> T) -> FutureLoader<T>
+    {
+        let (sv, rv) = std::sync::mpsc::channel();
+        let (sk, rk) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            sv.send(f()).unwrap();
+            rk.recv().unwrap();
+        });
+        FutureLoader {
+            loaded: None,
+            taker: rv,
+            killer: sk,
+        }
+    }
+
+    pub fn loaded(&self) -> bool {
+        self.loaded.is_some()
+    }
+
+    pub fn value(&self) -> T {
+        self.loaded.clone().unwrap()
+    }
+
+    pub fn touch(&mut self) -> Option<T> {
+        match self.taker.try_recv() {
+            Ok(v) => {
+                self.killer.send(()).unwrap();
+                self.loaded.replace(v);
+                self.loaded.clone()
+            }
+            Err(e) => {
+                match e {
+                    TryRecvError::Empty => { None }
+                    TryRecvError::Disconnected => {
+                        self.loaded.clone()
+                    }
+                }
+            }
+        }
+    }
+}

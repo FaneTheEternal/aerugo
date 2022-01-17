@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::widgets::base::{BuildContext, Widget};
+use crate::widgets::base::{BuildContext, _Widget, Widget, StubWidget};
 use crate::shorts::utility::*;
 use crate::rect;
 
@@ -165,7 +165,7 @@ struct ContainerCache {
 }
 
 pub struct ContainerWidget {
-    child: Box<dyn Widget>,
+    child: Widget,
 
     cross_axis_x: CrossAxisX,
     cross_axis_y: CrossAxisY,
@@ -182,7 +182,7 @@ pub struct ContainerWidget {
 
 impl ContainerWidget {
     pub fn new<CrossAxisX_, CrossAxisY_, Indent_, Color_, Flex_>(
-        child: Box<dyn Widget>,
+        child: Widget,
         cross_axis_x: CrossAxisX_,
         cross_axis_y: CrossAxisY_,
         indent: Indent_,
@@ -234,7 +234,7 @@ impl ContainerWidget {
     }
 
     pub fn tight<Indent_, Color_>(
-        child: Box<dyn Widget>,
+        child: Widget,
         indent: Indent_,
         color: Color_, ) -> Box<ContainerWidget>
         where
@@ -268,7 +268,7 @@ impl ContainerWidget {
     }
 
     pub fn expand<CrossAxisX_, CrossAxisY_, Indent_, Color_, Flex_>(
-        child: Box<dyn Widget>,
+        child: Widget,
         cross_axis_x: CrossAxisX_,
         cross_axis_y: CrossAxisY_,
         indent: Indent_,
@@ -316,7 +316,7 @@ impl ContainerWidget {
         })
     }
 
-    pub fn center(child: Box<dyn Widget>) -> Box<ContainerWidget> {
+    pub fn center(child: Widget) -> Box<ContainerWidget> {
         ContainerWidget::expand(
             child,
             CrossAxisX::Center,
@@ -328,7 +328,7 @@ impl ContainerWidget {
     }
 
     pub fn colored(
-        child: Box<dyn Widget>,
+        child: Widget,
         color: Color) -> Box<ContainerWidget> {
         ContainerWidget::expand(
             child,
@@ -339,9 +339,44 @@ impl ContainerWidget {
             None,
         )
     }
+
+    pub fn expand_filler<Flex>(flex: Flex) -> Widget
+    where Flex: Into<Option<u8>>,
+    {
+        ContainerWidget::expand(
+            StubWidget::new(),
+            None,
+            None,
+            None,
+            None,
+            flex,
+        )
+    }
+
+    pub fn expand_wrap(child: Widget) -> Widget {
+        ContainerWidget::expand(
+            child,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+    }
+
+    pub fn expand_indent(child: Widget, indent: Indent) -> Widget {
+        ContainerWidget::expand(
+            child,
+            None,
+            None,
+            indent,
+            None,
+            None,
+        )
+    }
 }
 
-impl Widget for ContainerWidget {
+impl _Widget for ContainerWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         // try pass with cache
@@ -423,20 +458,20 @@ impl Widget for ContainerWidget {
 }
 
 pub struct BoundWidget {
-    child: Option<Box<dyn Widget>>,
+    child: Option<Box<dyn _Widget>>,
     bound: Rect,
 
     context: Option<BuildContext>,
 }
 
 impl BoundWidget {
-    pub fn new(child: Option<Box<dyn Widget>>, bound: Rect) -> Box<dyn Widget>
+    pub fn new(child: Option<Box<dyn _Widget>>, bound: Rect) -> Widget
     {
         Box::new(BoundWidget { child, bound, context: None })
     }
 }
 
-impl Widget for BoundWidget {
+impl _Widget for BoundWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let mut context = context;
         context.rect.resize(self.bound.width(), self.bound.height());

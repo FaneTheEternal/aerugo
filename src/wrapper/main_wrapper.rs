@@ -9,7 +9,11 @@ use crate::shorts::is_game::{IsGame, SimpleGame};
 use crate::types::utility::GameState;
 
 use std::time::{Instant, Duration};
-use std::{thread};
+use std::{thread, fs};
+use std::path::Path;
+use std::collections::HashMap;
+use usvg::Tree;
+use std::borrow::BorrowMut;
 
 
 #[allow(dead_code)]
@@ -56,6 +60,8 @@ impl MainWrapper {
         let title = game.get_title();
         let window = self.video_subsystem.window(&title, 800, 600)
             .position_centered()
+            // .fullscreen_desktop()
+            .allow_highdpi()
             .build()
             .unwrap();
         let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG).unwrap();
@@ -65,6 +71,9 @@ impl MainWrapper {
         builder = builder.target_texture();
         let mut canvas = builder.build().expect("Cant create canvas");
         canvas.set_blend_mode(BlendMode::Blend);
+
+        let svg = load_svg();
+        game.pre_load(svg);
 
         game.init(canvas);
 
@@ -110,4 +119,42 @@ impl MainWrapper {
             thread::sleep(Duration::from_nanos(self.pps_ns));
         }
     }
+}
+
+pub type SVGPreload = HashMap<(String, String), Tree>;
+pub type SVGPreloadSerialized = HashMap<(String, String), String>;
+
+pub fn load_svg() -> SVGPreload {
+    let mut svgs = HashMap::new();
+
+    fn load_type(svgs: &mut SVGPreload, r#type: String) {
+        let svg_root: &Path = Path::new("./svgs/");
+
+        let mut opt = usvg::Options::default();
+        opt.fontdb.load_system_fonts();
+
+        for entry in fs::read_dir(svg_root.join(r#type)).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+
+            let clazz: String = path.parent().unwrap()
+                .file_name().unwrap()
+                .to_str().unwrap().to_string();
+            let name = path.file_name().unwrap()
+                .to_str().unwrap().to_string();
+            let svg = (clazz, name);
+
+            let svg_data = std::fs::read(&path).unwrap();
+            let rtree = usvg::Tree::from_data(&svg_data, &opt).unwrap();
+
+            svgs.insert(svg, rtree);
+        }
+    }
+
+    // regular
+    load_type(svgs.borrow_mut(), String::from("regular"));
+    // solid
+    load_type(svgs.borrow_mut(), String::from("solid"));
+
+    svgs
 }

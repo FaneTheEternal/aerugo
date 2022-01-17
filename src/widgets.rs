@@ -7,3 +7,6 @@ pub mod container;
 pub mod closure;
 pub mod snippets;
 pub mod actions;
+pub mod svg;
+pub mod prelude;
+pub(crate) mod aerugo;

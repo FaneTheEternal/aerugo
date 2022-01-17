@@ -11,12 +11,15 @@ use std::sync::Mutex;
 use std::rc::Rc;
 use sdl2::render::WindowCanvas;
 use crate::widgets::root::RootWidget;
-use crate::widgets::base::{BuildContext, Widget};
+use crate::widgets::base::{BuildContext, _Widget};
+use crate::wrapper::main_wrapper::SVGPreload;
 
 use crate::shorts::utility::*;
 use crate::rect;
 use self::sdl2::pixels::Color;
 use std::time::Instant;
+use std::cell::RefCell;
+use crate::wrapper::aerugo_wrapper::AerugoCore;
 
 
 pub trait IsGame {
@@ -48,18 +51,26 @@ impl Game {
     }
 }
 
-pub struct _SimpleGame<'a> {
-    wink: Surface<'a>,
-    wink_path: &'a Path,
+pub struct _SimpleGame {
+    wink: Surface<'static>,
+    wink_path: &'static Path,
 
     context: Option<BuildContext>,
     interface: Option<RootWidget>,
+
+    svg: Option<SVGPreload>,
 }
 
-pub struct SimpleGame<'a>(_SimpleGame<'a>, Game);
+pub struct SimpleGame(_SimpleGame, Game);
 
-impl<'a> IsGame for SimpleGame<'a> {
-    fn new() -> SimpleGame<'a> {
+impl SimpleGame {
+    pub fn pre_load(&mut self, svg: SVGPreload) {
+        self.0.svg.replace(svg);
+    }
+}
+
+impl IsGame for SimpleGame {
+    fn new() -> SimpleGame {
         let wink_path = Path::new("assets/wink.png");
         let simple_game = SimpleGame {
             0: _SimpleGame {
@@ -67,6 +78,7 @@ impl<'a> IsGame for SimpleGame<'a> {
                 wink_path,
                 context: None,
                 interface: None,
+                svg: None
             },
             1: Game {
                 canvas: Mutex::new(None),
@@ -81,13 +93,16 @@ impl<'a> IsGame for SimpleGame<'a> {
         let mut canvas = self.1.borrow_canvas();
         let texture_creator = Rc::from(canvas.texture_creator());
 
-        let ttf_context = Rc::from(sdl2::ttf::init().expect("Cant init ttf"));
-
         canvas.set_draw_color(sdl2::pixels::Color::RGBA(100, 100, 100, 255));
         canvas.clear();
 
         let (width, height) = canvas.output_size().unwrap();
-        let context = BuildContext::ini(texture_creator, ttf_context, rect!(width, height));
+        let context = BuildContext::ini(
+            texture_creator,
+            rect!(width, height),
+            self.0.svg.as_ref().unwrap().clone(),
+            Rc::new(RefCell::new(AerugoCore::new()))
+        );
         self.0.context.replace(context.clone());
         self.0.interface = Some(RootWidget::new(context));
         self.1.release(canvas);
@@ -108,22 +123,23 @@ impl<'a> IsGame for SimpleGame<'a> {
         if _actions.old_keyboard.contains(&Keycode::N) | true {
             const DEBUG_FRAME: bool = false;
             const DEBUG_FRAME_PARTIAL: bool = false;
-            if DEBUG_FRAME | DEBUG_FRAME_PARTIAL { println!("##############################") }
-            let mut start_time = Instant::now();
-            let time = Instant::now();
+            const DEBUG_FRAME_SEPARATOR: &str = "################";
+            if DEBUG_FRAME | DEBUG_FRAME_PARTIAL { println!("{}", DEBUG_FRAME_SEPARATOR); }
+            let mut frame_partial_time = Instant::now();
+            let frame_time = Instant::now();
             self.0.interface.as_mut().unwrap().update(_actions.clone());
             if DEBUG_FRAME_PARTIAL {
-                println!("Update: {}ms", start_time.elapsed().as_millis());
-                start_time = Instant::now();
+                println!("Update:\t{}ms", frame_partial_time.elapsed().as_millis());
+                frame_partial_time = Instant::now();
             }
             self.render();
             if DEBUG_FRAME_PARTIAL {
-                println!("Render: {}ms", start_time.elapsed().as_millis());
-                start_time = Instant::now();
+                println!("Render:\t{}ms", frame_partial_time.elapsed().as_millis());
+                frame_partial_time = Instant::now();
             }
             self.0.interface.as_mut().unwrap().touch();
-            if DEBUG_FRAME_PARTIAL { println!("Touch: {}ms", start_time.elapsed().as_millis()) }
-            if DEBUG_FRAME { println!("Frame time: {}ms", time.elapsed().as_millis()) }
+            if DEBUG_FRAME_PARTIAL { println!("Touch:\t{}ms", frame_partial_time.elapsed().as_millis()) }
+            if DEBUG_FRAME { println!("Frame time:\t{}ms", frame_time.elapsed().as_millis()) }
             if state == GameState::NOP {
                 state = self.0.context.as_ref().unwrap().state_machine.borrow().extract_state();
             }

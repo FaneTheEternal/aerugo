@@ -50,6 +50,7 @@ pub struct UserMouse {
     x: i32,
     y: i32,
     buttons: HashMap<MouseButton, (i32, i32)>,
+    /// pair start <> end
     released: HashMap<MouseButton, ((i32, i32), (i32, i32))>,
 }
 
@@ -82,6 +83,34 @@ impl UserMouse {
     pub fn r#move(&mut self, x: i32, y: i32) {
         self.x = x;
         self.y = y;
+    }
+
+    /// pair button <> is_released
+    pub fn touch(&self, rect: Rect) -> Option<HashMap<MouseButton, bool>> {
+        if !rect.contains_point((self.x, self.y)) {
+            return None;
+        }
+        let mut buttons = HashMap::new();
+        // touch released
+        self.released.iter().for_each(|(b, (p, r))| {
+            let p = p.clone();
+            let r = r.clone();
+            if rect.contains_point(p) & rect.contains_point(r) {
+                buttons.insert(b.clone(), true);
+            }
+        });
+        // touch pushed
+        self.buttons.iter().for_each(|(b, p)| {
+            let p = p.clone();
+            if rect.contains_point(p) & !buttons.contains_key(b) {
+                buttons.insert(b.clone(), false);
+            }
+        });
+        if buttons.is_empty() {
+            None
+        } else {
+            Some(buttons)
+        }
     }
 
     pub fn is_in(&self, rect: Rect) -> bool {

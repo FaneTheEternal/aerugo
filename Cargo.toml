@@ -5,6 +5,11 @@ authors = ["FaneTheEternal <artemyev.vova@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+#futures = "0.3"
+tiny-skia = "0.5.1"
+usvg = "0.15.0"
+resvg = "0.15.0"
+itertools = "0.10.1"
 
 [dependencies.sdl2]
 version = "0.34.3"

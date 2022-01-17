@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
-use crate::widgets::base::{BuildContext, Widget};
+use crate::widgets::base::{BuildContext, _Widget, Widget};
 use crate::shorts::utility::Rect;
 use crate::widgets::utility::fmt_vec;
 
 use sdl2::render::WindowCanvas;
 use std::borrow::BorrowMut;
 
-fn render_vec(children: &mut Vec<Box<dyn Widget>>, canvas: &mut WindowCanvas) -> Result<(), String> {
+fn render_vec(children: &mut Vec<Widget>, canvas: &mut WindowCanvas) -> Result<(), String> {
     let mut errors = String::new();
     children.iter_mut().for_each(|e| {
         match e.render(canvas) {
@@ -29,14 +29,14 @@ struct ChildrenCache {
 }
 
 pub struct RowWidget {
-    children: Vec<Box<dyn Widget>>,
+    children: Vec<Widget>,
 
     context: Option<BuildContext>,
     cache: Option<ChildrenCache>,
 }
 
 impl RowWidget {
-    pub fn new(children: Vec<Box<dyn Widget>>) -> Box<RowWidget> {
+    pub fn new(children: Vec<Widget>) -> Widget {
         Box::new(RowWidget {
             children,
             context: None,
@@ -45,7 +45,7 @@ impl RowWidget {
     }
 }
 
-impl Widget for RowWidget {
+impl _Widget for RowWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
 
@@ -146,14 +146,14 @@ impl Widget for RowWidget {
 }
 
 pub struct ColumnWidget {
-    children: Vec<Box<dyn Widget>>,
+    children: Vec<Widget>,
 
     context: Option<BuildContext>,
     cache: Option<ChildrenCache>,
 }
 
 impl ColumnWidget {
-    pub fn new(children: Vec<Box<dyn Widget>>) -> Box<ColumnWidget> {
+    pub fn new(children: Vec<Widget>) -> Widget {
         Box::new(ColumnWidget {
             children,
             context: None,
@@ -162,7 +162,7 @@ impl ColumnWidget {
     }
 }
 
-impl Widget for ColumnWidget {
+impl _Widget for ColumnWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         {  // try pass with cache
@@ -266,14 +266,14 @@ impl Widget for ColumnWidget {
 
 
 pub struct StackWidget {
-    children: Vec<Box<dyn Widget>>,
+    children: Vec<Widget>,
     flex: u8,
 
     context: Option<BuildContext>,
 }
 
 impl StackWidget {
-    pub fn new<Flex>(children: Vec<Box<dyn Widget>>, flex: Flex) -> Box<StackWidget>
+    pub fn new<Flex>(children: Vec<Widget>, flex: Flex) -> Box<StackWidget>
         where Flex: Into<Option<u8>>,
     {
         let flex = match flex.into() {
@@ -288,7 +288,7 @@ impl StackWidget {
     }
 }
 
-impl Widget for StackWidget {
+impl _Widget for StackWidget {
     fn update(self: &mut Self, context: BuildContext) -> Result<Rect, String> {
         let context = context;
         let mut errors = Vec::new();

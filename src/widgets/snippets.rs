@@ -1,17 +1,13 @@
 #![allow(dead_code, unused_imports)]
 
-use crate::widgets::base::{BuildContext, Widget};
-use crate::widgets::container::*;
-use crate::widgets::flex::{RowWidget, ColumnWidget};
-use crate::widgets::text::TextWidget;
+use super::prelude::*;
 use sdl2::pixels::Color;
 use uuid::Uuid;
 use crate::shorts::utility::*;
-use crate::rect;
-use crate::widgets::actions::{ActionWidget, ButtonWidget};
-use crate::widgets::closure::*;
+use crate::{rect, set, svg};
+use sdl2::mouse::MouseButton;
 
-fn test3() -> Vec<Box<dyn Widget>> {
+fn test3() -> Vec<Widget> {
     vec![
         ContainerWidget::expand(
             TextWidget::simple(String::from("<1>")),
@@ -40,7 +36,7 @@ fn test3() -> Vec<Box<dyn Widget>> {
     ]
 }
 
-pub const ROW3: fn(BuildContext) -> Box<dyn Widget> = |_context| {
+pub const ROW3: fn(BuildContext) -> Widget = |_context| {
     ContainerWidget::expand(
         RowWidget::new(test3()),
         None,
@@ -51,7 +47,7 @@ pub const ROW3: fn(BuildContext) -> Box<dyn Widget> = |_context| {
     )
 };
 
-pub const COLUMN3: fn(BuildContext) -> Box<dyn Widget> = |_context| {
+pub const COLUMN3: fn(BuildContext) -> Widget = |_context| {
     ContainerWidget::expand(
         ColumnWidget::new(test3()),
         None,
@@ -59,5 +55,26 @@ pub const COLUMN3: fn(BuildContext) -> Box<dyn Widget> = |_context| {
         None,
         None,
         None,
+    )
+};
+
+pub const SVG_TEST: _SFClosure = |_, _| {
+    let svg: SVG = ("regular".into(), "arrow-alt-circle-left.svg".into());
+    SVGWidget::new(svg)
+};
+
+pub const SVG_BUTTON: _SLClosure = |_| {
+    let default: SVG = svg!("regular", "arrow-alt-circle-left.svg");
+    let hover: SVG = svg!("regular", "arrow-alt-circle-right.svg");
+    let click: SVG = svg!("regular", "arrow-alt-circle-down.svg");
+    ContainerWidget::expand_indent(
+        ContainerWidget::center(
+            RebuildingButtonWidget::svg(
+                default, hover, click,
+                Box::new(move |_context| { println!("UP!") }),
+                set![MouseButton::Left],
+            ),
+        ),
+        Indent::All(100),
     )
 };
