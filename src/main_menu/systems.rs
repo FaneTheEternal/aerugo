@@ -2,7 +2,7 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use crate::main_menu::{MainMenuButtons, MainMenuButton, MainMenuData};
-use crate::states::MainState;
+use crate::states::{MainState, OverlayState};
 use crate::utils::make_button_closure;
 
 const BTN_NORMAL: Color = Color::WHITE;
@@ -74,7 +74,7 @@ pub fn setup_menu(
 
 pub fn menu(
     mut main_state: ResMut<State<MainState>>,
-    // TODO: OverlayState
+    mut overlay_state: ResMut<State<OverlayState>>,
     mut interactions_query: Query<
         (&Interaction, &mut UiColor, &Children),
         (Changed<Interaction>, With<Button>),
@@ -93,8 +93,12 @@ pub fn menu(
                         MainMenuButtons::NewGame => {
                             main_state.set(MainState::InGame).unwrap();
                         }
-                        MainMenuButtons::Load => {}
-                        MainMenuButtons::Settings => {}
+                        MainMenuButtons::Load => {
+                            overlay_state.set(OverlayState::Load).unwrap();
+                        }
+                        MainMenuButtons::Settings => {
+                            overlay_state.set(OverlayState::Settings).unwrap();
+                        }
                         MainMenuButtons::Exit => {
                             exit.send(AppExit);
                         }

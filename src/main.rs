@@ -14,5 +14,10 @@ fn main() {
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(game::GamePlugin)
         .add_plugin(overlay::OverlayPlugin)
+        .add_startup_system(setup)
         .run();
+}
+
+fn setup(mut command: Commands) {
+    command.spawn_bundle(UiCameraBundle::default());
 }

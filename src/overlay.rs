@@ -40,6 +40,7 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Settings)
+                    .with_system(setup_settings)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Settings)
@@ -51,6 +52,7 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Save)
+                    .with_system(setup_save)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Save)
@@ -62,6 +64,7 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Load)
+                    .with_system(setup_load)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Load)
