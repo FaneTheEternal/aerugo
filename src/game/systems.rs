@@ -319,5 +319,6 @@ pub fn cleanup(
 {
     if let Some(game_data) = game_data {
         command.entity(game_data.ui_entity).despawn_recursive();
+        command.remove_resource::<GameData>();
     }
 }

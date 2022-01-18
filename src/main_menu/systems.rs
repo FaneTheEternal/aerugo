@@ -114,5 +114,6 @@ pub fn menu(
 pub fn cleanup_menu(mut command: Commands, menu_data: Option<Res<MainMenuData>>) {
     if let Some(menu_data) = menu_data {
         command.entity(menu_data.ui_entity).despawn_recursive();
+        command.remove_resource::<MainMenuData>();
     }
 }
