@@ -6,7 +6,9 @@ edition = "2021"
 
 [[bin]]
 name = "game"
-src = "src/game/bin/main.rs"
+
+[[bin]]
+name = "editor"
 
 [dependencies]
 bevy = "0.6"
