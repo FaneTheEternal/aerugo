@@ -1,24 +1,48 @@
 #![allow(dead_code)]
 
-use bevy::utils::Uuid;
+use std::fmt::{Debug, Formatter};
+use uuid::Uuid;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct AerugoSave {
-    current: Uuid,
-    select_story: Vec<(Uuid, String)>,
+pub struct AerugoState {
+    pub current: Uuid,
+    pub select_story: Vec<(Uuid, String)>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Aerugo {
-    steps: Vec<Step>,
+    pub steps: Vec<Step>,
+}
+
+impl Default for Aerugo {
+    fn default() -> Self {
+        Aerugo {
+            steps: vec![Step::default()],
+        }
+    }
+}
+
+impl Aerugo {
+    pub fn remove(&mut self, step: &Step) -> &Step {
+        let mut index = self.steps
+            .iter()
+            .position(|s| { s.id == step.id })
+            .unwrap();
+        self.steps.remove(index);
+        if self.steps.is_empty() {
+            self.steps.push(Step::new());
+        }
+        index = if index > 0 { index - 1 } else { 0 };
+        self.steps.get(index).unwrap()
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Steps {
     Text {
         author: String,
-        texts: Vec<String>,
+        texts: String,
     },
     Jump {
         condition: Option<Condition>,
@@ -27,11 +51,41 @@ pub enum Steps {
     None,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Step {
-    id: Uuid,
-    name: String,
-    inner: Steps,
+    pub id: Uuid,
+    pub name: String,
+    pub inner: Steps,
+}
+
+impl Default for Step {
+    fn default() -> Self {
+        Step {
+            id: Uuid::nil(),
+            name: "".to_string(),
+            inner: Steps::None,
+        }
+    }
+}
+
+impl Debug for Step {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if self.name.is_empty() {
+            write!(f, "{}", self.id)
+        } else {
+            write!(f, "{} | {}", self.id, self.name)
+        }
+    }
+}
+
+impl Step {
+    pub fn new() -> Step {
+        Step {
+            id: Uuid::new_v4(),
+            name: "".to_string(),
+            inner: Steps::None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -47,6 +101,12 @@ pub enum Condition {
     Or(Box<Condition>, Box<Condition>),
     GTE(Vec<Condition>, usize),
     LTE(Vec<Condition>, usize),
+}
+
+impl Default for Condition {
+    fn default() -> Self {
+        Condition::True
+    }
 }
 
 impl Condition {
