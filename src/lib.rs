@@ -86,6 +86,11 @@ impl Step {
             inner: Steps::None,
         }
     }
+
+    pub fn with_inner(mut self, inner: Steps) -> Step {
+        self.inner = inner;
+        self
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]

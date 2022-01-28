@@ -3,7 +3,7 @@ extern crate core;
 use std::fs::File;
 use std::io::{Read, Write};
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContext, EguiPlugin};
+use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
 use uuid::Uuid;
 use aerugo::*;
 
@@ -21,7 +21,10 @@ fn main() {
         .add_plugin(EguiPlugin)
         .add_startup_system(configure_visuals)
         .add_startup_system(setup)
+        .add_system(update_ui_scale_factor)
         .add_system(ui)
+        .add_event::<SaveEvent>()
+        .add_system(save_hotkey)
         .add_system(save)
         .run();
 }
@@ -35,8 +38,41 @@ struct AppState {
     current: Step,
     author: String,
     text: String,
-    condition: Option<Condition>,
+    condition: ConditionString,
     target: Uuid,
+}
+
+struct SaveEvent;
+
+#[derive(Clone, Debug)]
+struct ConditionString(String);
+
+type ConditionStringInner = Option<Condition>;
+
+impl Default for ConditionString {
+    fn default() -> Self {
+        ConditionStringInner::default().into()
+    }
+}
+
+impl ConditionString {
+    fn is_valid(&self) -> bool {
+        serde_json::from_str::<'_, ConditionStringInner>(self.0.as_str()).is_ok()
+    }
+}
+
+impl Into<ConditionStringInner> for ConditionString {
+    fn into(self) -> ConditionStringInner {
+        serde_json::from_str(self.0.as_str())
+            .or_else::<serde_json::Error, _>(|_| { Ok(None) })
+            .unwrap()
+    }
+}
+
+impl From<ConditionStringInner> for ConditionString {
+    fn from(c: ConditionStringInner) -> Self {
+        ConditionString(serde_json::to_string(&c).unwrap())
+    }
 }
 
 impl AppState {
@@ -47,7 +83,7 @@ impl AppState {
                     current: step,
                     author: author,
                     text: texts,
-                    condition: None,
+                    condition: Default::default(),
                     target: Uuid::nil(),
                 }
             }
@@ -56,7 +92,7 @@ impl AppState {
                     current: step,
                     author: Default::default(),
                     text: Default::default(),
-                    condition: condition,
+                    condition: condition.into(),
                     target: target,
                 }
             }
@@ -75,9 +111,46 @@ impl AppState {
 
 fn configure_visuals(egui_ctx: ResMut<EguiContext>)
 {
-    egui_ctx.ctx().set_visuals(egui::Visuals {
+    let ctx = egui_ctx.ctx();
+
+    ctx.set_visuals(egui::Visuals {
         ..Default::default()
     });
+
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.family_and_size.insert(
+        egui::TextStyle::Small,
+        (egui::FontFamily::Proportional, 20.0));
+    fonts.family_and_size.insert(
+        egui::TextStyle::Body,
+        (egui::FontFamily::Proportional, 20.0));
+    fonts.family_and_size.insert(
+        egui::TextStyle::Button,
+        (egui::FontFamily::Proportional, 20.0));
+    fonts.family_and_size.insert(
+        egui::TextStyle::Heading,
+        (egui::FontFamily::Proportional, 40.0));
+    ctx.set_fonts(fonts);
+}
+
+fn update_ui_scale_factor(
+    mut toggle_scale_factor: Local<Option<bool>>,
+    mut egui_settings: ResMut<EguiSettings>,
+    windows: Res<Windows>,
+)
+{
+    if toggle_scale_factor.is_none() {
+        *toggle_scale_factor = Some(!toggle_scale_factor.unwrap_or(true));
+
+        if let Some(window) = windows.get_primary() {
+            let scale_factor = if toggle_scale_factor.unwrap() {
+                1.0
+            } else {
+                1.0 / window.scale_factor()
+            };
+            egui_settings.scale_factor = scale_factor;
+        }
+    }
 }
 
 fn setup(mut command: Commands)
@@ -98,15 +171,6 @@ fn setup(mut command: Commands)
         aerugo,
     });
     command.insert_resource(AppState::from_step(first_step));
-    println!(
-        "{}",
-        serde_json::to_string(
-            &Condition::GTE(
-                vec![Condition::True, Condition::False],
-                10
-            )
-        ).unwrap()
-    );
 }
 
 fn ui(
@@ -114,24 +178,44 @@ fn ui(
     egui_ctx: Res<EguiContext>,
     mut app_data: ResMut<AppData>,
     mut app_state: ResMut<AppState>,
+    mut save_event: EventWriter<SaveEvent>,
 )
 {
+    let ctx = egui_ctx.ctx();
+
     let mut add_new_step = false;
     let mut select_another = None;
+
+    egui::TopBottomPanel::top("top_panel")
+        .show(ctx, |ui| {
+            egui::menu::bar(ui, |ui| {
+                if ui.button("Save").clicked() {
+                    save_event.send(SaveEvent);
+                }
+            });
+        });
 
     egui::SidePanel::left("steps_list")
         .default_width(200.0)
         .show(egui_ctx.ctx(), |ui| {
             ui.heading("Steps list");
             ui.separator();
-            for step in &app_data.aerugo.steps {
-                if ui.button(format!("{:?}", step)).clicked() {
-                    select_another = Some(step.id);
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                for step in &app_data.aerugo.steps {
+                    let step_label = if step.name.is_empty() {
+                        format!("{}", step.id)
+                    } else {
+                        format!("{}\n~{}", step.id, step.name)
+                    };
+                    if ui.button(step_label).clicked() {
+                        select_another = Some(step.id);
+                    }
+                    ui.separator();
                 }
-            }
-            if ui.add(egui::Button::new("+")).clicked() {
-                add_new_step = true;
-            }
+                if ui.add(egui::Button::new("+")).clicked() {
+                    add_new_step = true;
+                }
+            });
         });
 
     egui::CentralPanel::default().show(egui_ctx.ctx(), |ui| {
@@ -185,7 +269,15 @@ fn ui(
                     });
                 ui.separator();
                 ui.heading("Condition");
-                ui.label(serde_json::to_string(&app_state.condition).unwrap());
+                ui.horizontal(|ui| {
+                    if app_state.condition.is_valid() {
+                        ui.label(egui::RichText::new("Valid").color(egui::Color32::GREEN));
+                    } else {
+                        ui.label(egui::RichText::new("Invalid").color(egui::Color32::RED));
+                        ui.small("will be reset");
+                    }
+                });
+                ui.text_edit_multiline(&mut app_state.condition.0);
             }
             Steps::None => {
                 ui.heading("None");
@@ -198,30 +290,24 @@ fn ui(
     }
 
     if let Some(id) = select_another {
-        let curr_id = app_state.current.id;
-        let mut last = app_data.aerugo.steps
-            .iter_mut()
-            .find(|s| { s.id == curr_id })
+        let last = app_data.aerugo.steps.iter()
+            .position(|s| { s.id == app_state.current.id })
             .unwrap();
-        last.name = app_state.current.name.clone();
-        // last.inner = app_state.current.inner.clone();
-        match &app_state.current.inner {
+        app_data.aerugo.steps[last] = match &app_state.current.inner {
             Steps::Text { .. } => {
-                last.inner = Steps::Text {
-                    author: app_state.author.clone(),
-                    texts: app_state.text.clone(),
-                }
+                app_state.current.clone().with_inner(
+                    Steps::Text { author: app_state.author.clone(), texts: app_state.text.clone() }
+                )
             }
             Steps::Jump { .. } => {
-                last.inner = Steps::Jump {
-                    condition: app_state.condition.clone(),
-                    target: app_state.target.clone(),
-                }
+                app_state.current.clone().with_inner(
+                    Steps::Jump { condition: app_state.condition.clone().into(), target: app_state.target }
+                )
             }
             Steps::None => {
-                last.inner = Steps::None
+                app_state.current.clone()
             }
-        }
+        };
         command.insert_resource(
             AppState::from_step(
                 app_data.aerugo.steps
@@ -234,18 +320,30 @@ fn ui(
     }
 }
 
-fn save(
+fn save_hotkey(
     mut keyboard_input: ResMut<Input<KeyCode>>,
-    app_data: ResMut<AppData>,
+    mut save_event: EventWriter<SaveEvent>,
 )
 {
     if keyboard_input.pressed(KeyCode::LControl)
         && keyboard_input.clear_just_released(KeyCode::S) {
+        save_event.send(SaveEvent);
+    }
+}
+
+fn save(app_data: Res<AppData>, mut events: EventReader<SaveEvent>) {
+    for _ in events.iter() {
         let data = serde_json::to_string(&app_data.aerugo).unwrap();
-        File::options().write(true).create(true).truncate(true)
-            .open(app_data.file.as_str())
-            .unwrap()
+        let save_path = std::path::Path::new(app_data.file.as_str());
+        let mut save_file = File::options()
+            .write(true).create(true).truncate(true)
+            .open(save_path)
+            .unwrap();
+
+        save_file
             .write_all(data.as_bytes())
             .unwrap();
+
+        println!("Scenario saved successfully to {}", save_path.to_str().unwrap());
     }
 }
