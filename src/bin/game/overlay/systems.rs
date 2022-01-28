@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use bevy::prelude::*;
 use crate::overlay::components::{OverlayButton, OverlayButtons};
 use crate::overlay::OverlayData;
@@ -8,6 +10,11 @@ const BTN_NORMAL: Color = Color::WHITE;
 const BTN_HOVERED: Color = Color::GRAY;
 const BTN_PRESSED: Color = Color::DARK_GRAY;
 
+const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+const GLASS_WHITE: Color = Color::rgba(1.0, 1.0, 1.0, 0.2);
+const GLASS_GRAY: Color = Color::rgba(0.5, 0.5, 0.5, 0.2);
+const GLASS_DARK: Color = Color::rgba(0.0, 0.0, 0.0, 0.2);
+
 const OVERLAY_Z_DEEP: u8 = 10;
 
 fn overlay_ui_base() -> NodeBundle {
@@ -17,7 +24,7 @@ fn overlay_ui_base() -> NodeBundle {
             position_type: PositionType::Absolute,
             ..Default::default()
         },
-        color: Color::rgba(0.0, 0.0, 0.0, 0.0).into(),
+        color: TRANSPARENT.into(),
         ..Default::default()
     }
 }
@@ -226,7 +233,7 @@ pub fn setup_settings(
                                 flex_direction: FlexDirection::ColumnReverse,
                                 ..Default::default()
                             },
-                            color: Color::GRAY.into(),
+                            color: TRANSPARENT.into(),
                             ..Default::default()
                         })
                         .with_children(|parent| {  // Header

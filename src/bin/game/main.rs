@@ -20,4 +20,5 @@ fn main() {
 
 fn setup(mut command: Commands) {
     command.spawn_bundle(UiCameraBundle::default());
+    command.spawn_bundle(OrthographicCameraBundle::new_2d());
 }

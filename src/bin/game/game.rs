@@ -22,6 +22,8 @@ impl Plugin for GamePlugin {
                 SystemSet::on_update(MainState::InGame)
                     .with_system(open_overlay)
                     .with_system(game_buttons)
+                    .with_system(update_sleep_sprite)
+                    .with_system(game_sprite_animate)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)

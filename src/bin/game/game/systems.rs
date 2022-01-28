@@ -1,5 +1,7 @@
+use bevy::app::Events;
 use bevy::prelude::*;
-use crate::game::components::{GameButton, GameButtons};
+use bevy::window::WindowResized;
+use crate::game::components::{GameButton, GameButtons, SpriteMark};
 use super::GameData;
 use crate::states::OverlayState;
 use crate::utils::grow_z_index;
@@ -8,9 +10,12 @@ const BTN_NORMAL: Color = Color::WHITE;
 const BTN_HOVERED: Color = Color::GRAY;
 const BTN_PRESSED: Color = Color::DARK_GRAY;
 
+const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+
 pub fn setup_game(
     mut command: Commands,
     asset_server: Res<AssetServer>,
+    window: Res<Windows>,
 )
 {
     command.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -104,22 +109,23 @@ pub fn setup_game(
                 position_type: PositionType::Absolute,
                 ..Default::default()
             },
+            color: TRANSPARENT.into(),
             ..Default::default()
         })
-        .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
-                text: Text::with_section(
-                    "Game",
-                    TextStyle {
-                        font: text_font.clone(),
-                        font_size: 40.0,
-                        color: Color::BLACK,
-                    },
-                    Default::default(),
-                ),
-                ..Default::default()
-            });
-        })
+        // .with_children(|parent| {
+        //     parent.spawn_bundle(TextBundle {
+        //         text: Text::with_section(
+        //             "Game",
+        //             TextStyle {
+        //                 font: text_font.clone(),
+        //                 font_size: 40.0,
+        //                 color: Color::BLACK,
+        //             },
+        //             Default::default(),
+        //         ),
+        //         ..Default::default()
+        //     });
+        // })
         .with_children(|parent| {
             parent
                 .spawn_bundle(NodeBundle {
@@ -261,6 +267,87 @@ pub fn setup_game(
         .id();
 
     command.insert_resource(GameData { ui_entity });
+
+    // Background
+    command.spawn_bundle(SpriteBundle {
+        sprite: Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::new(10_000.0, 10_000.0)),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+
+    let window = window.get_primary().unwrap();
+    let x_peace = window.width() / 5.0;
+    command.spawn_bundle(SpriteBundle {
+        texture: asset_server.load("icon.png"),
+        transform: Transform::from_xyz(
+            -(x_peace * 1.5),
+            0.0,
+            1.0,
+        ),
+        ..Default::default()
+    }).insert(SpriteMark::new("left"));
+    command.spawn_bundle(SpriteBundle {
+        texture: asset_server.load("icon.png"),
+        transform: Transform::from_xyz(
+            -(x_peace * 0.5),
+            0.0,
+            1.0,
+        ),
+        ..Default::default()
+    }).insert(SpriteMark::new("jump"));
+    command.spawn_bundle(SpriteBundle {
+        texture: asset_server.load("icon.png"),
+        transform: Transform::from_xyz(
+            x_peace * 0.5,
+            0.0,
+            1.0,
+        ),
+        ..Default::default()
+    }).insert(SpriteMark::new("emergence"));
+    command.spawn_bundle(SpriteBundle {
+        texture: asset_server.load("icon.png"),
+        transform: Transform::from_xyz(
+            x_peace * 1.5,
+            0.0,
+            1.0,
+        ),
+        ..Default::default()
+    }).insert(SpriteMark::new("right"));
+}
+
+pub fn update_sleep_sprite(
+    resize_event: Res<Events<WindowResized>>,
+    mut sprite_transform_query: Query<(&mut Transform, &SpriteMark)>,
+)
+{
+    let mut reader = resize_event.get_reader();
+    for e in reader.iter(&resize_event) {
+        let x_peace = e.width / 5.0;
+        for (transform, mark) in sprite_transform_query.iter_mut() {
+            let mut transform: Mut<Transform> = transform;
+            let mark: &SpriteMark = mark;
+            if mark.is_await {
+                transform.translation.x = match mark.name.as_str() {
+                    "left" => {
+                        -(x_peace * 1.5)
+                    }
+                    "jump" => {
+                        -(x_peace * 0.5)
+                    }
+                    "emergence" => {
+                        x_peace * 0.5
+                    }
+                    "right" => {
+                        x_peace * 1.5
+                    }
+                    _ => { transform.translation.y }
+                }
+            }
+        }
+    }
 }
 
 pub fn open_overlay(
@@ -275,6 +362,79 @@ pub fn open_overlay(
             }
         }
         _ => {}
+    }
+}
+
+pub fn game_sprite_animate(
+    time: Res<Time>,
+    window: Res<Windows>,
+    mut sprite_transform_query: Query<(&mut Transform, &mut Sprite, &mut SpriteMark)>,
+)
+{
+    const SPRITE_X: f32 = 256.0;
+
+    let window = window.get_primary().unwrap();
+    let x_peace = window.width() / 5.0;
+
+    let max_x = window.width() / 2.0 + SPRITE_X;
+    let min_x = x_peace * 1.5;
+
+    let max_y = 100.0;
+    let min_y = 0.0;
+
+    for (transform, sprite, mark) in sprite_transform_query.iter_mut() {
+        let mut transform: Mut<Transform> = transform;
+        let mut mark: Mut<SpriteMark> = mark;
+        let mut sprite: Mut<Sprite> = sprite;
+        mark.timer.tick(time.delta());
+        if !mark.is_await {
+            let animation_k = mark.timer.elapsed_secs() / mark.timer.duration().as_secs_f32();
+            match mark.name.as_str() {
+                "left" => {
+                    if mark.is_rev {
+                        transform.translation.x = -(max_x - (max_x - min_x) * animation_k);
+                    } else {
+                        transform.translation.x = -(min_x + (max_x - min_x) * animation_k);
+                    }
+                    if mark.timer.just_finished() {
+                        mark.is_rev = !mark.is_rev;
+                    }
+                }
+                "jump" => {
+                    transform.translation.y = if animation_k >= 0.5 {
+                        max_y - (max_y - min_y) * (animation_k - 0.5) * 2.0
+                    } else {
+                        min_y + (max_y - min_y) * animation_k * 2.0
+                    }
+                }
+                "emergence" => {
+                    let a = if mark.is_rev {
+                        animation_k
+                    } else {
+                        1.0 - animation_k
+                    };
+                    sprite.color.set_a(a);
+                    if mark.timer.just_finished() {
+                        mark.is_rev = !mark.is_rev;
+                    }
+                }
+                "right" => {
+                    if mark.is_rev {
+                        transform.translation.x = max_x - (max_x - min_x) * animation_k;
+                    } else {
+                        transform.translation.x = min_x + (max_x - min_x) * animation_k;
+                    }
+                    if mark.timer.just_finished() {
+                        mark.is_rev = !mark.is_rev;
+                    }
+                }
+                _ => {}
+            }
+        }
+        if mark.timer.just_finished() {
+            mark.is_await = !mark.is_await;
+            mark.timer.reset();
+        }
     }
 }
 

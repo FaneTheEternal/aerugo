@@ -10,16 +10,17 @@ const BTN_HOVERED: Color = Color::GRAY;
 const BTN_PRESSED: Color = Color::DARK_GRAY;
 
 pub fn setup_menu(
-    mut command: Commands,
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
 )
 {
-    command.spawn_bundle(UiCameraBundle::default());
-
     let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
-    let ui_entity = command
-        .spawn_bundle(NodeBundle::default())
+    let ui_entity = commands
+        .spawn_bundle(NodeBundle {
+            color: Color::rgba(0.5, 0.5, 0.5, 0.5).into(),
+            ..Default::default()
+        })
         .with_children(|parent| {
             parent
                 .spawn_bundle(NodeBundle {
@@ -69,7 +70,7 @@ pub fn setup_menu(
         })
         .id();
 
-    command.insert_resource(crate::main_menu::MainMenuData { ui_entity });
+    commands.insert_resource(crate::main_menu::MainMenuData { ui_entity });
 }
 
 pub fn menu(
