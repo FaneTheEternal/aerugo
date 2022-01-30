@@ -15,6 +15,7 @@ impl Plugin for OverlayPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_state(OverlayState::Hidden)
+            .add_startup_system(init_overlay)
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Hidden)
             )
@@ -23,24 +24,23 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Hidden)
-                    .with_system(cleanup)
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Menu)
-                    .with_system(setup_overlay)
+                    .with_system(show_menu)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Menu)
-                    .with_system(overlay)
                     .with_system(overlay_break)
+                    .with_system(overlay_menu)
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Menu)
-                    .with_system(cleanup)
+                    .with_system(hide_menu)
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Settings)
-                    .with_system(setup_settings)
+                    .with_system(show_settings)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Settings)
@@ -48,11 +48,11 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Settings)
-                    .with_system(cleanup)
+                    .with_system(hide_settings)
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Save)
-                    .with_system(setup_save)
+                    .with_system(show_save)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Save)
@@ -60,11 +60,11 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Save)
-                    .with_system(cleanup)
+                    .with_system(hide_save)
             )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Load)
-                    .with_system(setup_load)
+                    .with_system(show_load)
             )
             .add_system_set(
                 SystemSet::on_update(OverlayState::Load)
@@ -72,12 +72,15 @@ impl Plugin for OverlayPlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Load)
-                    .with_system(cleanup)
+                    .with_system(hide_load)
             );
     }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct OverlayData {
-    ui_entity: Entity,
+    ui_menu: Entity,
+    ui_settings: Entity,
+    ui_save: Entity,
+    ui_load: Entity,
 }

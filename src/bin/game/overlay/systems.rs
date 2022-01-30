@@ -1,8 +1,7 @@
 #![allow(dead_code)]
 
 use bevy::prelude::*;
-use crate::overlay::components::{OverlayButton, OverlayButtons};
-use crate::overlay::OverlayData;
+use super::*;
 use crate::states::{MainState, OverlayState};
 use crate::utils::{grow_z_index, make_button_closure};
 
@@ -17,111 +16,347 @@ const GLASS_DARK: Color = Color::rgba(0.0, 0.0, 0.0, 0.2);
 
 const OVERLAY_Z_DEEP: u8 = 10;
 
-fn overlay_ui_base() -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-            position_type: PositionType::Absolute,
-            ..Default::default()
-        },
-        color: TRANSPARENT.into(),
-        ..Default::default()
-    }
-}
-
-pub fn setup_overlay(
-    mut command: Commands,
+pub fn init_overlay(
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
 )
 {
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    fn make_ui_base(
+        commands: &mut Commands,
+        mark: impl Component,
+        builder: impl FnOnce(&mut ChildBuilder),
+    ) -> Entity
+    {
+        commands
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    display: Display::None,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    position_type: PositionType::Absolute,
+                    ..Default::default()
+                },
+                color: TRANSPARENT.into(),
+                ..Default::default()
+            })
+            .insert(mark)
+            .with_children(|parent| {
+                grow_z_index(
+                    OVERLAY_Z_DEEP, parent,
+                    Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    builder,
+                )
+            })
+            .id()
+    }
 
-    let ui_entity = command
-        .spawn_bundle(overlay_ui_base())
-        .with_children(|parent| {
-            grow_z_index(
-                OVERLAY_Z_DEEP, parent,
-                Style {
+    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
+
+    let ui_menu = make_ui_base(&mut commands, OverlayMenu, |parent| {
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
-                |parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..Default::default()
-                            },
-                            color: Color::rgba(0.0, 0.0, 0.0, 0.4).into(),
+                color: Color::rgba(0.0, 0.0, 0.0, 0.4).into(),
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(50.0), Val::Percent(50.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            flex_direction: FlexDirection::ColumnReverse,
+                            flex_wrap: FlexWrap::Wrap,
                             ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(50.0), Val::Percent(50.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        flex_direction: FlexDirection::ColumnReverse,
-                                        flex_wrap: FlexWrap::Wrap,
-                                        ..Default::default()
-                                    },
-                                    color: Color::rgba(1.0, 0.5, 0.5, 0.8).into(),
-                                    ..Default::default()
-                                })
-                                .with_children(
-                                    make_button_closure(
-                                        "Close",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Close },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Settings",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Settings },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Save",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Save },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Load",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Load },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Main Menu",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::MainMenu },
-                                        BTN_NORMAL,
-                                    )
-                                );
-                        });
-                });
-        })
-        .id();
+                        },
+                        color: Color::rgba(1.0, 0.5, 0.5, 0.8).into(),
+                        ..Default::default()
+                    })
+                    .with_children(
+                        make_button_closure(
+                            "Close",
+                            button_font.clone(),
+                            OverlayButton { target: OverlayButtons::Close },
+                            BTN_NORMAL,
+                        )
+                    )
+                    .with_children(
+                        make_button_closure(
+                            "Settings",
+                            button_font.clone(),
+                            OverlayButton { target: OverlayButtons::Settings },
+                            BTN_NORMAL,
+                        )
+                    )
+                    .with_children(
+                        make_button_closure(
+                            "Save",
+                            button_font.clone(),
+                            OverlayButton { target: OverlayButtons::Save },
+                            BTN_NORMAL,
+                        )
+                    )
+                    .with_children(
+                        make_button_closure(
+                            "Load",
+                            button_font.clone(),
+                            OverlayButton { target: OverlayButtons::Load },
+                            BTN_NORMAL,
+                        )
+                    )
+                    .with_children(
+                        make_button_closure(
+                            "Main Menu",
+                            button_font.clone(),
+                            OverlayButton { target: OverlayButtons::MainMenu },
+                            BTN_NORMAL,
+                        )
+                    );
+            });
+    });
 
-    command.insert_resource(OverlayData { ui_entity });
+    let ui_settings = make_ui_base(&mut commands, OverlaySettings, |parent| {
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    ..Default::default()
+                },
+                color: TRANSPARENT.into(),
+                ..Default::default()
+            })
+            .with_children(|parent| {  // Header
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::FlexStart,
+                            align_items: AlignItems::FlexStart,
+                            ..Default::default()
+                        },
+                        color: Color::DARK_GREEN.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "Settings",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 40.0,
+                                        color: Color::BLACK,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            })
+            .with_children(|parent| {  // Body
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..Default::default()
+                        },
+                        color: Color::GRAY.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "TODO: Settings",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 60.0,
+                                        color: Color::ANTIQUE_WHITE,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            });
+    });
+
+    let ui_save = make_ui_base(&mut commands, OverlaySave, |parent| {
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    ..Default::default()
+                },
+                color: Color::GRAY.into(),
+                ..Default::default()
+            })
+            .with_children(|parent| {  // Header
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::FlexStart,
+                            align_items: AlignItems::FlexStart,
+                            ..Default::default()
+                        },
+                        color: Color::DARK_GREEN.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "Save",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 40.0,
+                                        color: Color::BLACK,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            })
+            .with_children(|parent| {  // Body
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..Default::default()
+                        },
+                        color: Color::GRAY.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "TODO: Save grid",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 60.0,
+                                        color: Color::ANTIQUE_WHITE,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            });
+    });
+
+    let ui_load = make_ui_base(&mut commands, OverlayLoad, |parent| {
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    ..Default::default()
+                },
+                color: Color::GRAY.into(),
+                ..Default::default()
+            })
+            .with_children(|parent| {  // Header
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::FlexStart,
+                            align_items: AlignItems::FlexStart,
+                            ..Default::default()
+                        },
+                        color: Color::DARK_GREEN.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "Load",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 40.0,
+                                        color: Color::BLACK,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            })
+            .with_children(|parent| {  // Body
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
+                            padding: Rect::all(Val::Px(10.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..Default::default()
+                        },
+                        color: Color::GRAY.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::with_section(
+                                    "TODO: Load grid",
+                                    TextStyle {
+                                        font: text_font,
+                                        font_size: 60.0,
+                                        color: Color::ANTIQUE_WHITE,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..Default::default()
+                            });
+                    });
+            });
+    });
+
+    commands.insert_resource(OverlayData {
+        ui_menu,
+        ui_settings,
+        ui_save,
+        ui_load,
+    });
 }
 
-pub fn overlay(
+pub fn overlay_menu(
     mut main_state: ResMut<State<MainState>>,
     mut overlay_state: ResMut<State<OverlayState>>,
     mut interactions_query: Query<
@@ -196,306 +431,54 @@ pub fn overlay_break(
     }
 }
 
-pub fn cleanup(mut command: Commands, overlay_data: Option<Res<OverlayData>>) {
-    if let Some(overlay_data) = overlay_data {
-        command.entity(overlay_data.ui_entity).despawn_recursive();
-        command.remove_resource::<OverlayData>();
+fn show(entity: Entity, mut style_query: Query<&mut Style>) {
+    if let Ok(mut style) = style_query.get_mut(entity) {
+        style.display = Display::Flex;
     }
 }
 
-pub fn setup_settings(
-    mut command: Commands,
-    asset_server: Res<AssetServer>,
-)
-{
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let ui_entity = command
-        .spawn_bundle(overlay_ui_base())
-        .with_children(|parent| {
-            grow_z_index(
-                OVERLAY_Z_DEEP, parent,
-                Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                |parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                flex_wrap: FlexWrap::Wrap,
-                                flex_direction: FlexDirection::ColumnReverse,
-                                ..Default::default()
-                            },
-                            color: TRANSPARENT.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {  // Header
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::FlexStart,
-                                        align_items: AlignItems::FlexStart,
-                                        ..Default::default()
-                                    },
-                                    color: Color::DARK_GREEN.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "Settings",
-                                                TextStyle {
-                                                    font: text_font.clone(),
-                                                    font_size: 40.0,
-                                                    color: Color::BLACK,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        })
-                        .with_children(|parent| {  // Body
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        ..Default::default()
-                                    },
-                                    color: Color::GRAY.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "TODO: Settings",
-                                                TextStyle {
-                                                    font: text_font,
-                                                    font_size: 60.0,
-                                                    color: Color::ANTIQUE_WHITE,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        });
-                },
-            )
-        })
-        .id();
-
-    command.insert_resource(OverlayData { ui_entity });
+fn hide(entity: Entity, mut style_query: Query<&mut Style>) {
+    if let Ok(mut style) = style_query.get_mut(entity) {
+        style.display = Display::None;
+    }
 }
 
-pub fn setup_save(
-    mut command: Commands,
-    asset_server: Res<AssetServer>,
-)
+pub fn show_menu(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
 {
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let ui_entity = command
-        .spawn_bundle(overlay_ui_base())
-        .with_children(|parent| {
-            grow_z_index(
-                OVERLAY_Z_DEEP, parent,
-                Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                |parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                flex_wrap: FlexWrap::Wrap,
-                                flex_direction: FlexDirection::ColumnReverse,
-                                ..Default::default()
-                            },
-                            color: Color::GRAY.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {  // Header
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::FlexStart,
-                                        align_items: AlignItems::FlexStart,
-                                        ..Default::default()
-                                    },
-                                    color: Color::DARK_GREEN.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "Save",
-                                                TextStyle {
-                                                    font: text_font.clone(),
-                                                    font_size: 40.0,
-                                                    color: Color::BLACK,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        })
-                        .with_children(|parent| {  // Body
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        ..Default::default()
-                                    },
-                                    color: Color::GRAY.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "TODO: Save grid",
-                                                TextStyle {
-                                                    font: text_font,
-                                                    font_size: 60.0,
-                                                    color: Color::ANTIQUE_WHITE,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        });
-                },
-            )
-        })
-        .id();
-
-    command.insert_resource(OverlayData { ui_entity });
+    show(overlay_data.ui_menu, style_query);
 }
 
-pub fn setup_load(
-    mut command: Commands,
-    asset_server: Res<AssetServer>,
-)
+pub fn hide_menu(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
 {
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    hide(overlay_data.ui_menu, style_query);
+}
 
-    let ui_entity = command
-        .spawn_bundle(overlay_ui_base())
-        .with_children(|parent| {
-            grow_z_index(
-                OVERLAY_Z_DEEP, parent,
-                Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                |parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                flex_wrap: FlexWrap::Wrap,
-                                flex_direction: FlexDirection::ColumnReverse,
-                                ..Default::default()
-                            },
-                            color: Color::GRAY.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {  // Header
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::FlexStart,
-                                        align_items: AlignItems::FlexStart,
-                                        ..Default::default()
-                                    },
-                                    color: Color::DARK_GREEN.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "Load",
-                                                TextStyle {
-                                                    font: text_font.clone(),
-                                                    font_size: 40.0,
-                                                    color: Color::BLACK,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        })
-                        .with_children(|parent| {  // Body
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                                        padding: Rect::all(Val::Px(10.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        ..Default::default()
-                                    },
-                                    color: Color::GRAY.into(),
-                                    ..Default::default()
-                                })
-                                .with_children(|parent| {
-                                    parent
-                                        .spawn_bundle(TextBundle {
-                                            text: Text::with_section(
-                                                "TODO: Load grid",
-                                                TextStyle {
-                                                    font: text_font,
-                                                    font_size: 60.0,
-                                                    color: Color::ANTIQUE_WHITE,
-                                                },
-                                                Default::default(),
-                                            ),
-                                            ..Default::default()
-                                        });
-                                });
-                        });
-                },
-            )
-        })
-        .id();
+pub fn show_settings(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    show(overlay_data.ui_settings, style_query);
+}
 
-    command.insert_resource(OverlayData { ui_entity });
+pub fn hide_settings(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    hide(overlay_data.ui_settings, style_query);
+}
+
+pub fn show_save(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    show(overlay_data.ui_save, style_query);
+}
+
+pub fn hide_save(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    hide(overlay_data.ui_save, style_query);
+}
+
+pub fn show_load(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    show(overlay_data.ui_load, style_query);
+}
+
+pub fn hide_load(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
+{
+    hide(overlay_data.ui_load, style_query);
 }

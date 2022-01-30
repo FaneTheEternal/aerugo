@@ -18,8 +18,6 @@ pub fn setup_game(
     window: Res<Windows>,
 )
 {
-    command.spawn_bundle(OrthographicCameraBundle::new_2d());
-
     let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
     let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
