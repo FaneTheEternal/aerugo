@@ -173,6 +173,7 @@ pub enum CommonAnimation {
     RightOut,
     Jump,
     Move(f32),
+    None,
 }
 
 impl std::hash::Hash for CommonAnimation {
@@ -188,6 +189,7 @@ pub enum BackgroundCommand {
         animation: Option<CommonAnimation>,
     },
     Shake,
+    None,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -203,4 +205,5 @@ pub enum SceneCommand {
         is_loop: bool,
     },
     Pause,
+    None,
 }
