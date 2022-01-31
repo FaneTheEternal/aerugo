@@ -1,16 +1,17 @@
 #![allow(dead_code)]
 
 use std::fmt::{Debug, Formatter};
+use std::hash::Hasher;
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AerugoState {
     pub current: Uuid,
     pub select_story: Vec<(Uuid, String)>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Aerugo {
     pub steps: Vec<Step>,
 }
@@ -38,7 +39,7 @@ impl Aerugo {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub enum Steps {
     Text {
         author: String,
@@ -48,10 +49,28 @@ pub enum Steps {
         condition: Option<Condition>,
         target: Uuid,
     },
+    Phrase {
+        phrases: Vec<(String, String)>,
+    },
+    SpriteNarrator {
+        /// None -> cleanup any active
+        sprite: Option<String>,
+    },
+    Sprite {
+        name: String,
+        sprite: String,
+        animation: CommonAnimation,
+    },
+    Background {
+        command: BackgroundCommand,
+    },
+    Scene {
+        command: SceneCommand,
+    },
     None,
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Hash, Serialize, Deserialize)]
 pub struct Step {
     pub id: Uuid,
     pub name: String,
@@ -141,4 +160,47 @@ impl Condition {
             }
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CommonAnimation {
+    // -1|-----0-----|1
+    FadeIn(f32),
+    FadeOut,
+    LeftIn(f32),
+    LeftOut,
+    RightIn(f32),
+    RightOut,
+    Jump,
+    Move(f32),
+}
+
+impl std::hash::Hash for CommonAnimation {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        serde_json::to_string(self).unwrap().hash(state)
+    }
+}
+
+#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+pub enum BackgroundCommand {
+    Change {
+        new: String,
+        animation: Option<CommonAnimation>,
+    },
+    Shake,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum SceneCommand {
+    Set {
+        /// sprite
+        name: String,
+    },
+    Remove,
+    Play {
+        /// sprite_sheet
+        name: String,
+        is_loop: bool,
+    },
+    Pause,
 }
