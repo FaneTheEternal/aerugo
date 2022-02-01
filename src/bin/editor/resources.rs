@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use uuid::Uuid;
 use aerugo::*;
 
@@ -46,6 +47,18 @@ pub struct PhraseStep {
 impl AsOrigin for PhraseStep {
     fn as_origin(&self) -> Steps {
         Steps::Phrase { phrases: self.phrases.clone() }
+    }
+}
+
+#[derive(Default)]
+pub struct ImageSelectStep {
+    pub background: String,
+    pub options: HashMap<String, (String, (isize, isize))>,
+}
+
+impl AsOrigin for ImageSelectStep {
+    fn as_origin(&self) -> Steps {
+        Steps::ImageSelect { background: self.background.clone(), options: self.options.clone() }
     }
 }
 

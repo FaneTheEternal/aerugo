@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hasher;
 use uuid::Uuid;
@@ -39,7 +40,7 @@ impl Aerugo {
     }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Steps {
     Text {
         author: String,
@@ -51,6 +52,11 @@ pub enum Steps {
     },
     Phrase {
         phrases: Vec<(String, String)>,
+    },
+    ImageSelect {
+        background: String,
+        /// (sprite, (x, y))
+        options: HashMap<String, (String, (isize, isize))>,
     },
     SpriteNarrator {
         /// None -> cleanup any active
@@ -68,6 +74,12 @@ pub enum Steps {
         command: SceneCommand,
     },
     None,
+}
+
+impl std::hash::Hash for Steps {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        serde_json::to_string(self).unwrap().hash(state)
+    }
 }
 
 #[derive(Clone, Hash, Serialize, Deserialize)]

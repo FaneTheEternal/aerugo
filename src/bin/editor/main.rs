@@ -102,6 +102,7 @@ fn fill_default_steps(commands: &mut Commands, init: &Steps) {
     commands.insert_resource(TextStep::default());
     commands.insert_resource(JumpStep::default());
     commands.insert_resource(PhraseStep::default());
+    commands.insert_resource(ImageSelectStep::default());
     commands.insert_resource(SpriteNarratorStep::default());
     commands.insert_resource(SpriteStep::default());
     commands.insert_resource(BackgroundStep::default());
@@ -115,6 +116,12 @@ fn fill_default_steps(commands: &mut Commands, init: &Steps) {
         }
         Steps::Phrase { phrases } => {
             commands.insert_resource(PhraseStep { phrases: phrases.clone() })
+        }
+        Steps::ImageSelect { background, options } => {
+            commands.insert_resource(ImageSelectStep {
+                background: background.clone(),
+                options: options.clone(),
+            })
         }
         Steps::SpriteNarrator { sprite } => {
             commands.insert_resource(SpriteNarratorStep {
@@ -147,6 +154,7 @@ fn ui(
     mut text_step: ResMut<TextStep>,
     mut jump_step: ResMut<JumpStep>,
     mut phrase_step: ResMut<PhraseStep>,
+    mut image_select_step: ResMut<ImageSelectStep>,
     mut sprite_narrator_step: ResMut<SpriteNarratorStep>,
     mut sprite_step: ResMut<SpriteStep>,
     mut background_step: ResMut<BackgroundStep>,
@@ -215,6 +223,9 @@ fn ui(
             if ui.button("Phrase").clicked() {
                 app_state.current.inner = Steps::Phrase { phrases: vec![] };
             }
+            if ui.button("ImageSelect").clicked() {
+                app_state.current.inner = Steps::ImageSelect { background: Default::default(), options: Default::default() };
+            }
             if ui.button("SpriteNarrator").clicked() {
                 app_state.current.inner = Steps::SpriteNarrator { sprite: None };
             }
@@ -273,6 +284,9 @@ fn ui(
             Steps::Phrase { .. } => {
                 ui.heading("Phrase");
             }
+            Steps::ImageSelect { .. } => {
+                ui.heading("ImageSelect");
+            }
             Steps::SpriteNarrator { .. } => {
                 ui.heading("SpriteNarrator");
                 ui.label("Sprite");
@@ -309,6 +323,7 @@ fn ui(
             Steps::Text { .. } => { app_state.current.clone().with_inner(text_step.as_origin()) }
             Steps::Jump { .. } => { app_state.current.clone().with_inner(jump_step.as_origin()) }
             Steps::Phrase { .. } => { app_state.current.clone().with_inner(phrase_step.as_origin()) }
+            Steps::ImageSelect { .. } => { app_state.current.clone().with_inner(image_select_step.as_origin()) }
             Steps::SpriteNarrator { .. } => { app_state.current.clone().with_inner(sprite_narrator_step.as_origin()) }
             Steps::Sprite { .. } => { app_state.current.clone().with_inner(sprite_step.as_origin()) }
             Steps::Background { .. } => { app_state.current.clone().with_inner(background_step.as_origin()) }
