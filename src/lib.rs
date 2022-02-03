@@ -12,6 +12,90 @@ pub struct AerugoState {
     pub select_story: Vec<(Uuid, String)>,
 }
 
+impl AerugoState {
+    fn apply_jump(
+        current: &mut Uuid,
+        select_story: &Vec<(Uuid, String)>,
+        condition: &Option<Condition>,
+        target: &Uuid,
+    ) -> bool
+    {
+        let condition = match condition {
+            None => { true }
+            Some(c) => { c.resolve(&select_story) }
+        };
+        if condition {
+            *current = *target;
+        }
+        condition
+    }
+
+    fn find_next(current: Uuid, aerugo: &Aerugo) -> Uuid {
+        let current_pos = aerugo.steps.iter()
+            .position(|s| { s.id == current })
+            .unwrap();
+        aerugo.steps.get(current_pos + 1).unwrap().id
+    }
+
+    pub fn setup(aerugo: &Aerugo) -> AerugoState {
+        let mut current = aerugo.steps.get(0).unwrap().id;
+        let select_story = Default::default();
+        loop {
+            let step = aerugo.steps.iter()
+                .find(|s| { s.id == current })
+                .unwrap();
+            match &step.inner {
+                Steps::Jump { condition, target } => {
+                    if Self::apply_jump(&mut current, &select_story, condition, target) {
+                        continue;
+                    }
+                }
+                Steps::None => {}
+                _ => { break; }
+            }
+
+            current = Self::find_next(current, &aerugo);
+        }
+        AerugoState { current, select_story }
+    }
+
+    pub fn step(&self, aerugo: &Aerugo) -> Step {
+        aerugo.steps.iter().find(|s| { s.id == self.current }).unwrap().clone()
+    }
+
+    // move to next user await step & collect graphic commands steps
+    pub fn collect(&mut self, aerugo: &Aerugo) -> Vec<Steps> {
+        let mut steps: Vec<Steps> = Default::default();
+        loop {
+            let step = self.step(&aerugo);
+            match &step.inner {
+                // region user await steps
+                Steps::Text { .. }
+                | Steps::Phrase { .. }
+                | Steps::ImageSelect { .. } => { break; }
+                // endregion
+                Steps::Jump { condition, target } => {
+                    if Self::apply_jump(&mut self.current, &self.select_story, condition, target) {
+                        continue;
+                    }
+                }
+                // region graphic commands steps
+                Steps::SpriteNarrator { .. }
+                | Steps::Sprite { .. }
+                | Steps::Background { .. }
+                | Steps::Scene { .. } => {
+                    steps.push(step.inner);
+                }
+                // endregion
+                _ => {}
+            }
+
+            self.current = Self::find_next(self.current, &aerugo);
+        }
+        steps
+    }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Aerugo {
     pub steps: Vec<Step>,
