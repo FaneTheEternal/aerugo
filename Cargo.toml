@@ -10,6 +10,9 @@ name = "game"
 [[bin]]
 name = "editor"
 
+[[bin]]
+name = "demo"
+
 [dependencies]
 bevy = "0.6"
 bevy_egui = "0.10"
