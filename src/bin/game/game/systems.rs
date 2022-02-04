@@ -76,6 +76,8 @@ pub fn setup_game(
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 padding: Rect::all(Val::Px(10.0)),
                 position_type: PositionType::Absolute,
+                flex_wrap: FlexWrap::Wrap,
+                flex_direction: FlexDirection::Column,
                 display: Display::None,
                 ..Default::default()
             },
@@ -121,6 +123,46 @@ pub fn setup_game(
                             ..Default::default()
                         })
                         .insert(TextFlowMark);
+                });
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                        align_items: AlignItems::FlexStart,
+                        align_content: AlignContent::FlexStart,
+                        flex_direction: FlexDirection::ColumnReverse,
+                        flex_wrap: FlexWrap::Wrap,
+                        padding: Rect {
+                            left: Default::default(),
+                            right: Default::default(),
+                            top: Val::Px(10.0),
+                            bottom: Default::default(),
+                        },
+                        ..Default::default()
+                    },
+                    color: TRANSPARENT.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(TextBundle {
+                            text: Text::with_section(
+                                "Narrator",
+                                TextStyle {
+                                    font: text_font.clone(),
+                                    font_size: 20.0,
+                                    color: Color::GREEN,
+                                },
+                                TextAlignment {
+                                    vertical: VerticalAlign::Top,
+                                    horizontal: HorizontalAlign::Left,
+                                },
+                            ),
+                            ..Default::default()
+                        })
+                        .insert(NarratorFlowMark);
                 });
         });
     // endregion
@@ -203,6 +245,7 @@ pub fn open_overlay(
 }
 
 pub fn next_step_listener(
+    mut commands: Commands,
     mut events: EventReader<NextStepEvent>,
     mut game_state: ResMut<GameState>,
     game_data: Res<GameData>,
@@ -233,5 +276,65 @@ pub fn next_step_listener(
                 _ => {}
             }
         }
+
+        let step = game_state.aerugo_state.step(&game_data.aerugo);
+        commands.insert_resource(step);
+    }
+}
+
+
+pub fn step_init(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    game_state: Res<GameState>,
+    step: Option<Res<Step>>,
+    mut text_base_query: Query<&mut Style, With<TextFlowBase>>,
+    mut text_flow_query: Query<&mut Text, (With<TextFlowMark>, Without<NarratorFlowMark>)>,
+    mut narrator_flow_query: Query<&mut Text, (Without<TextFlowMark>, With<NarratorFlowMark>)>,
+    mut text_sprite_query: Query<&mut Visibility, With<Sprite>>,
+)
+{
+    if let Some(step) = step {
+        let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
+
+        for mut style in text_base_query.iter_mut() {
+            style.display = Display::None;
+        }
+        text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = false;
+        text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = false;
+
+        match &step.inner {
+            Steps::Text { author, texts } => {
+                for mut style in text_base_query.iter_mut() {
+                    style.display = Display::Flex;
+                }
+                text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = true;
+                text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = true;
+                for mut text in narrator_flow_query.iter_mut() {
+                    text.sections = vec![TextSection {
+                        value: author.clone(),
+                        style: TextStyle {
+                            font: text_font.clone(),
+                            font_size: 40.0,
+                            color: Color::BLACK,
+                        },
+                    }];
+                }
+                for mut text in text_flow_query.iter_mut() {
+                    text.sections = vec![TextSection {
+                        value: texts.clone(),
+                        style: TextStyle {
+                            font: text_font.clone(),
+                            font_size: 40.0,
+                            color: Color::BLACK,
+                        },
+                    }]
+                }
+            }
+            Steps::Phrase { .. } => {}
+            Steps::ImageSelect { .. } => {}
+            _ => {}
+        }
+        commands.remove_resource::<Step>();
     }
 }

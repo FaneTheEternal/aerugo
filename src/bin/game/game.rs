@@ -31,6 +31,7 @@ impl Plugin for GamePlugin {
                 SystemSet::on_update(MainState::InGame)
                     .with_system(open_overlay)
                     .with_system(next_step_listener)
+                    .with_system(step_init)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)

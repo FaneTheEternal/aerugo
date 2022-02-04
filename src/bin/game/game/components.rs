@@ -7,6 +7,9 @@ pub struct TextFlowBase;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct TextFlowMark;
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct NarratorFlowMark;
 // endregion
 
 // region narrator
