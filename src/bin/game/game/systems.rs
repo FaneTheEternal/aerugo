@@ -29,10 +29,11 @@ pub fn preload_aerugo(mut command: Commands) {
 }
 
 pub fn setup_game(
-    mut command: Commands,
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
     window: Res<Windows>,
     game_data: Res<GameData>,
+    mut next_step_event: EventWriter<NextStepEvent>,
 )
 {
     let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
@@ -45,7 +46,7 @@ pub fn setup_game(
     let aerugo_state = AerugoState::setup(&game_data.aerugo);
 
     // region spawn text flow
-    let text_narrator_entity = command
+    let text_narrator_entity = commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
                 color: Color::RED,
@@ -57,7 +58,7 @@ pub fn setup_game(
             ..Default::default()
         })
         .id();
-    let text_background_entity = command
+    let text_background_entity = commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
                 color: Color::RED,
@@ -69,7 +70,7 @@ pub fn setup_game(
             ..Default::default()
         })
         .id();
-    command
+    commands
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
@@ -125,7 +126,7 @@ pub fn setup_game(
     // endregion
 
     // region spawn phrase
-    let phrase_ui_entity = command
+    let phrase_ui_entity = commands
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
@@ -145,7 +146,7 @@ pub fn setup_game(
     // endregion
 
     // region spawn narrator
-    let narrator_entity = command
+    let narrator_entity = commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(w * 0.19, h * 0.19)),
@@ -161,7 +162,7 @@ pub fn setup_game(
     // endregion
 
     // region spawn background
-    let background_entity = command
+    let background_entity = commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(w, h)),
@@ -174,7 +175,7 @@ pub fn setup_game(
         .id();
     // endregion
 
-    command.insert_resource(GameState {
+    commands.insert_resource(GameState {
         aerugo_state,
         text_narrator_entity,
         text_background_entity,
@@ -182,6 +183,8 @@ pub fn setup_game(
         narrator_entity,
         background_entity,
     });
+
+    next_step_event.send(NextStepEvent);
 }
 
 pub fn open_overlay(
@@ -196,5 +199,39 @@ pub fn open_overlay(
             }
         }
         _ => {}
+    }
+}
+
+pub fn next_step_listener(
+    mut events: EventReader<NextStepEvent>,
+    mut game_state: ResMut<GameState>,
+    game_data: Res<GameData>,
+    mut new_narrator_event: EventWriter<NewNarratorEvent>,
+    mut new_sprite_event: EventWriter<NewSpriteEvent>,
+    mut new_background_event: EventWriter<NewBackgroundEvent>,
+    mut new_scene_event: EventWriter<NewSceneEvent>,
+)
+{
+    if events.iter().count() > 0 {
+        let steps = game_state.aerugo_state.collect(&game_data.aerugo);
+
+        // send events to update graphic part
+        for step in steps {
+            match step {
+                Steps::SpriteNarrator { sprite } => {
+                    new_narrator_event.send(NewNarratorEvent(sprite));
+                }
+                Steps::Sprite { name, sprite, animation } => {
+                    new_sprite_event.send(NewSpriteEvent { name, sprite, animation });
+                }
+                Steps::Background { command } => {
+                    new_background_event.send(NewBackgroundEvent(command));
+                }
+                Steps::Scene { command } => {
+                    new_scene_event.send(NewSceneEvent(command));
+                }
+                _ => {}
+            }
+        }
     }
 }
