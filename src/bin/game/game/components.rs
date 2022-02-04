@@ -1,32 +1,20 @@
 use bevy::prelude::*;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum GameButtons {
-    Back,
-    Forward,
-    Menu,
-}
+
+// region text flow
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct TextFlowBase;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
-pub struct GameButton {
-    pub target: GameButtons,
-}
+pub struct TextFlowMark;
+// endregion
 
-#[derive(Debug, Clone, Component)]
-pub struct SpriteMark {
-    pub name: String,
-    pub timer: Timer,
-    pub is_await: bool,
-    pub is_rev: bool,
-}
+// region narrator
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct NarratorMark;
+// endregion
 
-impl SpriteMark {
-    pub fn new(name: &str) -> SpriteMark {
-        SpriteMark {
-            name: name.to_string(),
-            timer: Timer::from_seconds(1.0, false),
-            is_await: true,
-            is_rev: false,
-        }
-    }
-}
+// region background
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct BackgroundMark;
+// endregion

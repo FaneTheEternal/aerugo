@@ -6,15 +6,14 @@ use bevy::window::WindowResized;
 
 use aerugo::*;
 
-use crate::game::components::{GameButton, GameButtons, SpriteMark};
-use super::GameData;
+use super::*;
 use crate::states::OverlayState;
 
-const BTN_NORMAL: Color = Color::WHITE;
-const BTN_HOVERED: Color = Color::GRAY;
-const BTN_PRESSED: Color = Color::DARK_GRAY;
-
 const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+
+const Z_TEXT: f32 = 10.0;
+const Z_NARRATOR: f32 = 20.0;
+const Z_BACKGROUND: f32 = 5.0;
 
 pub fn preload_aerugo(mut command: Commands) {
     const SCENARIO_PATH: &str = "scenario.json";
@@ -43,9 +42,9 @@ pub fn setup_game(
     let w = window.width();
     let h = window.height();
 
-    let game_state = AerugoState::setup(&game_data.aerugo);
-    command.insert_resource(game_state);
+    let aerugo_state = AerugoState::setup(&game_data.aerugo);
 
+    // region spawn text flow
     let text_narrator_entity = command
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
@@ -53,7 +52,8 @@ pub fn setup_game(
                 custom_size: Some(Vec2::new(w * 0.99, h * 0.09)),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(0.0, h * -0.25, 10.0),
+            transform: Transform::from_xyz(0.0, h * -0.25, Z_TEXT),
+            visibility: Visibility { is_visible: false },
             ..Default::default()
         })
         .id();
@@ -64,10 +64,124 @@ pub fn setup_game(
                 custom_size: Some(Vec2::new(w * 0.99, h * 0.19)),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(0.0, h * -0.4, 10.0),
+            transform: Transform::from_xyz(0.0, h * -0.4, Z_TEXT),
+            visibility: Visibility { is_visible: false },
             ..Default::default()
         })
         .id();
+    command
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                padding: Rect::all(Val::Px(10.0)),
+                position_type: PositionType::Absolute,
+                display: Display::None,
+                ..Default::default()
+            },
+            color: TRANSPARENT.into(),
+            ..Default::default()
+        })
+        .insert(TextFlowBase)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        align_items: AlignItems::FlexStart,
+                        align_content: AlignContent::FlexStart,
+                        flex_direction: FlexDirection::ColumnReverse,
+                        flex_wrap: FlexWrap::Wrap,
+                        padding: Rect {
+                            left: Default::default(),
+                            right: Default::default(),
+                            top: Val::Px(10.0),
+                            bottom: Default::default(),
+                        },
+                        ..Default::default()
+                    },
+                    color: TRANSPARENT.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(TextBundle {
+                            text: Text::with_section(
+                                "Some text",
+                                TextStyle {
+                                    font: text_font.clone(),
+                                    font_size: 20.0,
+                                    color: Color::GREEN,
+                                },
+                                TextAlignment {
+                                    vertical: VerticalAlign::Top,
+                                    horizontal: HorizontalAlign::Left,
+                                },
+                            ),
+                            ..Default::default()
+                        })
+                        .insert(TextFlowMark);
+                });
+        });
+    // endregion
+
+    // region spawn phrase
+    let phrase_ui_entity = command
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                display: Display::None,
+                align_items: AlignItems::Center,
+                align_content: AlignContent::Center,
+                justify_content: JustifyContent::Center,
+                position_type: PositionType::Absolute,
+                flex_wrap: FlexWrap::Wrap,
+                flex_direction: FlexDirection::ColumnReverse,
+                ..Default::default()
+            },
+            color: Color::rgba(0.5, 0.5, 0.5, 0.5).into(),
+            ..Default::default()
+        })
+        .id();
+    // endregion
+
+    // region spawn narrator
+    let narrator_entity = command
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(w * 0.19, h * 0.19)),
+                color: Color::RED,
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(w * -0.4, h * -0.4, Z_NARRATOR),
+            visibility: Visibility { is_visible: false },
+            ..Default::default()
+        })
+        .insert(NarratorMark)
+        .id();
+    // endregion
+
+    // region spawn background
+    let background_entity = command
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(w, h)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(0.0, 0.0, Z_BACKGROUND),
+            ..Default::default()
+        })
+        .insert(BackgroundMark)
+        .id();
+    // endregion
+
+    command.insert_resource(GameState {
+        aerugo_state,
+        text_narrator_entity,
+        text_background_entity,
+        phrase_ui_entity,
+        narrator_entity,
+        background_entity,
+    });
 }
 
 pub fn open_overlay(

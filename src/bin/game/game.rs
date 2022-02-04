@@ -38,8 +38,18 @@ pub struct GameData {
 
 pub struct GameState {
     pub aerugo_state: AerugoState,
+
+    pub text_narrator_entity: Entity,
+    pub text_background_entity: Entity,
+
+    pub phrase_ui_entity: Entity,
+
+    pub narrator_entity: Entity,
+
+    pub background_entity: Entity,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MuteControl {
     Mute,

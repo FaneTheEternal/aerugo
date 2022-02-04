@@ -11,6 +11,7 @@ use bevy::prelude::*;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
+        .insert_resource(ClearColor(Color::WHITE))
         .add_plugins(DefaultPlugins)
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(game::GamePlugin)
