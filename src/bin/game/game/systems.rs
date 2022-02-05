@@ -218,6 +218,7 @@ pub fn setup_game(
     // endregion
 
     commands.insert_resource(GameState {
+        just_init: true,
         aerugo_state,
         text_narrator_entity,
         text_background_entity,
@@ -256,6 +257,11 @@ pub fn next_step_listener(
 )
 {
     if events.iter().count() > 0 {
+        if game_state.just_init {
+            game_state.just_init = false;
+        } else {
+            game_state.aerugo_state.next(&game_data.aerugo);
+        }
         let steps = game_state.aerugo_state.collect(&game_data.aerugo);
 
         // send events to update graphic part
@@ -292,25 +298,23 @@ pub fn step_init(
     mut text_flow_query: Query<&mut Text, (With<TextFlowMark>, Without<NarratorFlowMark>)>,
     mut narrator_flow_query: Query<&mut Text, (Without<TextFlowMark>, With<NarratorFlowMark>)>,
     mut text_sprite_query: Query<&mut Visibility, With<Sprite>>,
+    mut mute_control_state: ResMut<State<MuteControl>>,
 )
 {
     if let Some(step) = step {
         let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
 
-        for mut style in text_base_query.iter_mut() {
-            style.display = Display::None;
-        }
+        text_base_query.for_each_mut(|mut e| { e.display = Display::None });
         text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = false;
         text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = false;
 
         match &step.inner {
             Steps::Text { author, texts } => {
-                for mut style in text_base_query.iter_mut() {
-                    style.display = Display::Flex;
-                }
+                text_base_query.for_each_mut(|mut e| { e.display = Display::Flex });
                 text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = true;
                 text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = true;
-                for mut text in narrator_flow_query.iter_mut() {
+
+                narrator_flow_query.for_each_mut(|mut text| {
                     text.sections = vec![TextSection {
                         value: author.clone(),
                         style: TextStyle {
@@ -319,8 +323,8 @@ pub fn step_init(
                             color: Color::BLACK,
                         },
                     }];
-                }
-                for mut text in text_flow_query.iter_mut() {
+                });
+                text_flow_query.for_each_mut(|mut text| {
                     text.sections = vec![TextSection {
                         value: texts.clone(),
                         style: TextStyle {
@@ -328,13 +332,39 @@ pub fn step_init(
                             font_size: 40.0,
                             color: Color::BLACK,
                         },
-                    }]
-                }
+                    }];
+                });
+                commands.insert_resource(CurrentStep::Text);
             }
             Steps::Phrase { .. } => {}
             Steps::ImageSelect { .. } => {}
             _ => {}
         }
         commands.remove_resource::<Step>();
+        mute_control_state.set(MuteControl::None);
+    }
+}
+
+pub fn input_listener(
+    mut mute_control_state: ResMut<State<MuteControl>>,
+    mut key_input: ResMut<Input<KeyCode>>,
+    current_step: Option<Res<CurrentStep>>,
+    mut next_step_event: EventWriter<NextStepEvent>,
+)
+{
+    let current = mute_control_state.current();
+    if current.eq(&MuteControl::Mute) || current_step.is_none() {
+        return;
+    }
+    let current_step = current_step.unwrap();
+
+    let any = current.eq(&MuteControl::None);
+    let text_pass = current.eq(&MuteControl::TextPass) || any;
+
+    if any && current_step.eq(&CurrentStep::Text) {
+        if key_input.any_just_released([KeyCode::Space, KeyCode::Return]) {
+            mute_control_state.set(MuteControl::Mute);
+            next_step_event.send(NextStepEvent);
+        }
     }
 }

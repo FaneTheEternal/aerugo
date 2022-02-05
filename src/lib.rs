@@ -63,7 +63,21 @@ impl AerugoState {
         aerugo.steps.iter().find(|s| { s.id == self.current }).unwrap().clone()
     }
 
-    // move to next user await step & collect graphic commands steps
+    pub fn next(&mut self, aerugo: &Aerugo) -> Option<()> {
+        let current = aerugo.steps
+            .iter()
+            .position(|s| { s.id == self.current })
+            .unwrap();
+        match aerugo.steps.get(current + 1) {
+            None => { None }
+            Some(next) => {
+                self.current = next.id;
+                Some(())
+            }
+        }
+    }
+
+    // collect graphic commands steps
     pub fn collect(&mut self, aerugo: &Aerugo) -> Vec<Steps> {
         let mut steps: Vec<Steps> = Default::default();
         loop {

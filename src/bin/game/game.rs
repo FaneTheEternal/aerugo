@@ -32,6 +32,7 @@ impl Plugin for GamePlugin {
                     .with_system(open_overlay)
                     .with_system(next_step_listener)
                     .with_system(step_init)
+                    .with_system(input_listener)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)
@@ -44,6 +45,7 @@ pub struct GameData {
 }
 
 pub struct GameState {
+    pub just_init: bool,
     pub aerugo_state: AerugoState,
 
     pub text_narrator_entity: Entity,
@@ -56,7 +58,6 @@ pub struct GameState {
     pub background_entity: Entity,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MuteControl {
     Mute,
@@ -77,3 +78,10 @@ pub struct NewSpriteEvent {
 pub struct NewBackgroundEvent(pub BackgroundCommand);
 
 pub struct NewSceneEvent(pub SceneCommand);
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub enum CurrentStep {
+    Text,
+    Phrase,
+    ImageSelect,
+}
