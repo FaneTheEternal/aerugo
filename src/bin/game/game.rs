@@ -36,6 +36,7 @@ impl Plugin for GamePlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)
+                    .with_system(cleanup)
             );
     }
 }
@@ -50,6 +51,7 @@ pub struct GameState {
 
     pub text_narrator_entity: Entity,
     pub text_background_entity: Entity,
+    pub text_ui_root_entity: Entity,
 
     pub phrase_ui_entity: Entity,
 

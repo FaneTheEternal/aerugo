@@ -12,6 +12,11 @@ pub struct TextFlowMark;
 pub struct NarratorFlowMark;
 // endregion
 
+// region phrase
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct PhraseValue(pub String);
+// endregion
+
 // region narrator
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct NarratorMark;

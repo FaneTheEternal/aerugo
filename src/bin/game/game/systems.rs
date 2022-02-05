@@ -70,7 +70,7 @@ pub fn setup_game(
             ..Default::default()
         })
         .id();
-    commands
+    let text_ui_root_entity = commands
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
@@ -164,7 +164,8 @@ pub fn setup_game(
                         })
                         .insert(NarratorFlowMark);
                 });
-        });
+        })
+        .id();
     // endregion
 
     // region spawn phrase
@@ -222,6 +223,7 @@ pub fn setup_game(
         aerugo_state,
         text_narrator_entity,
         text_background_entity,
+        text_ui_root_entity,
         phrase_ui_entity,
         narrator_entity,
         background_entity,
@@ -298,6 +300,7 @@ pub fn step_init(
     mut text_flow_query: Query<&mut Text, (With<TextFlowMark>, Without<NarratorFlowMark>)>,
     mut narrator_flow_query: Query<&mut Text, (Without<TextFlowMark>, With<NarratorFlowMark>)>,
     mut text_sprite_query: Query<&mut Visibility, With<Sprite>>,
+    mut style_query: Query<&mut Style, Without<TextFlowBase>>,
     mut mute_control_state: ResMut<State<MuteControl>>,
 )
 {
@@ -307,6 +310,8 @@ pub fn step_init(
         text_base_query.for_each_mut(|mut e| { e.display = Display::None });
         text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = false;
         text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = false;
+        commands.entity(game_state.phrase_ui_entity).despawn_descendants();
+        style_query.get_mut(game_state.phrase_ui_entity).unwrap().display = Display::None;
 
         match &step.inner {
             Steps::Text { author, texts } => {
@@ -336,7 +341,42 @@ pub fn step_init(
                 });
                 commands.insert_resource(CurrentStep::Text);
             }
-            Steps::Phrase { .. } => {}
+            Steps::Phrase { phrases } => {
+                style_query.get_mut(game_state.phrase_ui_entity).unwrap().display = Display::Flex;
+                let mut ui = commands.entity(game_state.phrase_ui_entity);
+                for phrase in phrases {
+                    let (key, verbose) = phrase;
+                    ui.with_children(|parent| {
+                        parent
+                            .spawn_bundle(ButtonBundle {
+                                style: Style {
+                                    margin: Rect::all(Val::Percent(1.0)),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            })
+                            .insert(PhraseValue(key.clone()))
+                            .with_children(|parent| {
+                                parent.spawn_bundle(TextBundle {
+                                    text: Text::with_section(
+                                        verbose.as_str(),
+                                        TextStyle {
+                                            font: text_font.clone(),
+                                            font_size: 40.0,
+                                            color: Color::BLACK,
+                                        },
+                                        TextAlignment {
+                                            vertical: VerticalAlign::Center,
+                                            horizontal: HorizontalAlign::Center,
+                                        },
+                                    ),
+                                    ..Default::default()
+                                });
+                            });
+                    });
+                }
+                commands.insert_resource(CurrentStep::Phrase);
+            }
             Steps::ImageSelect { .. } => {}
             _ => {}
         }
@@ -346,10 +386,13 @@ pub fn step_init(
 }
 
 pub fn input_listener(
+    mut game_state: ResMut<GameState>,
+    game_data: Res<GameData>,
     mut mute_control_state: ResMut<State<MuteControl>>,
     mut key_input: ResMut<Input<KeyCode>>,
     current_step: Option<Res<CurrentStep>>,
     mut next_step_event: EventWriter<NextStepEvent>,
+    mut phrase_query: Query<(&Interaction, &mut UiColor, &PhraseValue)>,
 )
 {
     let current = mute_control_state.current();
@@ -367,4 +410,37 @@ pub fn input_listener(
             next_step_event.send(NextStepEvent);
         }
     }
+
+    if any && current_step.eq(&CurrentStep::Phrase) {
+        for (interaction, mut color, phrase) in phrase_query.iter_mut() {
+            let interaction: &Interaction = interaction;
+            let mut color: Mut<UiColor> = color;
+            let phrase: &PhraseValue = phrase;
+            match interaction {
+                Interaction::Clicked => {
+                    *color = Color::DARK_GRAY.into();
+
+                    let step = game_state.aerugo_state.step(&game_data.aerugo);
+                    game_state.aerugo_state.select_unique(step.id, phrase.0.clone());
+                    mute_control_state.set(MuteControl::Mute);
+                    next_step_event.send(NextStepEvent);
+                }
+                Interaction::Hovered => {
+                    *color = Color::GRAY.into();
+                }
+                Interaction::None => {
+                    *color = Color::WHITE.into();
+                }
+            }
+        }
+    }
+}
+
+pub fn cleanup(mut commands: Commands, game_state: Res<GameState>) {
+    commands.entity(game_state.text_narrator_entity).despawn_recursive();
+    commands.entity(game_state.text_background_entity).despawn_recursive();
+    commands.entity(game_state.text_ui_root_entity).despawn_recursive();
+    commands.entity(game_state.phrase_ui_entity).despawn_recursive();
+    commands.entity(game_state.narrator_entity).despawn_recursive();
+    commands.entity(game_state.background_entity).despawn_recursive();
 }

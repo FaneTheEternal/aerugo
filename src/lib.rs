@@ -108,6 +108,22 @@ impl AerugoState {
         }
         steps
     }
+
+    pub fn select_unique(&mut self, step: Uuid, value: String) {
+        let exist = self.select_story
+            .iter()
+            .rposition(|(s, v)| {
+                *s == step
+            });
+        match exist {
+            None => {
+                self.select_story.push((step, value));
+            }
+            Some(i) => {
+                self.select_story[i] = (step, value);
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
