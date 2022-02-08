@@ -22,6 +22,7 @@ impl Plugin for GamePlugin {
             .add_event::<NewSpriteEvent>()
             .add_event::<NewBackgroundEvent>()
             .add_event::<NewSceneEvent>()
+            .add_event::<PassAnimateEvent>()
             .add_startup_system(preload_aerugo)
             .add_system_set(
                 SystemSet::on_enter(MainState::InGame)
@@ -33,6 +34,7 @@ impl Plugin for GamePlugin {
                     .with_system(next_step_listener)
                     .with_system(step_init)
                     .with_system(input_listener)
+                    .with_system(animate)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)
@@ -52,6 +54,7 @@ pub struct GameState {
     pub text_narrator_entity: Entity,
     pub text_background_entity: Entity,
     pub text_ui_root_entity: Entity,
+    pub text_ui_entity: Entity,
 
     pub phrase_ui_entity: Entity,
 
@@ -63,7 +66,7 @@ pub struct GameState {
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MuteControl {
     Mute,
-    TextPass,
+    Pass,
     None,
 }
 
@@ -87,3 +90,5 @@ pub enum CurrentStep {
     Phrase,
     ImageSelect,
 }
+
+pub struct PassAnimateEvent;

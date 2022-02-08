@@ -1,4 +1,5 @@
 use std::io::Read;
+use substring::Substring;
 use bevy::app::Events;
 use bevy::prelude::*;
 use bevy::text::Text2dSize;
@@ -70,6 +71,7 @@ pub fn setup_game(
             ..Default::default()
         })
         .id();
+    let mut text_ui_entity = None;
     let text_ui_root_entity = commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -106,7 +108,7 @@ pub fn setup_game(
                     ..Default::default()
                 })
                 .with_children(|parent| {
-                    parent
+                    let entity = parent
                         .spawn_bundle(TextBundle {
                             text: Text::with_section(
                                 "Some text",
@@ -122,7 +124,9 @@ pub fn setup_game(
                             ),
                             ..Default::default()
                         })
-                        .insert(TextFlowMark);
+                        .insert(TextFlowMark)
+                        .id();
+                    text_ui_entity = Some(entity);
                 });
         })
         .with_children(|parent| {
@@ -224,6 +228,7 @@ pub fn setup_game(
         text_narrator_entity,
         text_background_entity,
         text_ui_root_entity,
+        text_ui_entity: text_ui_entity.unwrap(),
         phrase_ui_entity,
         narrator_entity,
         background_entity,
@@ -262,7 +267,9 @@ pub fn next_step_listener(
         if game_state.just_init {
             game_state.just_init = false;
         } else {
-            game_state.aerugo_state.next(&game_data.aerugo);
+            if game_state.aerugo_state.next(&game_data.aerugo).is_none() {
+                return;
+            }
         }
         let steps = game_state.aerugo_state.collect(&game_data.aerugo);
 
@@ -297,8 +304,7 @@ pub fn step_init(
     game_state: Res<GameState>,
     step: Option<Res<Step>>,
     mut text_base_query: Query<&mut Style, With<TextFlowBase>>,
-    mut text_flow_query: Query<&mut Text, (With<TextFlowMark>, Without<NarratorFlowMark>)>,
-    mut narrator_flow_query: Query<&mut Text, (Without<TextFlowMark>, With<NarratorFlowMark>)>,
+    mut narrator_flow_query: Query<&mut Text, With<NarratorFlowMark>>,
     mut text_sprite_query: Query<&mut Visibility, With<Sprite>>,
     mut style_query: Query<&mut Style, Without<TextFlowBase>>,
     mut mute_control_state: ResMut<State<MuteControl>>,
@@ -329,16 +335,18 @@ pub fn step_init(
                         },
                     }];
                 });
-                text_flow_query.for_each_mut(|mut text| {
-                    text.sections = vec![TextSection {
-                        value: texts.clone(),
+                commands
+                    .entity(game_state.text_ui_entity)
+                    .insert(AnimateText {
+                        text: texts.clone(),
+                        timer: Timer::from_seconds(0.1, true),
                         style: TextStyle {
                             font: text_font.clone(),
                             font_size: 40.0,
                             color: Color::BLACK,
                         },
-                    }];
-                });
+                        chars: 0,
+                    });
                 commands.insert_resource(CurrentStep::Text);
             }
             Steps::Phrase { phrases } => {
@@ -381,7 +389,7 @@ pub fn step_init(
             _ => {}
         }
         commands.remove_resource::<Step>();
-        mute_control_state.set(MuteControl::None);
+        mute_control_state.set(MuteControl::Pass);
     }
 }
 
@@ -393,19 +401,30 @@ pub fn input_listener(
     current_step: Option<Res<CurrentStep>>,
     mut next_step_event: EventWriter<NextStepEvent>,
     mut phrase_query: Query<(&Interaction, &mut UiColor, &PhraseValue)>,
+    mut pass_animate_event: EventWriter<PassAnimateEvent>,
 )
 {
     let current = mute_control_state.current();
     if current.eq(&MuteControl::Mute) || current_step.is_none() {
+        key_input.clear();
         return;
     }
     let current_step = current_step.unwrap();
 
     let any = current.eq(&MuteControl::None);
-    let text_pass = current.eq(&MuteControl::TextPass) || any;
+    let pass = current.eq(&MuteControl::Pass);
+
+    if pass {
+        if key_input.clear_just_released(KeyCode::Space)
+            || key_input.clear_just_released(KeyCode::Return) {
+            mute_control_state.set(MuteControl::Mute);
+            pass_animate_event.send(PassAnimateEvent);
+        }
+    }
 
     if any && current_step.eq(&CurrentStep::Text) {
-        if key_input.any_just_released([KeyCode::Space, KeyCode::Return]) {
+        if key_input.clear_just_released(KeyCode::Space)
+            || key_input.clear_just_released(KeyCode::Return) {
             mute_control_state.set(MuteControl::Mute);
             next_step_event.send(NextStepEvent);
         }
@@ -433,6 +452,44 @@ pub fn input_listener(
                 }
             }
         }
+    }
+}
+
+pub fn animate(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut game_state: ResMut<GameState>,
+    mut mute_control_state: ResMut<State<MuteControl>>,
+    mut pass: EventReader<PassAnimateEvent>,
+    mut text_query: Query<(&mut Text, &mut AnimateText), With<TextFlowMark>>,
+)
+{
+    let mut unmute_control = true;
+    let pass = pass.iter().count() > 0;
+
+    let text_animate = text_query.get_mut(game_state.text_ui_entity);
+    if let Ok((mut text, mut animate)) = text_animate {
+        unmute_control = false;
+
+        let mut text: Mut<Text> = text;
+        let mut animate: Mut<AnimateText> = animate;
+
+        if pass {
+            animate.chars = animate.text.chars().count();
+        } else if animate.timer.tick(time.delta()).just_finished() {
+            animate.chars += 1;
+        }
+        text.sections = vec![TextSection {
+            value: animate.text.substring(0, animate.chars).to_string(),
+            style: animate.style.clone(),
+        }];
+        if animate.text.chars().count() <= animate.chars {
+            commands.entity(game_state.text_ui_entity).remove::<AnimateText>();
+        }
+    }
+
+    if unmute_control {
+        mute_control_state.set(MuteControl::None);
     }
 }
 
