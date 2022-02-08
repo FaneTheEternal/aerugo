@@ -14,7 +14,7 @@ name = "editor"
 name = "demo"
 
 [dependencies]
-bevy = "0.6"
+bevy = { version = "0.6", features = ["jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"] }
 bevy_egui = "0.10"
 
 serde = "1.0.134"

@@ -38,7 +38,7 @@ pub fn setup_game(
 )
 {
     let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
+    // let button_font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     let window = window.get_primary().unwrap();
     let w = window.width();
@@ -297,6 +297,25 @@ pub fn next_step_listener(
     }
 }
 
+pub fn new_background_listener(
+    game_state: Res<GameState>,
+    mut new_background_event: EventReader<NewBackgroundEvent>,
+    mut background_query: Query<&mut Handle<Image>, With<BackgroundMark>>,
+    asset_server: Res<AssetServer>,
+)
+{
+    for event in new_background_event.iter() {
+        let mut background = background_query.get_mut(game_state.background_entity).unwrap();
+        let cmd: &BackgroundCommand = &event.0;
+        match cmd {
+            BackgroundCommand::Change { new, .. } => {
+                *background = asset_server.load(new);
+            }
+            BackgroundCommand::Shake => {}
+            BackgroundCommand::None => {}
+        }
+    }
+}
 
 pub fn step_init(
     mut commands: Commands,
@@ -431,7 +450,7 @@ pub fn input_listener(
     }
 
     if any && current_step.eq(&CurrentStep::Phrase) {
-        for (interaction, mut color, phrase) in phrase_query.iter_mut() {
+        for (interaction, color, phrase) in phrase_query.iter_mut() {
             let interaction: &Interaction = interaction;
             let mut color: Mut<UiColor> = color;
             let phrase: &PhraseValue = phrase;
@@ -458,7 +477,7 @@ pub fn input_listener(
 pub fn animate(
     mut commands: Commands,
     time: Res<Time>,
-    mut game_state: ResMut<GameState>,
+    game_state: Res<GameState>,
     mut mute_control_state: ResMut<State<MuteControl>>,
     mut pass: EventReader<PassAnimateEvent>,
     mut text_query: Query<(&mut Text, &mut AnimateText), With<TextFlowMark>>,
@@ -468,7 +487,7 @@ pub fn animate(
     let pass = pass.iter().count() > 0;
 
     let text_animate = text_query.get_mut(game_state.text_ui_entity);
-    if let Ok((mut text, mut animate)) = text_animate {
+    if let Ok((text, animate)) = text_animate {
         unmute_control = false;
 
         let mut text: Mut<Text> = text;

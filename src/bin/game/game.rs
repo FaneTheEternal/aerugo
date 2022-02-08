@@ -35,6 +35,7 @@ impl Plugin for GamePlugin {
                     .with_system(step_init)
                     .with_system(input_listener)
                     .with_system(animate)
+                    .with_system(new_background_listener)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)

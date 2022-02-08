@@ -97,7 +97,26 @@ fn main() {
             // endregion
 
             // region background test
-            // TODO: Background
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Try set background") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Background {
+                    command: BackgroundCommand::Change {
+                        new: str!("textures/background/pexels-francesco-ungaro.jpg"),
+                        animation: None,
+                    }
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Looks good") }
+            },
             // endregion
 
             // region scene test
