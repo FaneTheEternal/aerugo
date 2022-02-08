@@ -34,3 +34,8 @@ pub struct NarratorMark;
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct BackgroundMark;
 // endregion
+
+// region scene
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct SceneMark;
+// endregion

@@ -36,6 +36,7 @@ impl Plugin for GamePlugin {
                     .with_system(input_listener)
                     .with_system(animate)
                     .with_system(new_background_listener)
+                    .with_system(new_scene_listener)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)
@@ -62,6 +63,8 @@ pub struct GameState {
     pub narrator_entity: Entity,
 
     pub background_entity: Entity,
+
+    pub scene_entity: Entity,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]

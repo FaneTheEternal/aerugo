@@ -115,12 +115,38 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Text { author: str!(""), texts: str!("Looks good") }
+                inner: Steps::Text { author: str!(""), texts: str!("Looks good") },
             },
             // endregion
 
             // region scene test
-            // TODO: Scene
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Try to do simple scene test") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene {
+                    command: SceneCommand::Set { name: str!("textures/scene/simple_scene_test.png") }
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Looks good") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene { command: SceneCommand::Remove },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Remove them better") },
+            },
             // endregion
 
             Step {  // End

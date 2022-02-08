@@ -12,8 +12,9 @@ use crate::states::OverlayState;
 
 const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
 
-const Z_TEXT: f32 = 10.0;
-const Z_NARRATOR: f32 = 20.0;
+const Z_TEXT: f32 = 20.0;
+const Z_NARRATOR: f32 = 15.0;
+const Z_SCENE: f32 = 10.0;
 const Z_BACKGROUND: f32 = 5.0;
 
 pub fn preload_aerugo(mut command: Commands) {
@@ -222,6 +223,21 @@ pub fn setup_game(
         .id();
     // endregion
 
+    // region spawn scene
+    let scene_entity = commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(w, h)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(0.0, 0.0, Z_SCENE),
+            visibility: Visibility { is_visible: false },
+            ..Default::default()
+        })
+        .insert(SceneMark)
+        .id();
+    // endregion
+
     commands.insert_resource(GameState {
         just_init: true,
         aerugo_state,
@@ -232,6 +248,7 @@ pub fn setup_game(
         phrase_ui_entity,
         narrator_entity,
         background_entity,
+        scene_entity,
     });
 
     next_step_event.send(NextStepEvent);
@@ -313,6 +330,35 @@ pub fn new_background_listener(
             }
             BackgroundCommand::Shake => {}
             BackgroundCommand::None => {}
+        }
+    }
+}
+
+pub fn new_scene_listener(
+    game_state: Res<GameState>,
+    mut new_scene_event: EventReader<NewSceneEvent>,
+    mut scene_query: Query<(&mut Handle<Image>, &mut Visibility), With<SceneMark>>,
+    asset_server: Res<AssetServer>,
+)
+{
+    for event in new_scene_event.iter() {
+        let cmd: &SceneCommand = &event.0;
+        let (mut scene, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
+            scene_query.get_mut(game_state.scene_entity).unwrap();
+        match cmd {
+            SceneCommand::Set { name } => {
+                *scene = asset_server.load(name);
+                visibility.is_visible = true;
+            }
+            SceneCommand::Remove => {
+                *scene = Default::default();
+                visibility.is_visible = false;
+            }
+            SceneCommand::Play { .. } => {
+                visibility.is_visible = true;
+            }
+            SceneCommand::Pause => {}
+            SceneCommand::None => {}
         }
     }
 }
