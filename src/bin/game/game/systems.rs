@@ -12,10 +12,16 @@ use crate::states::OverlayState;
 
 const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
 
-const Z_TEXT: f32 = 20.0;
-const Z_NARRATOR: f32 = 15.0;
+const Z_NARRATOR: f32 = 20.0;
+const Z_TEXT: f32 = 15.0;
 const Z_SCENE: f32 = 10.0;
 const Z_BACKGROUND: f32 = 5.0;
+
+fn make_narrator_transform(w: f32, h: f32) -> Transform {
+    const NARRATOR_SCALE: f32 = 0.4;
+    Transform::from_xyz(w * -0.4, h * -0.4, Z_NARRATOR)
+        .with_scale(Vec3::new(NARRATOR_SCALE, NARRATOR_SCALE, NARRATOR_SCALE))
+}
 
 pub fn preload_aerugo(mut command: Commands) {
     const SCENARIO_PATH: &str = "scenario.json";
@@ -108,6 +114,7 @@ pub fn setup_game(
                     color: TRANSPARENT.into(),
                     ..Default::default()
                 })
+                .insert(NarratorPlaceholderMark)
                 .with_children(|parent| {
                     let entity = parent
                         .spawn_bundle(TextBundle {
@@ -150,6 +157,7 @@ pub fn setup_game(
                     color: TRANSPARENT.into(),
                     ..Default::default()
                 })
+                .insert(NarratorPlaceholderMark)
                 .with_children(|parent| {
                     parent
                         .spawn_bundle(TextBundle {
@@ -197,11 +205,9 @@ pub fn setup_game(
     let narrator_entity = commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(w * 0.19, h * 0.19)),
-                color: Color::RED,
                 ..Default::default()
             },
-            transform: Transform::from_xyz(w * -0.4, h * -0.4, Z_NARRATOR),
+            transform: make_narrator_transform(w, h),
             visibility: Visibility { is_visible: false },
             ..Default::default()
         })
@@ -311,6 +317,37 @@ pub fn next_step_listener(
 
         let step = game_state.aerugo_state.step(&game_data.aerugo);
         commands.insert_resource(step);
+    }
+}
+
+pub fn new_narrator_listener(
+    game_state: Res<GameState>,
+    mut new_narrator_event: EventReader<NewNarratorEvent>,
+    mut narrator_query: Query<(&mut Handle<Image>, &mut Visibility), With<NarratorMark>>,
+    mut narrator_placeholder_query: Query<&mut Style, With<NarratorPlaceholderMark>>,
+    asset_server: Res<AssetServer>,
+)
+{
+    for event in new_narrator_event.iter() {
+        let narrator: &Option<String> = &event.0;
+        let (mut narrator_sprite, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
+            narrator_query.get_mut(game_state.narrator_entity).unwrap();
+        match narrator {
+            None => {
+                *narrator_sprite = Default::default();
+                visibility.is_visible = false;
+                narrator_placeholder_query.for_each_mut(|mut e| {
+                    e.padding.left = Default::default();
+                });
+            }
+            Some(s) => {
+                *narrator_sprite = asset_server.load(s);
+                visibility.is_visible = true;
+                narrator_placeholder_query.for_each_mut(|mut e| {
+                    e.padding.left = Val::Percent(20.0);
+                });
+            }
+        }
     }
 }
 
@@ -462,7 +499,9 @@ pub fn input_listener(
     mut game_state: ResMut<GameState>,
     game_data: Res<GameData>,
     mut mute_control_state: ResMut<State<MuteControl>>,
+    overlay_state: Res<State<OverlayState>>,
     mut key_input: ResMut<Input<KeyCode>>,
+    mouse_button_input: Res<Input<MouseButton>>,
     current_step: Option<Res<CurrentStep>>,
     mut next_step_event: EventWriter<NextStepEvent>,
     mut phrase_query: Query<(&Interaction, &mut UiColor, &PhraseValue)>,
@@ -470,8 +509,9 @@ pub fn input_listener(
 )
 {
     let current = mute_control_state.current();
-    if current.eq(&MuteControl::Mute) || current_step.is_none() {
-        key_input.clear();
+    if current.eq(&MuteControl::Mute)
+        || current_step.is_none()
+        || !overlay_state.current().eq(&OverlayState::Hidden) {
         return;
     }
     let current_step = current_step.unwrap();
@@ -480,16 +520,18 @@ pub fn input_listener(
     let pass = current.eq(&MuteControl::Pass);
 
     if pass {
-        if key_input.clear_just_released(KeyCode::Space)
-            || key_input.clear_just_released(KeyCode::Return) {
+        if key_input.clear_just_pressed(KeyCode::Space)
+            || key_input.clear_just_pressed(KeyCode::Return)
+            || mouse_button_input.just_pressed(MouseButton::Left) {
             mute_control_state.set(MuteControl::Mute);
             pass_animate_event.send(PassAnimateEvent);
         }
     }
 
     if any && current_step.eq(&CurrentStep::Text) {
-        if key_input.clear_just_released(KeyCode::Space)
-            || key_input.clear_just_released(KeyCode::Return) {
+        if key_input.clear_just_pressed(KeyCode::Space)
+            || key_input.clear_just_pressed(KeyCode::Return)
+            || mouse_button_input.just_pressed(MouseButton::Left) {
             mute_control_state.set(MuteControl::Mute);
             next_step_event.send(NextStepEvent);
         }
@@ -555,6 +597,42 @@ pub fn animate(
 
     if unmute_control {
         mute_control_state.set(MuteControl::None);
+    }
+}
+
+pub fn resize(
+    game_state: Res<GameState>,
+    resize_event: Res<Events<WindowResized>>,
+    mut sprite_query: Query<(&mut Sprite, &mut Transform)>,
+)
+{
+    let mut reader = resize_event.get_reader();
+    for e in reader.iter(&resize_event) {
+        let (w, h) = (e.width, e.height);
+
+        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+            .get_mut(game_state.text_narrator_entity).unwrap();
+        sprite.custom_size = Some(Vec2::new(w * 0.99, h * 0.09));
+        *transform = Transform::from_xyz(0.0, h * -0.25, Z_TEXT);
+
+        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+            .get_mut(game_state.text_background_entity).unwrap();
+        sprite.custom_size = Some(Vec2::new(w * 0.99, h * 0.19));
+        *transform = Transform::from_xyz(0.0, h * -0.4, Z_TEXT);
+
+        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+            .get_mut(game_state.narrator_entity).unwrap();
+        *transform = make_narrator_transform(w, h);
+
+        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+            .get_mut(game_state.background_entity).unwrap();
+        sprite.custom_size = Some(Vec2::new(w, h));
+        *transform = Transform::from_xyz(0.0, 0.0, Z_BACKGROUND);
+
+        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+            .get_mut(game_state.scene_entity).unwrap();
+        sprite.custom_size = Some(Vec2::new(w, h));
+        *transform = Transform::from_xyz(0.0, 0.0, Z_SCENE);
     }
 }
 

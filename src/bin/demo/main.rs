@@ -89,7 +89,31 @@ fn main() {
             // endregion
 
             // region sprite narrator test
-            // TODO: SpriteNarrator
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Try see narrator sprite_step") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::SpriteNarrator { sprite: Some(str!("textures/char/female_sprite.png")) },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!("Sprite narrator"), texts: str!("Hi!") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::SpriteNarrator { sprite: None },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Hide them") },
+            },
             // endregion
 
             // region sprite test

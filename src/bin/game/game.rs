@@ -37,6 +37,8 @@ impl Plugin for GamePlugin {
                     .with_system(animate)
                     .with_system(new_background_listener)
                     .with_system(new_scene_listener)
+                    .with_system(new_narrator_listener)
+                    .with_system(resize)
             )
             .add_system_set(
                 SystemSet::on_exit(MainState::InGame)

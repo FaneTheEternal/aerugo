@@ -12,6 +12,11 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::WHITE))
+        .insert_resource(WindowDescriptor {
+            width: 1280.0,
+            height: 720.0,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(game::GamePlugin)

@@ -28,6 +28,9 @@ pub struct PhraseValue(pub String);
 // region narrator
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct NarratorMark;
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct NarratorPlaceholderMark;
 // endregion
 
 // region background
