@@ -3,6 +3,7 @@
 mod components;
 mod systems;
 
+use std::collections::HashMap;
 use bevy::prelude::*;
 
 use aerugo::*;
@@ -23,6 +24,7 @@ impl Plugin for GamePlugin {
             .add_event::<NewBackgroundEvent>()
             .add_event::<NewSceneEvent>()
             .add_event::<PassAnimateEvent>()
+            .init_resource::<SpriteEntities>()
             .add_startup_system(preload_aerugo)
             .add_system_set(
                 SystemSet::on_enter(MainState::InGame)
@@ -38,6 +40,7 @@ impl Plugin for GamePlugin {
                     .with_system(new_background_listener)
                     .with_system(new_scene_listener)
                     .with_system(new_narrator_listener)
+                    .with_system(new_sprite_listener)
                     .with_system(resize)
             )
             .add_system_set(
@@ -98,3 +101,8 @@ pub enum CurrentStep {
 }
 
 pub struct PassAnimateEvent;
+
+#[derive(Default)]
+pub struct SpriteEntities {
+    entities: HashMap<String, Entity>,
+}

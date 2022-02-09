@@ -117,7 +117,140 @@ fn main() {
             // endregion
 
             // region sprite test
-            // TODO: Sprite
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Sprite test") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("FadeChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::FadeIn(-0.2),
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Fade in") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("FadeChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::FadeOut,
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Fade out") },
+            },
+
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("LeftChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::LeftIn(-0.35),
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Left in") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("LeftChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::LeftOut,
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Left out") },
+            },
+
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("RightChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::RightIn(0.35),
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Right in") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("RightChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::RightOut,
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Right out") },
+            },
+
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("MoveChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::FadeIn(0.7),
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Move prepare") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("MoveChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::Move(0.0),
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Wo-o-o-o") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Sprite {
+                    name: str!("MoveChan"),
+                    sprite: str!("textures/char/female_sprite.png"),
+                    animation: CommonAnimation::FadeOut,
+                },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: "".to_string(), texts: str!("Leave...") },
+            },
             // endregion
 
             // region background test

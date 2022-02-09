@@ -42,3 +42,21 @@ pub struct BackgroundMark;
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct SceneMark;
 // endregion
+
+// region sprite
+#[derive(Debug, Clone, Component)]
+pub struct AnimateFadeSprite {
+    pub timer: Timer,
+    pub fade_in: bool,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Component)]
+pub struct AnimateMoveSprite {
+    pub timer: Timer,
+    pub start_pos: f32,
+    pub end_pos: f32,
+    pub name: String,
+    pub move_out: bool,
+}
+// endregion

@@ -10,12 +10,15 @@ use aerugo::*;
 use super::*;
 use crate::states::OverlayState;
 
-const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
-const Z_NARRATOR: f32 = 20.0;
-const Z_TEXT: f32 = 15.0;
-const Z_SCENE: f32 = 10.0;
+const Z_NARRATOR: f32 = 25.0;
+const Z_TEXT: f32 = 20.0;
+const Z_SCENE: f32 = 15.0;
+const Z_SPRITE: f32 = 10.0;
 const Z_BACKGROUND: f32 = 5.0;
+
+const Y_SPRITE: f32 = 0.0;
 
 fn make_narrator_transform(w: f32, h: f32) -> Transform {
     const NARRATOR_SCALE: f32 = 0.4;
@@ -400,6 +403,163 @@ pub fn new_scene_listener(
     }
 }
 
+pub fn new_sprite_listener(
+    mut commands: Commands,
+    mut new_sprite_event: EventReader<NewSpriteEvent>,
+    asset_server: Res<AssetServer>,
+    mut sprites: ResMut<SpriteEntities>,
+    window: Res<Windows>,
+)
+{
+    let window = window.get_primary().unwrap();
+    let w = window.width() / 2.0;
+    // let h = window.height();
+
+    for event in new_sprite_event.iter() {
+        let (name, sprite, animation): (&String, &String, &CommonAnimation) =
+            (&event.name, &event.sprite, &event.animation);
+        let ext_sprite = sprites.entities.get(name);
+        match animation {
+            CommonAnimation::FadeIn(pos) => {
+                let sprite = asset_server.load(sprite);
+                let pos = w * pos;
+                let entity = match ext_sprite {
+                    None => {
+                        commands
+                            .spawn_bundle(SpriteBundle {
+                                texture: sprite,
+                                ..Default::default()
+                            })
+                    }
+                    Some(entity) => {
+                        commands
+                            .entity(*entity)
+                    }
+                }
+                    .insert(Sprite {
+                        color: TRANSPARENT,
+                        ..Default::default()
+                    })
+                    .insert(Transform::from_xyz(pos, Y_SPRITE, Z_SPRITE))
+                    .insert(AnimateFadeSprite {
+                        timer: Timer::from_seconds(1.0, false),
+                        fade_in: true,
+                        name: name.clone(),
+                    })
+                    .id();
+                sprites.entities.insert(name.clone(), entity);
+            }
+            CommonAnimation::FadeOut => {
+                if let Some(entity) = ext_sprite {
+                    commands
+                        .entity(*entity)
+                        .insert(AnimateFadeSprite {
+                            timer: Timer::from_seconds(1.0, false),
+                            fade_in: false,
+                            name: name.clone(),
+                        });
+                }
+            }
+            CommonAnimation::LeftIn(pos) => {
+                let sprite = asset_server.load(sprite);
+                let pos = w * pos;
+                let entity = match ext_sprite {
+                    None => {
+                        commands
+                            .spawn_bundle(SpriteBundle {
+                                texture: sprite,
+                                ..Default::default()
+                            })
+                    }
+                    Some(entity) => {
+                        commands
+                            .entity(*entity)
+                    }
+                }
+                    .insert(Transform::from_xyz(w * -2.0, Y_SPRITE, Z_SPRITE))
+                    .insert(AnimateMoveSprite {
+                        timer: Timer::from_seconds(1.0, false),
+                        start_pos: f32::NEG_INFINITY,
+                        end_pos: pos,
+                        name: name.clone(),
+                        move_out: false,
+                    })
+                    .id();
+                sprites.entities.insert(name.clone(), entity);
+            }
+            CommonAnimation::LeftOut => {
+                if let Some(entity) = ext_sprite {
+                    commands
+                        .entity(*entity)
+                        .insert(AnimateMoveSprite {
+                            timer: Timer::from_seconds(1.0, false),
+                            start_pos: f32::NAN,
+                            end_pos: f32::NEG_INFINITY,
+                            name: name.clone(),
+                            move_out: true,
+                        });
+                }
+            }
+            CommonAnimation::RightIn(pos) => {
+                let sprite = asset_server.load(sprite);
+                let pos = w * pos;
+                let entity = match ext_sprite {
+                    None => {
+                        commands
+                            .spawn_bundle(SpriteBundle {
+                                texture: sprite,
+                                ..Default::default()
+                            })
+                    }
+                    Some(entity) => {
+                        commands
+                            .entity(*entity)
+                    }
+                }
+                    .insert(Transform::from_xyz(w * 2.0, Y_SPRITE, Z_SPRITE))
+                    .insert(AnimateMoveSprite {
+                        timer: Timer::from_seconds(1.0, false),
+                        start_pos: f32::INFINITY,
+                        end_pos: pos,
+                        name: name.clone(),
+                        move_out: false,
+                    })
+                    .id();
+                sprites.entities.insert(name.clone(), entity);
+            }
+            CommonAnimation::RightOut => {
+                if let Some(entity) = ext_sprite {
+                    commands
+                        .entity(*entity)
+                        .insert(AnimateMoveSprite {
+                            timer: Timer::from_seconds(1.0, false),
+                            start_pos: f32::NAN,
+                            end_pos: f32::INFINITY,
+                            name: name.clone(),
+                            move_out: true,
+                        });
+                }
+            }
+            CommonAnimation::Jump => {}
+            CommonAnimation::Move(pos) => {
+                let pos = w * pos;
+                if let Some(entity) = ext_sprite {
+                    commands
+                        .entity(*entity)
+                        .insert(AnimateMoveSprite {
+                            timer: Timer::from_seconds(1.0, false),
+                            start_pos: f32::NAN,
+                            end_pos: pos,
+                            name: name.clone(),
+                            move_out: false,
+                        });
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 pub fn step_init(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -570,12 +730,26 @@ pub fn animate(
     time: Res<Time>,
     game_state: Res<GameState>,
     mut mute_control_state: ResMut<State<MuteControl>>,
+    mut sprites: ResMut<SpriteEntities>,
     mut pass: EventReader<PassAnimateEvent>,
+    window: Res<Windows>,
     mut text_query: Query<(&mut Text, &mut AnimateText), With<TextFlowMark>>,
+    mut sprite_fade_query: Query<
+        (&mut Sprite, &mut AnimateFadeSprite),
+        (),
+    >,
+    mut sprite_move_query: Query<
+        (&mut Transform, &mut AnimateMoveSprite),
+        (),
+    >,
 )
 {
     let mut unmute_control = true;
     let pass = pass.iter().count() > 0;
+
+    let window = window.get_primary().unwrap();
+    let w = window.width() / 2.0;
+    // let h = window.height();
 
     let text_animate = text_query.get_mut(game_state.text_ui_entity);
     if let Ok((text, animate)) = text_animate {
@@ -595,6 +769,57 @@ pub fn animate(
         }];
         if animate.text.chars().count() <= animate.chars {
             commands.entity(game_state.text_ui_entity).remove::<AnimateText>();
+        }
+    }
+
+    for sprite in sprite_fade_query.iter_mut() {
+        let (mut sprite, mut animate_fade): (Mut<Sprite>, Mut<AnimateFadeSprite>) = sprite;
+        unmute_control = false;
+
+        animate_fade.timer.tick(time.delta());
+
+        let alfa = if animate_fade.fade_in {
+            animate_fade.timer.percent()
+        } else {
+            1.0 - animate_fade.timer.percent()
+        };
+        sprite.color.set_a(alfa);
+        if animate_fade.timer.just_finished() {
+            if animate_fade.fade_in {
+                commands.entity(*sprites.entities.get(&animate_fade.name).unwrap())
+            } else {
+                commands.entity(sprites.entities.remove(&animate_fade.name).unwrap())
+            }.remove::<AnimateFadeSprite>();
+        }
+    }
+
+    for sprite in sprite_move_query.iter_mut() {
+        let (mut transform, mut animate_move): (Mut<Transform>, Mut<AnimateMoveSprite>) = sprite;
+        unmute_control = false;
+
+        if !animate_move.start_pos.is_finite() {
+            animate_move.start_pos = transform.translation.x;
+        }
+
+        if !animate_move.end_pos.is_finite() {
+            animate_move.end_pos = if animate_move.end_pos.is_sign_negative() {
+                w * -2.0
+            } else {
+                w * 2.0
+            };
+        }
+
+        animate_move.timer.tick(time.delta());
+
+        transform.translation.x = animate_move.start_pos
+            + (animate_move.end_pos - animate_move.start_pos) * animate_move.timer.percent();
+
+        if animate_move.timer.just_finished() {
+            if !animate_move.move_out {
+                commands.entity(*sprites.entities.get(&animate_move.name).unwrap())
+            } else {
+                commands.entity(sprites.entities.remove(&animate_move.name).unwrap())
+            }.remove::<AnimateMoveSprite>();
         }
     }
 
