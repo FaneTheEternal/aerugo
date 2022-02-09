@@ -496,6 +496,7 @@ pub fn step_init(
 }
 
 pub fn input_listener(
+    mut commands: Commands,
     mut game_state: ResMut<GameState>,
     game_data: Res<GameData>,
     mut mute_control_state: ResMut<State<MuteControl>>,
@@ -534,6 +535,7 @@ pub fn input_listener(
             || mouse_button_input.just_pressed(MouseButton::Left) {
             mute_control_state.set(MuteControl::Mute);
             next_step_event.send(NextStepEvent);
+            commands.remove_resource::<CurrentStep>();
         }
     }
 
@@ -550,6 +552,7 @@ pub fn input_listener(
                     game_state.aerugo_state.select_unique(step.id, phrase.0.clone());
                     mute_control_state.set(MuteControl::Mute);
                     next_step_event.send(NextStepEvent);
+                    commands.remove_resource::<CurrentStep>();
                 }
                 Interaction::Hovered => {
                     *color = Color::GRAY.into();
