@@ -368,7 +368,9 @@ pub fn new_background_listener(
             BackgroundCommand::Change { new, .. } => {
                 *background = asset_server.load(new);
             }
-            BackgroundCommand::Shake => {}
+            BackgroundCommand::Shake => {
+                unimplemented!("Unimplemented 'Shake'")
+            }
             BackgroundCommand::None => {}
         }
     }
@@ -540,7 +542,9 @@ pub fn new_sprite_listener(
                         });
                 }
             }
-            CommonAnimation::Jump => {}
+            CommonAnimation::Jump => {
+                unimplemented!("Unimplemented sprite jump'")
+            }
             CommonAnimation::Move(pos) => {
                 let pos = w * pos;
                 if let Some(entity) = ext_sprite {
