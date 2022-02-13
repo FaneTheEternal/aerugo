@@ -813,18 +813,20 @@ pub fn animate(
             animate_move.start_pos = transform.translation.x;
         }
 
-        if !animate_move.end_pos.is_finite() {
-            animate_move.end_pos = if animate_move.end_pos.is_sign_negative() {
+        let end_pos = if animate_move.end_pos.is_finite() {
+            animate_move.end_pos
+        } else {
+            if animate_move.end_pos.is_sign_negative() {
                 w * -2.0
             } else {
                 w * 2.0
-            };
-        }
+            }
+        };
 
         animate_move.timer.tick(time.delta());
 
         transform.translation.x = animate_move.start_pos
-            + (animate_move.end_pos - animate_move.start_pos) * animate_move.timer.percent();
+            + (end_pos - animate_move.start_pos) * animate_move.timer.percent();
 
         if animate_move.timer.just_finished() {
             if !animate_move.move_out {
