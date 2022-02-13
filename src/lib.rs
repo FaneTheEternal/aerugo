@@ -1,10 +1,14 @@
 #![allow(dead_code)]
 
+mod simple_sprite;
+
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hasher;
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
+
+pub use simple_sprite::*;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AerugoState {
@@ -176,11 +180,7 @@ pub enum Steps {
         /// None -> cleanup any active
         sprite: Option<String>,
     },
-    Sprite {
-        name: String,
-        sprite: String,
-        animation: CommonAnimation,
-    },
+    Sprite(SpriteCommand),
     Background {
         command: BackgroundCommand,
     },

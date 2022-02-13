@@ -83,11 +83,7 @@ pub struct NextStepEvent;
 
 pub struct NewNarratorEvent(pub Option<String>);
 
-pub struct NewSpriteEvent {
-    name: String,
-    sprite: String,
-    animation: CommonAnimation,
-}
+pub struct NewSpriteEvent(pub SpriteCommand);
 
 pub struct NewBackgroundEvent(pub BackgroundCommand);
 

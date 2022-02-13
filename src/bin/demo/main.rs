@@ -125,11 +125,11 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("FadeChan"),
+                inner: Steps::Sprite(SpriteCommand::FadeIn {
                     sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::FadeIn(-0.2),
-                },
+                    name: str!("FadeChan"),
+                    position: -0.2,
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -139,26 +139,21 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("FadeChan"),
-                    sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::FadeOut,
-                },
+                inner: Steps::Sprite(SpriteCommand::FadeOut { name: str!("FadeChan") }),
             },
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
                 inner: Steps::Text { author: "".to_string(), texts: str!("Fade out") },
             },
-
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("LeftChan"),
+                inner: Steps::Sprite(SpriteCommand::LeftIn {
                     sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::LeftIn(-0.35),
-                },
+                    name: str!("LeftChan"),
+                    position: -0.35,
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -168,26 +163,21 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("LeftChan"),
-                    sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::LeftOut,
-                },
+                inner: Steps::Sprite(SpriteCommand::LeftOut { name: str!("LeftChan") }),
             },
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
                 inner: Steps::Text { author: "".to_string(), texts: str!("Left out") },
             },
-
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("RightChan"),
+                inner: Steps::Sprite(SpriteCommand::RightIn {
                     sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::RightIn(0.35),
-                },
+                    name: str!("RightChan"),
+                    position: 0.35,
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -197,26 +187,21 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("RightChan"),
-                    sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::RightOut,
-                },
+                inner: Steps::Sprite(SpriteCommand::RightOut { name: str!("RightChan") }),
             },
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
                 inner: Steps::Text { author: "".to_string(), texts: str!("Right out") },
             },
-
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("MoveChan"),
+                inner: Steps::Sprite(SpriteCommand::FadeIn {
                     sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::FadeIn(0.7),
-                },
+                    name: str!("MoveChan"),
+                    position: 0.7,
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -226,11 +211,7 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("MoveChan"),
-                    sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::Move(0.0),
-                },
+                inner: Steps::Sprite(SpriteCommand::Move { name: str!("MoveChan"), position: -0.7 }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -240,11 +221,7 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Sprite {
-                    name: str!("MoveChan"),
-                    sprite: str!("textures/char/female_sprite.png"),
-                    animation: CommonAnimation::FadeOut,
-                },
+                inner: Steps::Sprite(SpriteCommand::FadeOut { name: str!("MoveChan") }),
             },
             Step {
                 id: Uuid::new_v4(),

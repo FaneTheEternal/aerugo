@@ -305,8 +305,8 @@ pub fn next_step_listener(
                 Steps::SpriteNarrator { sprite } => {
                     new_narrator_event.send(NewNarratorEvent(sprite));
                 }
-                Steps::Sprite { name, sprite, animation } => {
-                    new_sprite_event.send(NewSpriteEvent { name, sprite, animation });
+                Steps::Sprite(command) => {
+                    new_sprite_event.send(NewSpriteEvent(command));
                 }
                 Steps::Background { command } => {
                     new_background_event.send(NewBackgroundEvent(command));
@@ -413,151 +413,159 @@ pub fn new_sprite_listener(
     window: Res<Windows>,
 )
 {
+    const FADE_IN_DURATION: f32 = 1.0;
+    const FADE_OUT_DURATION: f32 = 1.0;
+    const LEFT_IN_DURATION: f32 = 1.0;
+    const LEFT_OUT_DURATION: f32 = 1.0;
+    const RIGHT_IN_DURATION: f32 = 1.0;
+    const RIGHT_OUT_DURATION: f32 = 1.0;
+    const MOVE_DURATION: f32 = 1.0;
+
     let window = window.get_primary().unwrap();
     let w = window.width() / 2.0;
     // let h = window.height();
 
     for event in new_sprite_event.iter() {
-        let (name, sprite, animation): (&String, &String, &CommonAnimation) =
-            (&event.name, &event.sprite, &event.animation);
-        let ext_sprite = sprites.entities.get(name);
-        match animation {
-            CommonAnimation::FadeIn(pos) => {
-                let sprite = asset_server.load(sprite);
-                let pos = w * pos;
-                let entity = match ext_sprite {
+        let cmd: &SpriteCommand = &event.0;
+        match cmd {
+            SpriteCommand::Set { sprite, name, position } => {
+                let sprite: Handle<Image> = asset_server.load(sprite);
+                let mut entity_cmd = match sprites.entities.get_mut(name) {
                     None => {
-                        commands
-                            .spawn_bundle(SpriteBundle {
-                                texture: sprite,
-                                ..Default::default()
-                            })
+                        commands.spawn_bundle(SpriteBundle::default())
                     }
                     Some(entity) => {
-                        commands
-                            .entity(*entity)
+                        commands.entity(*entity)
                     }
-                }
-                    .insert(Sprite {
-                        color: TRANSPARENT,
-                        ..Default::default()
+                };
+                entity_cmd.insert(sprite);
+                entity_cmd.insert(Transform::from_xyz(w * position, Y_SPRITE, Z_SPRITE));
+                sprites.entities.insert(name.clone(), entity_cmd.id());
+            }
+            SpriteCommand::Remove { name } => {
+                sprites.entities
+                    .remove(name)
+                    .or_else(|| {
+                        warn!("Invalid sprite name: {}", name);
+                        Option::<Entity>::None
                     })
-                    .insert(Transform::from_xyz(pos, Y_SPRITE, Z_SPRITE))
+                    .and_then(|e| {
+                        commands.entity(e).despawn_recursive();
+                        Option::<Entity>::None
+                    });
+            }
+            SpriteCommand::FadeIn { sprite, name, position } => {
+                let sprite: Handle<Image> = asset_server.load(sprite);
+                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    Some(entity) => { commands.entity(*entity) }
+                };
+                let entity = entity_cmd
+                    .insert(sprite)
+                    .insert(Transform::from_xyz(w * position, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateFadeSprite {
-                        timer: Timer::from_seconds(1.0, false),
+                        timer: Timer::from_seconds(FADE_IN_DURATION, false),
                         fade_in: true,
                         name: name.clone(),
                     })
                     .id();
                 sprites.entities.insert(name.clone(), entity);
             }
-            CommonAnimation::FadeOut => {
-                if let Some(entity) = ext_sprite {
-                    commands
-                        .entity(*entity)
-                        .insert(AnimateFadeSprite {
-                            timer: Timer::from_seconds(1.0, false),
-                            fade_in: false,
-                            name: name.clone(),
-                        });
-                }
+            SpriteCommand::FadeOut { name } => {
+                sprites.entities.get(name)
+                    .and_then(|e| {
+                        commands
+                            .entity(e.clone())
+                            .insert(AnimateFadeSprite {
+                                timer: Timer::from_seconds(FADE_OUT_DURATION, false),
+                                fade_in: false,
+                                name: name.clone(),
+                            });
+                        Some(e)
+                    });
             }
-            CommonAnimation::LeftIn(pos) => {
-                let sprite = asset_server.load(sprite);
-                let pos = w * pos;
-                let entity = match ext_sprite {
-                    None => {
-                        commands
-                            .spawn_bundle(SpriteBundle {
-                                texture: sprite,
-                                ..Default::default()
-                            })
-                    }
-                    Some(entity) => {
-                        commands
-                            .entity(*entity)
-                    }
-                }
+            SpriteCommand::LeftIn { sprite, name, position } => {
+                let sprite: Handle<Image> = asset_server.load(sprite);
+                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    Some(entity) => { commands.entity(*entity) }
+                };
+                let entity = entity_cmd
+                    .insert(sprite)
                     .insert(Transform::from_xyz(w * -2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
-                        timer: Timer::from_seconds(1.0, false),
+                        timer: Timer::from_seconds(LEFT_IN_DURATION, false),
                         start_pos: f32::NEG_INFINITY,
-                        end_pos: pos,
+                        end_pos: *position,
                         name: name.clone(),
                         move_out: false,
                     })
                     .id();
                 sprites.entities.insert(name.clone(), entity);
             }
-            CommonAnimation::LeftOut => {
-                if let Some(entity) = ext_sprite {
-                    commands
-                        .entity(*entity)
-                        .insert(AnimateMoveSprite {
-                            timer: Timer::from_seconds(1.0, false),
-                            start_pos: f32::NAN,
-                            end_pos: f32::NEG_INFINITY,
-                            name: name.clone(),
-                            move_out: true,
-                        });
-                }
+            SpriteCommand::LeftOut { name } => {
+                sprites.entities.get(name)
+                    .and_then(|e| {
+                        commands
+                            .entity(e.clone())
+                            .insert(AnimateMoveSprite {
+                                timer: Timer::from_seconds(LEFT_OUT_DURATION, false),
+                                start_pos: f32::NAN,
+                                end_pos: f32::NEG_INFINITY,
+                                name: name.clone(),
+                                move_out: true,
+                            });
+                        Some(e)
+                    });
             }
-            CommonAnimation::RightIn(pos) => {
-                let sprite = asset_server.load(sprite);
-                let pos = w * pos;
-                let entity = match ext_sprite {
-                    None => {
-                        commands
-                            .spawn_bundle(SpriteBundle {
-                                texture: sprite,
-                                ..Default::default()
-                            })
-                    }
-                    Some(entity) => {
-                        commands
-                            .entity(*entity)
-                    }
-                }
+            SpriteCommand::RightIn { sprite, name, position } => {
+                let sprite: Handle<Image> = asset_server.load(sprite);
+                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    Some(entity) => { commands.entity(*entity) }
+                };
+                let entity = entity_cmd
+                    .insert(sprite)
                     .insert(Transform::from_xyz(w * 2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
-                        timer: Timer::from_seconds(1.0, false),
+                        timer: Timer::from_seconds(RIGHT_IN_DURATION, false),
                         start_pos: f32::INFINITY,
-                        end_pos: pos,
+                        end_pos: *position,
                         name: name.clone(),
                         move_out: false,
                     })
                     .id();
                 sprites.entities.insert(name.clone(), entity);
             }
-            CommonAnimation::RightOut => {
-                if let Some(entity) = ext_sprite {
-                    commands
-                        .entity(*entity)
-                        .insert(AnimateMoveSprite {
-                            timer: Timer::from_seconds(1.0, false),
-                            start_pos: f32::NAN,
-                            end_pos: f32::INFINITY,
-                            name: name.clone(),
-                            move_out: true,
-                        });
-                }
+            SpriteCommand::RightOut { name } => {
+                sprites.entities.get(name)
+                    .and_then(|e| {
+                        commands
+                            .entity(e.clone())
+                            .insert(AnimateMoveSprite {
+                                timer: Timer::from_seconds(RIGHT_OUT_DURATION, false),
+                                start_pos: f32::NAN,
+                                end_pos: f32::INFINITY,
+                                name: name.clone(),
+                                move_out: true,
+                            });
+                        Some(e)
+                    });
             }
-            CommonAnimation::Jump => {
-                unimplemented!("Unimplemented sprite jump'")
-            }
-            CommonAnimation::Move(pos) => {
-                let pos = w * pos;
-                if let Some(entity) = ext_sprite {
-                    commands
-                        .entity(*entity)
-                        .insert(AnimateMoveSprite {
-                            timer: Timer::from_seconds(1.0, false),
-                            start_pos: f32::NAN,
-                            end_pos: pos,
-                            name: name.clone(),
-                            move_out: false,
-                        });
-                }
+            SpriteCommand::Move { name, position } => {
+                sprites.entities.get(name)
+                    .and_then(|e| {
+                        commands
+                            .entity(e.clone())
+                            .insert(AnimateMoveSprite {
+                                timer: Timer::from_seconds(MOVE_DURATION, false),
+                                start_pos: f32::NAN,
+                                end_pos: *position,
+                                name: name.clone(),
+                                move_out: false,
+                            });
+                        Some(e)
+                    });
             }
             _ => {}
         }
@@ -852,7 +860,7 @@ pub fn resize(
         sprite.custom_size = Some(Vec2::new(w * 0.99, h * 0.19));
         *transform = Transform::from_xyz(0.0, h * -0.4, Z_TEXT);
 
-        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
+        let (_sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
             .get_mut(game_state.narrator_entity).unwrap();
         *transform = make_narrator_transform(w, h);
 
