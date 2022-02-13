@@ -1,3 +1,4 @@
+use bevy::ecs::schedule::StateError;
 use bevy::prelude::*;
 
 pub fn make_button_closure<B>(
@@ -65,4 +66,12 @@ pub fn grow_z_index<'closure>(
                 grow_z_index(deep - 1, parent, tree_style, closure);
             }
         });
+}
+
+pub fn warn_state_err(err: StateError) -> () {
+    match err {
+        StateError::AlreadyInState => { warn!("AlreadyInState") }
+        StateError::StateAlreadyQueued => {}
+        StateError::StackEmpty => { error!("StackEmpty") }
+    }
 }

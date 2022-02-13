@@ -89,6 +89,7 @@ pub struct NewBackgroundEvent(pub BackgroundCommand);
 
 pub struct NewSceneEvent(pub SceneCommand);
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum CurrentStep {
     Text,

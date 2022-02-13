@@ -9,6 +9,7 @@ use aerugo::*;
 
 use super::*;
 use crate::states::OverlayState;
+use crate::utils::warn_state_err;
 
 const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
@@ -663,7 +664,7 @@ pub fn step_init(
             _ => {}
         }
         commands.remove_resource::<Step>();
-        mute_control_state.set(MuteControl::Pass);
+        mute_control_state.set(MuteControl::Pass).unwrap_or_else(warn_state_err);
     }
 }
 
@@ -696,7 +697,7 @@ pub fn input_listener(
         if key_input.clear_just_pressed(KeyCode::Space)
             || key_input.clear_just_pressed(KeyCode::Return)
             || mouse_button_input.just_pressed(MouseButton::Left) {
-            mute_control_state.set(MuteControl::Mute);
+            mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
             pass_animate_event.send(PassAnimateEvent);
         }
     }
@@ -705,7 +706,7 @@ pub fn input_listener(
         if key_input.clear_just_pressed(KeyCode::Space)
             || key_input.clear_just_pressed(KeyCode::Return)
             || mouse_button_input.just_pressed(MouseButton::Left) {
-            mute_control_state.set(MuteControl::Mute);
+            mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
             next_step_event.send(NextStepEvent);
             commands.remove_resource::<CurrentStep>();
         }
@@ -722,7 +723,7 @@ pub fn input_listener(
 
                     let step = game_state.aerugo_state.step(&game_data.aerugo);
                     game_state.aerugo_state.select_unique(step.id, phrase.0.clone());
-                    mute_control_state.set(MuteControl::Mute);
+                    mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
                     next_step_event.send(NextStepEvent);
                     commands.remove_resource::<CurrentStep>();
                 }
@@ -837,8 +838,8 @@ pub fn animate(
         }
     }
 
-    if unmute_control {
-        mute_control_state.set(MuteControl::None);
+    if unmute_control && mute_control_state.current().eq(&MuteControl::Mute) {
+        mute_control_state.set(MuteControl::None).unwrap_or_else(warn_state_err);
     }
 }
 
