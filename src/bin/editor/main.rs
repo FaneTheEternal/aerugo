@@ -5,7 +5,6 @@ extern crate core;
 use std::fs::File;
 use std::io::{Read, Write};
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
 use uuid::Uuid;
 use aerugo::*;
 
@@ -22,13 +21,15 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(Msaa { samples: 4 })
-        .add_plugin(EguiPlugin)
         .add_startup_system(setup)
         .add_event::<SaveEvent>()
+        .add_system(ui)
         .add_system(save_hotkey)
         .add_system(save)
         .run();
 }
+
+pub struct SaveEvent;
 
 fn setup(mut command: Commands)
 {
@@ -42,7 +43,10 @@ fn setup(mut command: Commands)
         .or_else::<serde_json::Error, _>(|_| { Ok(Aerugo::default()) })
         .unwrap();
 
-    todo!("Insert aerugo");
+    command.insert_resource(AppData { aerugo });
+}
+
+fn ui() {
 }
 
 fn save_hotkey(
@@ -59,7 +63,7 @@ fn save_hotkey(
 fn save(app_data: Res<AppData>, mut events: EventReader<SaveEvent>) {
     for _ in events.iter() {
         let data = serde_json::to_string(&app_data.aerugo).unwrap();
-        let save_path = std::path::Path::new(app_data.file.as_str());
+        let save_path = std::path::Path::new(SCENARIO_PATH);
         let mut save_file = File::options()
             .write(true).create(true).truncate(true)
             .open(save_path)

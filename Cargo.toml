@@ -14,8 +14,7 @@ name = "editor"
 name = "demo"
 
 [dependencies]
-bevy = { version = "0.6", features = ["jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"] }
-bevy_egui = "0.10"
+bevy = { path = "bevy", features = ["jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"] }
 
 serde = "1.0.134"
 serde_json = "1.0"
