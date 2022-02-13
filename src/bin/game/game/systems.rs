@@ -496,7 +496,7 @@ pub fn new_sprite_listener(
                     .insert(AnimateMoveSprite {
                         timer: Timer::from_seconds(LEFT_IN_DURATION, false),
                         start_pos: f32::NEG_INFINITY,
-                        end_pos: *position,
+                        end_pos: w * position,
                         name: name.clone(),
                         move_out: false,
                     })
@@ -530,7 +530,7 @@ pub fn new_sprite_listener(
                     .insert(AnimateMoveSprite {
                         timer: Timer::from_seconds(RIGHT_IN_DURATION, false),
                         start_pos: f32::INFINITY,
-                        end_pos: *position,
+                        end_pos: w * position,
                         name: name.clone(),
                         move_out: false,
                     })
@@ -560,7 +560,7 @@ pub fn new_sprite_listener(
                             .insert(AnimateMoveSprite {
                                 timer: Timer::from_seconds(MOVE_DURATION, false),
                                 start_pos: f32::NAN,
-                                end_pos: *position,
+                                end_pos: w * position,
                                 name: name.clone(),
                                 move_out: false,
                             });
