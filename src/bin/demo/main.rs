@@ -239,12 +239,10 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Background {
-                    command: BackgroundCommand::Change {
-                        new: str!("textures/background/pexels-francesco-ungaro.jpg"),
-                        animation: None,
-                    }
-                },
+                inner: Steps::Background(BackgroundCommand::Change {
+                    new: str!("textures/background/pexels-francesco-ungaro.jpg"),
+                    animation: None,
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -262,9 +260,7 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Scene {
-                    command: SceneCommand::Set { name: str!("textures/scene/simple_scene_test.png") }
-                },
+                inner: Steps::Scene(SceneCommand::Set { name: str!("textures/scene/simple_scene_test.png") }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -274,7 +270,7 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::Scene { command: SceneCommand::Remove },
+                inner: Steps::Scene(SceneCommand::Remove),
             },
             Step {
                 id: Uuid::new_v4(),

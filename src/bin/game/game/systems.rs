@@ -309,10 +309,10 @@ pub fn next_step_listener(
                 Steps::Sprite(command) => {
                     new_sprite_event.send(NewSpriteEvent(command));
                 }
-                Steps::Background { command } => {
+                Steps::Background(command) => {
                     new_background_event.send(NewBackgroundEvent(command));
                 }
-                Steps::Scene { command } => {
+                Steps::Scene(command) => {
                     new_scene_event.send(NewSceneEvent(command));
                 }
                 _ => {}
