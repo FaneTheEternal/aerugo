@@ -145,21 +145,6 @@ impl Default for Aerugo {
     }
 }
 
-impl Aerugo {
-    pub fn remove(&mut self, step: &Step) -> &Step {
-        let mut index = self.steps
-            .iter()
-            .position(|s| { s.id == step.id })
-            .unwrap();
-        self.steps.remove(index);
-        if self.steps.is_empty() {
-            self.steps.push(Step::new());
-        }
-        index = if index > 0 { index - 1 } else { 0 };
-        self.steps.get(index).unwrap()
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Steps {
     Text {
@@ -194,7 +179,7 @@ impl std::hash::Hash for Steps {
     }
 }
 
-#[derive(Clone, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 pub struct Step {
     pub id: Uuid,
     pub name: String,
@@ -207,16 +192,6 @@ impl Default for Step {
             id: Uuid::nil(),
             name: "".to_string(),
             inner: Steps::None,
-        }
-    }
-}
-
-impl Debug for Step {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.name.is_empty() {
-            write!(f, "{}", self.id)
-        } else {
-            write!(f, "{} | {}", self.id, self.name)
         }
     }
 }
