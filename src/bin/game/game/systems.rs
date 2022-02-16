@@ -28,7 +28,7 @@ fn make_narrator_transform(w: f32, h: f32) -> Transform {
 }
 
 pub fn preload_aerugo(mut command: Commands) {
-    const SCENARIO_PATH: &str = "scenario.json";
+    const SCENARIO_PATH: &str = "scenario.ron";
     let mut file = std::fs::File::options()
         .read(true).write(true).create(true)
         .open(SCENARIO_PATH)
@@ -879,11 +879,17 @@ pub fn resize(
     }
 }
 
-pub fn cleanup(mut commands: Commands, game_state: Res<GameState>) {
+pub fn cleanup(
+    mut commands: Commands,
+    game_state: Res<GameState>,
+    sprites: Res<SpriteEntities>,
+)
+{
     commands.entity(game_state.text_narrator_entity).despawn_recursive();
     commands.entity(game_state.text_background_entity).despawn_recursive();
     commands.entity(game_state.text_ui_root_entity).despawn_recursive();
     commands.entity(game_state.phrase_ui_entity).despawn_recursive();
     commands.entity(game_state.narrator_entity).despawn_recursive();
     commands.entity(game_state.background_entity).despawn_recursive();
+    sprites.entities.iter().for_each(|(_, e)| { commands.entity(*e).despawn_recursive() })
 }
