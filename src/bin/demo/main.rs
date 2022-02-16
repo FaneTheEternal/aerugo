@@ -7,7 +7,7 @@ macro_rules! str {
     ($s:expr) => {format!("{}", $s)};
 }
 
-const SCENARIO_PATH: &str = "scenario.json";
+const SCENARIO_PATH: &str = "scenario.ron";
 
 fn main() {
     let story_flow = Uuid::new_v4();
@@ -287,7 +287,7 @@ fn main() {
         ],
     };
 
-    let data = serde_json::to_string(&aerugo).unwrap();
+    let data = ron::ser::to_string_pretty(&aerugo, Default::default()).unwrap();
     let save_path = std::path::Path::new(SCENARIO_PATH);
     let mut save_file = std::fs::File::options()
         .write(true).create(true).truncate(true)

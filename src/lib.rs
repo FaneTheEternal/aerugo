@@ -4,7 +4,7 @@ mod simple_sprite;
 mod condition;
 
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug};
 use std::hash::Hasher;
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
@@ -175,7 +175,7 @@ pub enum Steps {
 
 impl std::hash::Hash for Steps {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        serde_json::to_string(self).unwrap().hash(state)
+        ron::to_string(self).unwrap().hash(state)
     }
 }
 
@@ -227,7 +227,7 @@ pub enum CommonAnimation {
 
 impl std::hash::Hash for CommonAnimation {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        serde_json::to_string(self).unwrap().hash(state)
+        ron::to_string(self).unwrap().hash(state)
     }
 }
 

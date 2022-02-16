@@ -35,7 +35,7 @@ pub fn preload_aerugo(mut command: Commands) {
         .unwrap();
     let mut aerugo = String::new();
     file.read_to_string(&mut aerugo).unwrap();
-    let aerugo: Aerugo = serde_json::from_str(&aerugo).unwrap();
+    let aerugo: Aerugo = ron::from_str(&aerugo).unwrap();
 
     command.insert_resource(GameData { aerugo });
 }

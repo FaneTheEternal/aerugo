@@ -5,12 +5,11 @@ extern crate core;
 use std::fs::File;
 use std::io::{Read, Write};
 use bevy::prelude::*;
-use uuid::Uuid;
 use aerugo::*;
 
 use resources::*;
 
-const SCENARIO_PATH: &str = "scenario.json";
+const SCENARIO_PATH: &str = "scenario.ron";
 
 fn main() {
     App::new()
@@ -39,15 +38,14 @@ fn setup(mut command: Commands)
         .unwrap();
     let mut aerugo = String::new();
     file.read_to_string(&mut aerugo).unwrap();
-    let aerugo: Aerugo = serde_json::from_str(&aerugo)
-        .or_else::<serde_json::Error, _>(|_| { Ok(Aerugo::default()) })
+    let aerugo: Aerugo = ron::from_str(&aerugo)
+        .or_else::<ron::Error, _>(|_| { Ok(Aerugo::default()) })
         .unwrap();
 
     command.insert_resource(AppData { aerugo });
 }
 
-fn ui() {
-}
+fn ui() {}
 
 fn save_hotkey(
     mut keyboard_input: ResMut<Input<KeyCode>>,
@@ -62,7 +60,7 @@ fn save_hotkey(
 
 fn save(app_data: Res<AppData>, mut events: EventReader<SaveEvent>) {
     for _ in events.iter() {
-        let data = serde_json::to_string(&app_data.aerugo).unwrap();
+        let data = ron::ser::to_string_pretty(&app_data.aerugo, Default::default()).unwrap();
         let save_path = std::path::Path::new(SCENARIO_PATH);
         let mut save_file = File::options()
             .write(true).create(true).truncate(true)
