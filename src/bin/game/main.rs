@@ -5,6 +5,7 @@ mod main_menu;
 mod overlay;
 mod utils;
 mod game;
+mod saves;
 
 use bevy::prelude::*;
 
@@ -21,6 +22,7 @@ fn main() {
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(game::GamePlugin)
         .add_plugin(overlay::OverlayPlugin)
+        .add_plugin(saves::SavePlugin)
         .add_startup_system(setup)
         .run();
 }
