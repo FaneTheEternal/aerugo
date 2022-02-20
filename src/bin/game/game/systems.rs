@@ -46,6 +46,7 @@ pub fn setup_game(
     window: Res<Windows>,
     game_data: Res<GameData>,
     mut next_step_event: EventWriter<NextStepEvent>,
+    mut scene_spawner: ResMut<SceneSpawner>
 )
 {
     let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");

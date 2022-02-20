@@ -1,7 +1,7 @@
+#![allow(dead_code, unused_variables)]
+
 use std::collections::HashMap;
 use std::io::Write;
-use std::marker::PhantomData;
-use bevy::app::Events;
 use bevy::prelude::*;
 use bevy::reflect::TypeRegistry;
 use aerugo::*;
@@ -13,6 +13,7 @@ pub struct SavePlugin;
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_startup_system(preload)
             .add_system(save.exclusive_system());
     }
 }
@@ -22,9 +23,17 @@ pub struct SaveMark {
     pub(crate) to: u8,
 }
 
+pub struct Save;
+
 pub struct Saves {
-    saves: HashMap<u8, Handle<DynamicScene>>,
+    pub saves: HashMap<u8, Save>,
 }
+
+pub fn preload(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+)
+{}
 
 pub fn save(
     world: &mut World,

@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
 use bevy::prelude::*;
+use crate::overlay::saves_ui::make_load_items;
+use crate::saves::Saves;
 use super::*;
 use crate::states::{MainState, OverlayState};
 use crate::utils::{grow_z_index, make_button_closure};
@@ -200,6 +203,8 @@ pub fn init_overlay(
             });
     });
 
+    let saves = Saves { saves: Default::default() };
+
     let ui_save = make_ui_base(&mut commands, OverlaySave, |parent| {
         parent
             .spawn_bundle(NodeBundle {
@@ -213,66 +218,10 @@ pub fn init_overlay(
                 },
                 color: Color::GRAY.into(),
                 ..Default::default()
-            })
-            .with_children(|parent| {  // Header
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                            padding: Rect::all(Val::Px(10.0)),
-                            justify_content: JustifyContent::FlexStart,
-                            align_items: AlignItems::FlexStart,
-                            ..Default::default()
-                        },
-                        color: Color::DARK_GREEN.into(),
-                        ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        parent
-                            .spawn_bundle(TextBundle {
-                                text: Text::with_section(
-                                    "Save",
-                                    TextStyle {
-                                        font: text_font.clone(),
-                                        font_size: 40.0,
-                                        color: Color::BLACK,
-                                    },
-                                    Default::default(),
-                                ),
-                                ..Default::default()
-                            });
-                    });
-            })
-            .with_children(|parent| {  // Body
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                            padding: Rect::all(Val::Px(10.0)),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            ..Default::default()
-                        },
-                        color: Color::GRAY.into(),
-                        ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        parent
-                            .spawn_bundle(TextBundle {
-                                text: Text::with_section(
-                                    "TODO: Save grid",
-                                    TextStyle {
-                                        font: text_font.clone(),
-                                        font_size: 60.0,
-                                        color: Color::ANTIQUE_WHITE,
-                                    },
-                                    Default::default(),
-                                ),
-                                ..Default::default()
-                            });
-                    });
             });
     });
+
+    let load_items = make_load_items(&mut commands, &saves, button_font.clone(), text_font.clone());
 
     let ui_load = make_ui_base(&mut commands, OverlayLoad, |parent| {
         parent
@@ -325,26 +274,14 @@ pub fn init_overlay(
                             padding: Rect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
+                            flex_wrap: FlexWrap::Wrap,
+                            flex_direction: FlexDirection::Row,
                             ..Default::default()
                         },
                         color: Color::GRAY.into(),
                         ..Default::default()
                     })
-                    .with_children(|parent| {
-                        parent
-                            .spawn_bundle(TextBundle {
-                                text: Text::with_section(
-                                    "TODO: Load grid",
-                                    TextStyle {
-                                        font: text_font,
-                                        font_size: 60.0,
-                                        color: Color::ANTIQUE_WHITE,
-                                    },
-                                    Default::default(),
-                                ),
-                                ..Default::default()
-                            });
-                    });
+                    .push_children(load_items.as_slice());
             });
     });
 
