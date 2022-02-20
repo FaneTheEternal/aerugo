@@ -2,6 +2,7 @@
 
 mod simple_sprite;
 mod condition;
+mod inspect;
 
 use std::collections::HashMap;
 use std::fmt::{Debug};
@@ -11,11 +12,14 @@ use serde::{Serialize, Deserialize};
 
 pub use simple_sprite::*;
 pub use condition::*;
+use crate::inspect::Inspector;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AerugoState {
     pub current: Uuid,
     pub select_story: Vec<(Uuid, String)>,
+    pub inspector: Inspector,
+    _pre_collected: Option<Vec<Steps>>,
 }
 
 impl AerugoState {
@@ -62,7 +66,7 @@ impl AerugoState {
 
             current = Self::find_next(current, &aerugo);
         }
-        AerugoState { current, select_story }
+        AerugoState { current, select_story, inspector: Default::default(), _pre_collected: None }
     }
 
     pub fn step(&self, aerugo: &Aerugo) -> Step {
@@ -85,6 +89,10 @@ impl AerugoState {
 
     // collect graphic commands steps
     pub fn collect(&mut self, aerugo: &Aerugo) -> Vec<Steps> {
+        if let Some(collected) = self._pre_collected.take() {
+            return collected;
+        }
+
         let mut steps: Vec<Steps> = Default::default();
         loop {
             let step = self.step(&aerugo);
@@ -112,6 +120,7 @@ impl AerugoState {
 
             self.current = Self::find_next(self.current, &aerugo);
         }
+        self.inspector.keep(&steps);
         steps
     }
 
@@ -131,6 +140,25 @@ impl AerugoState {
         }
     }
 }
+
+impl AerugoState {
+    pub fn save(&self) -> String {
+        ron::to_string(self).unwrap()
+    }
+
+    pub fn load(aerugo: &Aerugo, data: &String) -> Option<AerugoState> {
+        let mut state: AerugoState = match ron::from_str(data) {
+            Ok(r) => { r }
+            Err(_) => return None,
+        };
+        if aerugo.steps.iter().find(|s| { s.id == state.current }).is_none() {
+            return None;
+        }
+        state._pre_collected = Some(state.inspector.extract());
+        Some(state)
+    }
+}
+
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Aerugo {

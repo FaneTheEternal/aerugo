@@ -40,14 +40,13 @@ pub fn preload_aerugo(mut command: Commands) {
     command.insert_resource(GameData { aerugo });
 }
 
-pub fn setup_game(
-    mut commands: Commands,
+fn prep_game_space(
+    commands: &mut Commands,
     asset_server: Res<AssetServer>,
     window: Res<Windows>,
     game_data: Res<GameData>,
-    mut next_step_event: EventWriter<NextStepEvent>,
-    mut scene_spawner: ResMut<SceneSpawner>
-)
+    aerugo_state: AerugoState,
+) -> GameState
 {
     let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
     // let button_font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
@@ -55,8 +54,6 @@ pub fn setup_game(
     let window = window.get_primary().unwrap();
     let w = window.width();
     let h = window.height();
-
-    let aerugo_state = AerugoState::setup(&game_data.aerugo);
 
     // region spawn text flow
     let text_narrator_entity = commands
@@ -249,7 +246,7 @@ pub fn setup_game(
         .id();
     // endregion
 
-    commands.insert_resource(GameState {
+    GameState {
         just_init: true,
         aerugo_state,
         text_narrator_entity,
@@ -260,7 +257,28 @@ pub fn setup_game(
         narrator_entity,
         background_entity,
         scene_entity,
-    });
+    }
+}
+
+pub fn setup_game(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    window: Res<Windows>,
+    game_data: Res<GameData>,
+    mut next_step_event: EventWriter<NextStepEvent>,
+)
+{
+    let aerugo_state = AerugoState::setup(&game_data.aerugo);
+
+    let game_state = prep_game_space(
+        &mut commands,
+        asset_server,
+        window,
+        game_data,
+        aerugo_state,
+    );
+
+    commands.insert_resource(game_state);
 
     next_step_event.send(NextStepEvent);
 }
