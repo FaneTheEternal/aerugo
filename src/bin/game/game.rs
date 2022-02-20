@@ -56,7 +56,6 @@ pub struct GameData {
 
 pub struct GameState {
     pub just_init: bool,
-    pub aerugo_state: AerugoState,
 
     pub text_narrator_entity: Entity,
     pub text_background_entity: Entity,

@@ -44,8 +44,6 @@ fn prep_game_space(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     window: Res<Windows>,
-    game_data: Res<GameData>,
-    aerugo_state: AerugoState,
 ) -> GameState
 {
     let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
@@ -248,7 +246,6 @@ fn prep_game_space(
 
     GameState {
         just_init: true,
-        aerugo_state,
         text_narrator_entity,
         text_background_entity,
         text_ui_root_entity,
@@ -274,11 +271,10 @@ pub fn setup_game(
         &mut commands,
         asset_server,
         window,
-        game_data,
-        aerugo_state,
     );
 
     commands.insert_resource(game_state);
+    commands.insert_resource(aerugo_state);
 
     next_step_event.send(NextStepEvent);
 }
@@ -302,6 +298,7 @@ pub fn next_step_listener(
     mut commands: Commands,
     mut events: EventReader<NextStepEvent>,
     mut game_state: ResMut<GameState>,
+    mut aerugo_state: ResMut<AerugoState>,
     game_data: Res<GameData>,
     mut new_narrator_event: EventWriter<NewNarratorEvent>,
     mut new_sprite_event: EventWriter<NewSpriteEvent>,
@@ -313,11 +310,11 @@ pub fn next_step_listener(
         if game_state.just_init {
             game_state.just_init = false;
         } else {
-            if game_state.aerugo_state.next(&game_data.aerugo).is_none() {
+            if aerugo_state.next(&game_data.aerugo).is_none() {
                 return;
             }
         }
-        let steps = game_state.aerugo_state.collect(&game_data.aerugo);
+        let steps = aerugo_state.collect(&game_data.aerugo);
 
         // send events to update graphic part
         for step in steps {
@@ -338,7 +335,7 @@ pub fn next_step_listener(
             }
         }
 
-        let step = game_state.aerugo_state.step(&game_data.aerugo);
+        let step = aerugo_state.step(&game_data.aerugo);
         commands.insert_resource(step);
     }
 }
@@ -689,7 +686,7 @@ pub fn step_init(
 
 pub fn input_listener(
     mut commands: Commands,
-    mut game_state: ResMut<GameState>,
+    mut aerugo_state: ResMut<AerugoState>,
     game_data: Res<GameData>,
     mut mute_control_state: ResMut<State<MuteControl>>,
     overlay_state: Res<State<OverlayState>>,
@@ -740,8 +737,8 @@ pub fn input_listener(
                 Interaction::Clicked => {
                     *color = Color::DARK_GRAY.into();
 
-                    let step = game_state.aerugo_state.step(&game_data.aerugo);
-                    game_state.aerugo_state.select_unique(step.id, phrase.0.clone());
+                    let step = aerugo_state.step(&game_data.aerugo);
+                    aerugo_state.select_unique(step.id, phrase.0.clone());
                     mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
                     next_step_event.send(NextStepEvent);
                     commands.remove_resource::<CurrentStep>();
