@@ -35,6 +35,7 @@ impl Plugin for GamePlugin {
                     .with_system(open_overlay)
                     .with_system(next_step_listener)
                     .with_system(step_init)
+                    .with_system(phrase_button_animate)
                     .with_system(input_listener)
                     .with_system(animate)
                     .with_system(new_background_listener)

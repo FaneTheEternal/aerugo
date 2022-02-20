@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use bevy::prelude::*;
-use aerugo::AerugoState;
+use aerugo::{Aerugo, AerugoState};
 use crate::states::MainState;
 use crate::utils::load_aerugo;
 
@@ -79,6 +79,7 @@ fn _save(save_path: String, data: String) {
         .unwrap();
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct LoadMark(pub u8);
 
 pub struct AerugoLoaded(pub aerugo::AerugoState);

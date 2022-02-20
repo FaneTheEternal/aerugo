@@ -681,6 +681,30 @@ pub fn step_init(
     }
 }
 
+pub fn phrase_button_animate(
+    mut phrase_query: Query<
+        (&Interaction, &mut UiColor),
+        (With<PhraseValue>, Changed<Interaction>)
+    >
+)
+{
+    for (interaction, color) in phrase_query.iter_mut() {
+        let interaction: &Interaction = interaction;
+        let mut color: Mut<UiColor> = color;
+        match interaction {
+            Interaction::Clicked => {
+                *color = Color::DARK_GRAY.into();
+            }
+            Interaction::Hovered => {
+                *color = Color::GRAY.into();
+            }
+            Interaction::None => {
+                *color = Color::WHITE.into();
+            }
+        }
+    }
+}
+
 pub fn input_listener(
     mut commands: Commands,
     mut aerugo_state: ResMut<AerugoState>,
@@ -691,7 +715,7 @@ pub fn input_listener(
     mouse_button_input: Res<Input<MouseButton>>,
     current_step: Option<Res<CurrentStep>>,
     mut next_step_event: EventWriter<NextStepEvent>,
-    mut phrase_query: Query<(&Interaction, &mut UiColor, &PhraseValue)>,
+    mut phrase_query: Query<(&Interaction, &PhraseValue)>,
     mut pass_animate_event: EventWriter<PassAnimateEvent>,
 )
 {
@@ -726,26 +750,19 @@ pub fn input_listener(
     }
 
     if any && current_step.eq(&CurrentStep::Phrase) {
-        for (interaction, color, phrase) in phrase_query.iter_mut() {
+        for (interaction, phrase) in phrase_query.iter_mut() {
             let interaction: &Interaction = interaction;
-            let mut color: Mut<UiColor> = color;
             let phrase: &PhraseValue = phrase;
             match interaction {
                 Interaction::Clicked => {
-                    *color = Color::DARK_GRAY.into();
-
                     let step = aerugo_state.step(&game_data.aerugo);
                     aerugo_state.select_unique(step.id, phrase.0.clone());
                     mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
                     next_step_event.send(NextStepEvent);
                     commands.remove_resource::<CurrentStep>();
                 }
-                Interaction::Hovered => {
-                    *color = Color::GRAY.into();
-                }
-                Interaction::None => {
-                    *color = Color::WHITE.into();
-                }
+                Interaction::Hovered => {}
+                Interaction::None => {}
             }
         }
     }

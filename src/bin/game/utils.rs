@@ -1,5 +1,6 @@
 use std::io::Read;
-use bevy::ecs::schedule::StateError;
+use std::ops::Not;
+use bevy::ecs::schedule::{ShouldRun, StateError};
 use bevy::prelude::*;
 use aerugo::Aerugo;
 
@@ -24,6 +25,7 @@ pub fn make_button_closure<B>(
                 color: button_color.into(),
                 ..Default::default()
             })
+            .insert(button)
             .with_children(|parent| {
                 parent
                     .spawn_bundle(TextBundle {
@@ -37,8 +39,7 @@ pub fn make_button_closure<B>(
                             Default::default(),
                         ),
                         ..Default::default()
-                    })
-                    .insert(button);
+                    });
             });
     }
 }
@@ -87,4 +88,13 @@ pub fn load_aerugo() -> Aerugo {
     let mut aerugo = String::new();
     file.read_to_string(&mut aerugo).unwrap();
     ron::from_str(&aerugo).unwrap()
+}
+
+pub fn should_run_once(mut run_once: Local<bool>) -> ShouldRun {
+    if run_once.not() {
+        *run_once = true;
+        ShouldRun::Yes
+    } else {
+        ShouldRun::No
+    }
 }

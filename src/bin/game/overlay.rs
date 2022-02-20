@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use crate::states::OverlayState;
 use systems::*;
 use components::*;
+use crate::utils::should_run_once;
 
 pub struct OverlayPlugin;
 
@@ -16,7 +17,10 @@ impl Plugin for OverlayPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_state(OverlayState::Hidden)
-            .add_startup_system(init_overlay)
+            .add_system_set(
+                SystemSet::new().with_run_criteria(should_run_once)
+                    .with_system(init_overlay)
+            )
             .add_system_set(
                 SystemSet::on_enter(OverlayState::Hidden)
             )
@@ -70,6 +74,7 @@ impl Plugin for OverlayPlugin {
             .add_system_set(
                 SystemSet::on_update(OverlayState::Load)
                     .with_system(overlay_break)
+                    .with_system(load_buttons)
             )
             .add_system_set(
                 SystemSet::on_exit(OverlayState::Load)

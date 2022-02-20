@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use bevy::prelude::*;
 use crate::overlay::saves_ui::make_load_items;
-use crate::saves::Saves;
+use crate::saves::{LoadMark, Saves};
 use super::*;
 use crate::states::{MainState, OverlayState};
 use crate::utils::{grow_z_index, make_button_closure};
@@ -22,6 +22,7 @@ const OVERLAY_Z_DEEP: u8 = 10;
 pub fn init_overlay(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    saves: Res<Saves>,
 )
 {
     fn make_ui_base(
@@ -203,8 +204,6 @@ pub fn init_overlay(
             });
     });
 
-    let saves = Saves { saves: Default::default() };
-
     let ui_save = make_ui_base(&mut commands, OverlaySave, |parent| {
         parent
             .spawn_bundle(NodeBundle {
@@ -221,7 +220,7 @@ pub fn init_overlay(
             });
     });
 
-    let load_items = make_load_items(&mut commands, &saves, button_font.clone(), text_font.clone());
+    let load_items = make_load_items(&mut commands, saves, button_font.clone(), text_font.clone());
 
     let ui_load = make_ui_base(&mut commands, OverlayLoad, |parent| {
         parent
@@ -274,7 +273,7 @@ pub fn init_overlay(
                             padding: Rect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
-                            flex_wrap: FlexWrap::Wrap,
+                            flex_wrap: FlexWrap::WrapReverse,
                             flex_direction: FlexDirection::Row,
                             ..Default::default()
                         },
@@ -416,4 +415,34 @@ pub fn show_load(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
 pub fn hide_load(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
 {
     hide(overlay_data.ui_load, style_query);
+}
+
+
+pub fn load_buttons(
+    mut commands: Commands,
+    mut overlay_state: ResMut<State<OverlayState>>,
+    mut load_buttons_query: Query<
+        (&Interaction, &mut UiColor, &LoadMark),
+        (Changed<Interaction>, With<Button>)
+    >,
+)
+{
+    for (interaction, color, mark) in load_buttons_query.iter_mut() {
+        let interaction: &Interaction = interaction;
+        let mut color: Mut<UiColor> = color;
+        let mark: &LoadMark = mark;
+        match interaction {
+            Interaction::Clicked => {
+                *color = Color::WHITE.into();
+                commands.insert_resource(mark.clone());
+                overlay_state.set(OverlayState::Hidden);
+            }
+            Interaction::Hovered => {
+                *color = Color::ANTIQUE_WHITE.into();
+            }
+            Interaction::None => {
+                *color = Color::WHITE.into();
+            }
+        }
+    }
 }
