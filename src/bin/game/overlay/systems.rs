@@ -297,35 +297,32 @@ pub fn overlay_menu(
     mut main_state: ResMut<State<MainState>>,
     mut overlay_state: ResMut<State<OverlayState>>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &Children),
+        (&Interaction, &mut UiColor, &OverlayButton),
         (Changed<Interaction>, With<Button>),
     >,
-    buttons_query: Query<&OverlayButton>,
 )
 {
-    for (interaction, mut color, children) in interactions_query.iter_mut() {
+    for (interaction, mut color, btn) in interactions_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
                 *color = BTN_PRESSED.into();
 
-                if let Ok(btn) = buttons_query.get(children[0]) {
-                    match btn.target {
-                        OverlayButtons::Close => {
-                            overlay_state.set(OverlayState::Hidden).unwrap();
-                        }
-                        OverlayButtons::Settings => {
-                            overlay_state.set(OverlayState::Settings).unwrap();
-                        }
-                        OverlayButtons::Save => {
-                            overlay_state.set(OverlayState::Save).unwrap();
-                        }
-                        OverlayButtons::Load => {
-                            overlay_state.set(OverlayState::Load).unwrap();
-                        }
-                        OverlayButtons::MainMenu => {
-                            overlay_state.set(OverlayState::Hidden).unwrap();
-                            main_state.set(MainState::MainMenu).unwrap();
-                        }
+                match btn.target {
+                    OverlayButtons::Close => {
+                        overlay_state.set(OverlayState::Hidden).unwrap();
+                    }
+                    OverlayButtons::Settings => {
+                        overlay_state.set(OverlayState::Settings).unwrap();
+                    }
+                    OverlayButtons::Save => {
+                        overlay_state.set(OverlayState::Save).unwrap();
+                    }
+                    OverlayButtons::Load => {
+                        overlay_state.set(OverlayState::Load).unwrap();
+                    }
+                    OverlayButtons::MainMenu => {
+                        overlay_state.set(OverlayState::Hidden).unwrap();
+                        main_state.set(MainState::MainMenu).unwrap();
                     }
                 }
             }

@@ -77,32 +77,29 @@ pub fn menu(
     mut main_state: ResMut<State<MainState>>,
     mut overlay_state: ResMut<State<OverlayState>>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &Children),
+        (&Interaction, &mut UiColor, &MainMenuButton),
         (Changed<Interaction>, With<Button>),
     >,
-    buttons_query: Query<&MainMenuButton>,
     mut exit: EventWriter<AppExit>,
 )
 {
-    for (interaction, mut color, children) in interactions_query.iter_mut() {
+    for (interaction, mut color, btn) in interactions_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
-                *color = BTN_PRESSED.into();
+                *color = BTN_NORMAL.into();
 
-                if let Ok(btn) = buttons_query.get(children[0]) {
-                    match btn.target {
-                        MainMenuButtons::NewGame => {
-                            main_state.set(MainState::InGame).unwrap();
-                        }
-                        MainMenuButtons::Load => {
-                            overlay_state.set(OverlayState::Load).unwrap();
-                        }
-                        MainMenuButtons::Settings => {
-                            overlay_state.set(OverlayState::Settings).unwrap();
-                        }
-                        MainMenuButtons::Exit => {
-                            exit.send(AppExit);
-                        }
+                match btn.target {
+                    MainMenuButtons::NewGame => {
+                        main_state.set(MainState::InGame).unwrap();
+                    }
+                    MainMenuButtons::Load => {
+                        overlay_state.set(OverlayState::Load).unwrap();
+                    }
+                    MainMenuButtons::Settings => {
+                        overlay_state.set(OverlayState::Settings).unwrap();
+                    }
+                    MainMenuButtons::Exit => {
+                        exit.send(AppExit);
                     }
                 }
             }
