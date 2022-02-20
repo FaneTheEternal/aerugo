@@ -359,6 +359,7 @@ pub fn overlay_break(
                     MainState::InGame => {
                         overlay_state.set(OverlayState::Menu).unwrap();
                     }
+                    _ => {}
                 }
             }
             OverlayState::Save => {

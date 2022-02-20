@@ -1,5 +1,7 @@
+use std::io::Read;
 use bevy::ecs::schedule::StateError;
 use bevy::prelude::*;
+use aerugo::Aerugo;
 
 pub fn make_button_closure<B>(
     text: &str,
@@ -74,4 +76,15 @@ pub fn warn_state_err(err: StateError) -> () {
         StateError::StateAlreadyQueued => {}
         StateError::StackEmpty => { error!("StackEmpty") }
     }
+}
+
+pub fn load_aerugo() -> Aerugo {
+    const SCENARIO_PATH: &str = "scenario.ron";
+    let mut file = std::fs::File::options()
+        .read(true).write(true).create(true)
+        .open(SCENARIO_PATH)
+        .unwrap();
+    let mut aerugo = String::new();
+    file.read_to_string(&mut aerugo).unwrap();
+    ron::from_str(&aerugo).unwrap()
 }

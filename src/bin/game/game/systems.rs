@@ -10,7 +10,7 @@ use crate::saves::AerugoLoaded;
 
 use super::*;
 use crate::states::OverlayState;
-use crate::utils::warn_state_err;
+use crate::utils::{load_aerugo, warn_state_err};
 
 const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
@@ -29,15 +29,7 @@ fn make_narrator_transform(w: f32, h: f32) -> Transform {
 }
 
 pub fn preload_aerugo(mut command: Commands) {
-    const SCENARIO_PATH: &str = "scenario.ron";
-    let mut file = std::fs::File::options()
-        .read(true).write(true).create(true)
-        .open(SCENARIO_PATH)
-        .unwrap();
-    let mut aerugo = String::new();
-    file.read_to_string(&mut aerugo).unwrap();
-    let aerugo: Aerugo = ron::from_str(&aerugo).unwrap();
-
+    let aerugo = load_aerugo();
     command.insert_resource(GameData { aerugo });
 }
 

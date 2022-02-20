@@ -159,6 +159,17 @@ impl AerugoState {
     }
 }
 
+impl Default for AerugoState {
+    fn default() -> Self {
+        AerugoState {
+            current: Default::default(),
+            select_story: vec![],
+            inspector: Default::default(),
+            _pre_collected: None,
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Aerugo {

@@ -2,6 +2,7 @@
 pub enum MainState {
     MainMenu,
     InGame,
+    OnLoad,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

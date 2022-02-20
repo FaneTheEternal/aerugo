@@ -1,14 +1,22 @@
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{Read, Write};
 use bevy::prelude::*;
 use aerugo::AerugoState;
+use crate::states::MainState;
+use crate::utils::load_aerugo;
 
 pub struct SavePlugin;
 
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system(save.exclusive_system());
+            .add_startup_system(pre_load_saves)
+            .add_system(save.exclusive_system())
+            .add_system(load.exclusive_system())
+            .add_system_set(
+                SystemSet::on_enter(MainState::OnLoad)
+                    .with_system(bounce_load_to_save)
+            );
     }
 }
 
@@ -18,18 +26,44 @@ pub struct SaveMark {
     pub(crate) to: u8,
 }
 
-pub struct Save;
+#[derive(Default, Debug)]
+pub struct Save(pub AerugoState);
 
+#[derive(Default, Debug)]
 pub struct Saves {
     pub saves: HashMap<u8, Save>,
 }
 
-pub fn save(
-    world: &mut World,
-) {
+pub fn pre_load_saves(mut command: Commands)
+{
+    let mut saves: HashMap<u8, Save> = Default::default();
+    let aerugo = load_aerugo();
+    for n in 0..6 {
+        let save_name = format!("save{n}.ron");
+        let save_path = std::path::Path::new(save_name.as_str());
+        if let Ok(mut save) = std::fs::File::open(save_path) {
+            let mut save_data = String::new();
+            save.read_to_string(&mut save_data).unwrap();
+            if let Some(aerugo_state) = AerugoState::load(&aerugo, &save_data) {
+                saves.insert(n, Save(aerugo_state));
+            }
+        }
+    }
+    command.insert_resource(Saves { saves });
+}
+
+pub fn save(world: &mut World) {
     let save_mark = world.remove_resource::<SaveMark>();
-    if let Some(_save_mark) = save_mark {
-        todo!("Save")
+    if let Some(save_mark) = save_mark {
+        let aerugo_state = world.get_resource::<AerugoState>().unwrap().clone();
+        _save(
+            format!("save{}.ron", save_mark.to),
+            ron::to_string(&aerugo_state).unwrap(),
+        );
+        world.get_resource_mut::<Saves>()
+            .and_then(|mut s| {
+                s.saves.insert(save_mark.to, Save(aerugo_state))
+            });
     }
 }
 
@@ -45,4 +79,28 @@ fn _save(save_path: String, data: String) {
         .unwrap();
 }
 
+pub struct LoadMark(pub u8);
+
 pub struct AerugoLoaded(pub aerugo::AerugoState);
+
+pub fn load(world: &mut World)
+{
+    if let Some(mark) = world.remove_resource::<LoadMark>() {
+        if let Some(save) = world.remove_resource::<Saves>() {
+            if let Some(save) = save.saves.get(&mark.0) {
+                world.insert_resource(AerugoLoaded(save.0.clone()));
+                world.get_resource_mut::<State<MainState>>()
+                    .and_then::<(), _>(|mut s| {
+                        s.set(MainState::OnLoad)
+                            .unwrap_or_else(|e| { warn!("{e:?}") });
+                        None
+                    });
+            }
+            world.insert_resource(save);
+        }
+    }
+}
+
+fn bounce_load_to_save(mut state: ResMut<State<MainState>>) {
+    state.set(MainState::InGame).unwrap_or_else(|e| warn!("{e:?}"));
+}
