@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::Write;
 use bevy::prelude::*;
+use aerugo::AerugoState;
 
 pub struct SavePlugin;
 
@@ -43,3 +44,5 @@ fn _save(save_path: String, data: String) {
         .write_all(data.as_bytes())
         .unwrap();
 }
+
+pub struct AerugoLoaded(pub aerugo::AerugoState);

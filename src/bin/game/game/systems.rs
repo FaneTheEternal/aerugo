@@ -6,6 +6,7 @@ use bevy::text::Text2dSize;
 use bevy::window::WindowResized;
 
 use aerugo::*;
+use crate::saves::AerugoLoaded;
 
 use super::*;
 use crate::states::OverlayState;
@@ -263,9 +264,13 @@ pub fn setup_game(
     window: Res<Windows>,
     game_data: Res<GameData>,
     mut next_step_event: EventWriter<NextStepEvent>,
+    aerugo_loaded: Option<Res<AerugoLoaded>>,
 )
 {
-    let aerugo_state = AerugoState::setup(&game_data.aerugo);
+    let aerugo_state = aerugo_loaded
+        .map(|loaded| { loaded.0.to_owned() })
+        .unwrap_or_else(|| { AerugoState::setup(&game_data.aerugo) });
+    commands.remove_resource::<AerugoLoaded>();
 
     let game_state = prep_game_space(
         &mut commands,
@@ -907,5 +912,7 @@ pub fn cleanup(
     commands.entity(game_state.phrase_ui_entity).despawn_recursive();
     commands.entity(game_state.narrator_entity).despawn_recursive();
     commands.entity(game_state.background_entity).despawn_recursive();
-    sprites.entities.iter().for_each(|(_, e)| { commands.entity(*e).despawn_recursive() })
+    sprites.entities.iter().for_each(|(_, e)| { commands.entity(*e).despawn_recursive() });
+    commands.remove_resource::<GameState>();
+    commands.remove_resource::<AerugoState>();
 }
