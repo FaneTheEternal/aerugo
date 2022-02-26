@@ -20,8 +20,7 @@ impl Plugin for SavePlugin {
     }
 }
 
-#[derive(Clone, Debug)]
-#[allow(dead_code)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct SaveMark {
     pub(crate) to: u8,
 }

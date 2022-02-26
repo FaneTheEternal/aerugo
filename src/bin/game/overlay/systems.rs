@@ -2,8 +2,8 @@
 
 use std::collections::HashMap;
 use bevy::prelude::*;
-use crate::overlay::saves_ui::make_load_items;
-use crate::saves::{LoadMark, Saves};
+use crate::overlay::saves_ui::{LoadItemsParentMark, make_load_items, make_save_items, save_load_base, SaveItemsParentMark};
+use crate::saves::{LoadMark, SaveMark, Saves};
 use super::*;
 use crate::states::{MainState, OverlayState};
 use crate::utils::{grow_z_index, make_button_closure};
@@ -204,85 +204,25 @@ pub fn init_overlay(
             });
     });
 
-    let ui_save = make_ui_base(&mut commands, OverlaySave, |parent| {
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::ColumnReverse,
-                    ..Default::default()
-                },
-                color: Color::GRAY.into(),
-                ..Default::default()
-            });
-    });
+    let save_items = make_save_items(&mut commands, saves.as_ref(), button_font.clone(), text_font.clone());
 
-    let load_items = make_load_items(&mut commands, saves, button_font.clone(), text_font.clone());
+    let ui_save = make_ui_base(
+        &mut commands,
+        OverlaySave,
+        save_load_base(
+            save_items, text_font.clone(), SaveItemsParentMark, "Save",
+        ),
+    );
 
-    let ui_load = make_ui_base(&mut commands, OverlayLoad, |parent| {
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::ColumnReverse,
-                    ..Default::default()
-                },
-                color: Color::GRAY.into(),
-                ..Default::default()
-            })
-            .with_children(|parent| {  // Header
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                            padding: Rect::all(Val::Px(10.0)),
-                            justify_content: JustifyContent::FlexStart,
-                            align_items: AlignItems::FlexStart,
-                            ..Default::default()
-                        },
-                        color: Color::DARK_GREEN.into(),
-                        ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        parent
-                            .spawn_bundle(TextBundle {
-                                text: Text::with_section(
-                                    "Load",
-                                    TextStyle {
-                                        font: text_font.clone(),
-                                        font_size: 40.0,
-                                        color: Color::BLACK,
-                                    },
-                                    Default::default(),
-                                ),
-                                ..Default::default()
-                            });
-                    });
-            })
-            .with_children(|parent| {  // Body
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                            padding: Rect::all(Val::Px(10.0)),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            flex_wrap: FlexWrap::WrapReverse,
-                            flex_direction: FlexDirection::Row,
-                            ..Default::default()
-                        },
-                        color: Color::GRAY.into(),
-                        ..Default::default()
-                    })
-                    .push_children(load_items.as_slice());
-            });
-    });
+    let load_items = make_load_items(&mut commands, saves.as_ref(), button_font.clone(), text_font.clone());
+
+    let ui_load = make_ui_base(
+        &mut commands,
+        OverlaySave,
+        save_load_base(
+            load_items, text_font.clone(), LoadItemsParentMark, "Load",
+        ),
+    );
 
     commands.insert_resource(OverlayData {
         ui_menu,
@@ -365,6 +305,8 @@ pub fn overlay_break(
     }
 }
 
+// region show_hide
+
 fn show(entity: Entity, mut style_query: Query<&mut Style>) {
     if let Ok(mut style) = style_query.get_mut(entity) {
         style.display = Display::Flex;
@@ -417,6 +359,7 @@ pub fn hide_load(overlay_data: Res<OverlayData>, style_query: Query<&mut Style>)
     hide(overlay_data.ui_load, style_query);
 }
 
+// endregion
 
 pub fn load_buttons(
     mut commands: Commands,
@@ -436,6 +379,69 @@ pub fn load_buttons(
                 *color = Color::WHITE.into();
                 commands.insert_resource(mark.clone());
                 overlay_state.set(OverlayState::Hidden);
+            }
+            Interaction::Hovered => {
+                *color = Color::ANTIQUE_WHITE.into();
+            }
+            Interaction::None => {
+                *color = Color::WHITE.into();
+            }
+        }
+    }
+}
+
+pub fn rebuild_saves_listener(
+    mut commands: Commands,
+    mut events: EventReader<RebuildSavesEvent>,
+    saves: Res<Saves>,
+    asset_server: Res<AssetServer>,
+    mut save_query: Query<Entity, (With<SaveItemsParentMark>, Without<LoadItemsParentMark>)>,
+    mut load_query: Query<Entity, (With<LoadItemsParentMark>, Without<SaveItemsParentMark>)>,
+)
+{
+    if events.iter().count() > 0 {
+        let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+        let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
+
+        if let Some(save_entity) = save_query.iter().next() {
+            commands.entity(save_entity).despawn_descendants();
+            let save_items = make_save_items(
+                &mut commands, saves.as_ref(),
+                button_font.clone(), text_font.clone(),
+            );
+            commands.entity(save_entity).push_children(save_items.as_slice());
+        }
+
+        if let Some(load_entity) = load_query.iter().next() {
+            commands.entity(load_entity).despawn_descendants();
+            let load_items = make_load_items(
+                &mut commands, saves.as_ref(),
+                button_font.clone(), text_font.clone(),
+            );
+            commands.entity(load_entity).push_children(load_items.as_slice());
+        }
+    }
+}
+
+pub fn save_buttons(
+    mut commands: Commands,
+    mut overlay_state: ResMut<State<OverlayState>>,
+    mut save_events: EventWriter<RebuildSavesEvent>,
+    mut save_buttons_query: Query<
+        (&Interaction, &mut UiColor, &SaveMark),
+        (Changed<Interaction>, With<Button>)
+    >,
+)
+{
+    for (interaction, color, mark) in save_buttons_query.iter_mut() {
+        let interaction: &Interaction = interaction;
+        let mut color: Mut<UiColor> = color;
+        let mark: &SaveMark = mark;
+        match interaction {
+            Interaction::Clicked => {
+                *color = Color::WHITE.into();
+                commands.insert_resource(mark.clone());
+                save_events.send(RebuildSavesEvent);
             }
             Interaction::Hovered => {
                 *color = Color::ANTIQUE_WHITE.into();
