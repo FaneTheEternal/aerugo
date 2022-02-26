@@ -390,9 +390,28 @@ pub fn load_buttons(
     }
 }
 
-pub fn rebuild_saves_listener(
+pub fn cleanse_saves_listener(
     mut commands: Commands,
-    mut events: EventReader<RebuildSavesEvent>,
+    mut events: EventReader<CleanseSavesEvent>,
+    mut send: EventWriter<RespawnSavesEvent>,
+    mut save_query: Query<Entity, (With<SaveItemsParentMark>, Without<LoadItemsParentMark>)>,
+    mut load_query: Query<Entity, (With<LoadItemsParentMark>, Without<SaveItemsParentMark>)>,
+)
+{
+    if events.iter().count() > 0 {
+        if let Some(save_entity) = save_query.iter().next() {
+            commands.entity(save_entity).despawn_descendants();
+        }
+        if let Some(load_entity) = load_query.iter().next() {
+            commands.entity(load_entity).despawn_descendants();
+        }
+        send.send(RespawnSavesEvent);
+    }
+}
+
+pub fn respawn_saves_listener(
+    mut commands: Commands,
+    mut events: EventReader<RespawnSavesEvent>,
     saves: Res<Saves>,
     asset_server: Res<AssetServer>,
     mut save_query: Query<Entity, (With<SaveItemsParentMark>, Without<LoadItemsParentMark>)>,
@@ -404,7 +423,6 @@ pub fn rebuild_saves_listener(
         let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
 
         if let Some(save_entity) = save_query.iter().next() {
-            commands.entity(save_entity).despawn_descendants();
             let save_items = make_save_items(
                 &mut commands, saves.as_ref(),
                 button_font.clone(), text_font.clone(),
@@ -413,7 +431,6 @@ pub fn rebuild_saves_listener(
         }
 
         if let Some(load_entity) = load_query.iter().next() {
-            commands.entity(load_entity).despawn_descendants();
             let load_items = make_load_items(
                 &mut commands, saves.as_ref(),
                 button_font.clone(), text_font.clone(),
@@ -426,7 +443,7 @@ pub fn rebuild_saves_listener(
 pub fn save_buttons(
     mut commands: Commands,
     mut overlay_state: ResMut<State<OverlayState>>,
-    mut save_events: EventWriter<RebuildSavesEvent>,
+    mut save_events: EventWriter<CleanseSavesEvent>,
     mut save_buttons_query: Query<
         (&Interaction, &mut UiColor, &SaveMark),
         (Changed<Interaction>, With<Button>)
@@ -441,7 +458,7 @@ pub fn save_buttons(
             Interaction::Clicked => {
                 *color = Color::WHITE.into();
                 commands.insert_resource(mark.clone());
-                save_events.send(RebuildSavesEvent);
+                save_events.send(CleanseSavesEvent);
             }
             Interaction::Hovered => {
                 *color = Color::ANTIQUE_WHITE.into();

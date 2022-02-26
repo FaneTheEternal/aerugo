@@ -16,9 +16,11 @@ pub struct OverlayPlugin;
 impl Plugin for OverlayPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<RebuildSavesEvent>()
+            .add_event::<CleanseSavesEvent>()
+            .add_event::<RespawnSavesEvent>()
             .add_state(OverlayState::Hidden)
-            .add_system(rebuild_saves_listener)
+            .add_system(cleanse_saves_listener)
+            .add_system(respawn_saves_listener)
             .add_system_set(
                 SystemSet::new().with_run_criteria(should_run_once)
                     .with_system(init_overlay)
@@ -94,4 +96,6 @@ pub struct OverlayData {
     ui_load: Entity,
 }
 
-pub struct RebuildSavesEvent;
+pub struct CleanseSavesEvent;
+
+pub struct RespawnSavesEvent;
