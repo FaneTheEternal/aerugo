@@ -98,3 +98,15 @@ pub fn should_run_once(mut run_once: Local<bool>) -> ShouldRun {
         ShouldRun::No
     }
 }
+
+pub fn run_once_criteria() -> impl FnMut() -> ShouldRun {
+    let mut ran = false;
+    move || {
+        if ran {
+            ShouldRun::No
+        } else {
+            ran = true;
+            ShouldRun::Yes
+        }
+    }
+}
