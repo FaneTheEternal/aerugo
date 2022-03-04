@@ -2,21 +2,15 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use bevy::prelude::*;
 use aerugo::{Aerugo, AerugoState};
-use crate::states::MainState;
-use crate::utils::load_aerugo;
+use crate::game::GameState;
 
 pub struct SavePlugin;
 
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_startup_system(pre_load_saves)
             .add_system(save.exclusive_system())
-            .add_system(load.exclusive_system())
-            .add_system_set(
-                SystemSet::on_enter(MainState::OnLoad)
-                    .with_system(bounce_load_to_save)
-            );
+            .add_system(load.exclusive_system());
     }
 }
 
@@ -33,10 +27,9 @@ pub struct Saves {
     pub saves: HashMap<u8, Save>,
 }
 
-pub fn pre_load_saves(mut command: Commands)
+pub fn pre_load_saves(aerugo: &Aerugo) -> Saves
 {
     let mut saves: HashMap<u8, Save> = Default::default();
-    let aerugo = load_aerugo();
     for n in 0..6 {
         let save_name = format!("save{n}.ron");
         let save_path = std::path::Path::new(save_name.as_str());
@@ -48,7 +41,7 @@ pub fn pre_load_saves(mut command: Commands)
             }
         }
     }
-    command.insert_resource(Saves { saves });
+    Saves { saves }
 }
 
 pub fn save(world: &mut World) {
@@ -57,7 +50,7 @@ pub fn save(world: &mut World) {
         let aerugo_state = world.get_resource::<AerugoState>().unwrap().clone();
         _save(
             format!("save{}.ron", save_mark.to),
-            ron::to_string(&aerugo_state).unwrap(),
+            ron::ser::to_string_pretty(&aerugo_state, Default::default()).unwrap(),
         );
         world.get_resource_mut::<Saves>()
             .and_then(|mut s| {
@@ -89,9 +82,9 @@ pub fn load(world: &mut World)
         if let Some(save) = world.remove_resource::<Saves>() {
             if let Some(save) = save.saves.get(&mark.0) {
                 world.insert_resource(AerugoLoaded(save.0.clone()));
-                world.get_resource_mut::<State<MainState>>()
+                world.get_resource_mut::<State<GameState>>()
                     .and_then::<(), _>(|mut s| {
-                        s.set(MainState::OnLoad)
+                        s.set(GameState::Init)
                             .unwrap_or_else(|e| { warn!("{e:?}") });
                         None
                     });
@@ -99,8 +92,4 @@ pub fn load(world: &mut World)
             world.insert_resource(save);
         }
     }
-}
-
-fn bounce_load_to_save(mut state: ResMut<State<MainState>>) {
-    state.set(MainState::InGame).unwrap_or_else(|e| warn!("{e:?}"));
 }

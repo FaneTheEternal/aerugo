@@ -1,11 +1,11 @@
 #![feature(unboxed_closures)]
 
-mod states;
-mod main_menu;
-mod overlay;
 mod utils;
 mod game;
 mod saves;
+mod startup;
+mod ui;
+mod saves_ui;
 
 use bevy::prelude::*;
 
@@ -19,9 +19,9 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(main_menu::MainMenuPlugin)
+        .add_plugin(startup::StartupPlugin)
+        .add_plugin(ui::UiPlugin)
         .add_plugin(game::GamePlugin)
-        .add_plugin(overlay::OverlayPlugin)
         .add_plugin(saves::SavePlugin)
         .add_startup_system(setup)
         .run();

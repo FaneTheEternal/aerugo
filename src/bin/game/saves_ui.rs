@@ -1,8 +1,6 @@
 use bevy::prelude::*;
-use crate::saves::{LoadMark, Save, SaveMark, Saves};
-use super::*;
-
-const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
+use crate::saves::{LoadMark, SaveMark, Saves};
+use crate::utils::{SIZE_ALL, TRANSPARENT};
 
 #[derive(Component)]
 pub struct SaveItemsParentMark;
@@ -21,7 +19,7 @@ pub fn save_load_base(
         parent
             .spawn_bundle(NodeBundle {
                 style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    size: SIZE_ALL,
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     flex_wrap: FlexWrap::Wrap,
@@ -97,7 +95,7 @@ fn _make_card_base() -> impl Bundle {
 
 fn _card_style() -> Style {
     Style {
-        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+        size: SIZE_ALL,
         align_items: AlignItems::Center,
         justify_content: JustifyContent::Center,
         flex_wrap: FlexWrap::Wrap,
@@ -127,8 +125,8 @@ fn _empty_card(text_font: Handle<Font>) -> impl FnOnce(&mut ChildBuilder) {
 pub fn make_load_items(
     commands: &mut Commands,
     saves: &Saves,
-    button_font: Handle<Font>,
-    text_font: Handle<Font>,
+    save_font: Handle<Font>,
+    empty_save_font: Handle<Font>,
 ) -> Vec<Entity>
 {
     (0..6)
@@ -144,13 +142,13 @@ pub fn make_load_items(
                                     color: Color::WHITE.into(),
                                     ..Default::default()
                                 })
-                                .with_children(_empty_card(text_font.clone()));
+                                .with_children(_empty_card(empty_save_font.clone()));
                         }
                         Some(save) => {
                             parent
                                 .spawn_bundle(ButtonBundle {
                                     style: _card_style(),
-                                    color: Color::RED.into(),
+                                    color: Color::WHITE.into(),
                                     ..Default::default()
                                 })
                                 .insert(LoadMark(n))
@@ -159,7 +157,7 @@ pub fn make_load_items(
                                         text: Text::with_section(
                                             format!("Some save {}", n),
                                             TextStyle {
-                                                font: text_font.clone(),
+                                                font: save_font.clone(),
                                                 font_size: 20.0,
                                                 color: Color::BLACK,
                                             },
@@ -173,7 +171,7 @@ pub fn make_load_items(
                                         text: Text::with_section(
                                             format!("{}", save.0.current),
                                             TextStyle {
-                                                font: text_font.clone(),
+                                                font: save_font.clone(),
                                                 font_size: 15.0,
                                                 color: Color::BLACK,
                                             },
@@ -194,8 +192,8 @@ pub fn make_load_items(
 pub fn make_save_items(
     commands: &mut Commands,
     saves: &Saves,
-    button_font: Handle<Font>,
-    text_font: Handle<Font>,
+    save_font: Handle<Font>,
+    empty_save_font: Handle<Font>,
 ) -> Vec<Entity>
 {
     (0..6)
@@ -211,7 +209,7 @@ pub fn make_save_items(
                     card.insert(SaveMark { to: n });
                     match saves.saves.get(&n) {
                         None => {
-                            card.with_children(_empty_card(text_font.clone()));
+                            card.with_children(_empty_card(empty_save_font.clone()));
                         }
                         Some(save) => {
                             card
@@ -220,7 +218,7 @@ pub fn make_save_items(
                                         text: Text::with_section(
                                             format!("Some save {}", n),
                                             TextStyle {
-                                                font: text_font.clone(),
+                                                font: save_font.clone(),
                                                 font_size: 20.0,
                                                 color: Color::BLACK,
                                             },
@@ -234,7 +232,7 @@ pub fn make_save_items(
                                         text: Text::with_section(
                                             format!("{}", save.0.current),
                                             TextStyle {
-                                                font: text_font.clone(),
+                                                font: save_font.clone(),
                                                 font_size: 15.0,
                                                 color: Color::BLACK,
                                             },

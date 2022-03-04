@@ -9,309 +9,83 @@ use aerugo::*;
 use crate::saves::AerugoLoaded;
 
 use super::*;
-use crate::states::OverlayState;
-use crate::utils::{load_aerugo, warn_state_err};
-
-const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
-
-const Z_NARRATOR: f32 = 25.0;
-const Z_TEXT: f32 = 20.0;
-const Z_SCENE: f32 = 15.0;
-const Z_SPRITE: f32 = 10.0;
-const Z_BACKGROUND: f32 = 5.0;
-
-const Y_SPRITE: f32 = 0.0;
-
-fn make_narrator_transform(w: f32, h: f32) -> Transform {
-    const NARRATOR_SCALE: f32 = 0.4;
-    Transform::from_xyz(w * -0.4, h * -0.4, Z_NARRATOR)
-        .with_scale(Vec3::new(NARRATOR_SCALE, NARRATOR_SCALE, NARRATOR_SCALE))
-}
-
-pub fn preload_aerugo(mut command: Commands) {
-    let aerugo = load_aerugo();
-    command.insert_resource(GameData { aerugo });
-}
-
-fn prep_game_space(
-    commands: &mut Commands,
-    asset_server: Res<AssetServer>,
-    window: Res<Windows>,
-) -> GameState
-{
-    let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let window = window.get_primary().unwrap();
-    let w = window.width();
-    let h = window.height();
-
-    // region spawn text flow
-    let text_narrator_entity = commands
-        .spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                color: Color::RED,
-                custom_size: Some(Vec2::new(w * 0.99, h * 0.09)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(0.0, h * -0.25, Z_TEXT),
-            visibility: Visibility { is_visible: false },
-            ..Default::default()
-        })
-        .id();
-    let text_background_entity = commands
-        .spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                color: Color::RED,
-                custom_size: Some(Vec2::new(w * 0.99, h * 0.19)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(0.0, h * -0.4, Z_TEXT),
-            visibility: Visibility { is_visible: false },
-            ..Default::default()
-        })
-        .id();
-    let mut text_ui_entity = None;
-    let text_ui_root_entity = commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                padding: Rect::all(Val::Px(10.0)),
-                position_type: PositionType::Absolute,
-                flex_wrap: FlexWrap::Wrap,
-                flex_direction: FlexDirection::Column,
-                display: Display::None,
-                ..Default::default()
-            },
-            color: TRANSPARENT.into(),
-            ..Default::default()
-        })
-        .insert(TextFlowBase)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
-                        align_items: AlignItems::FlexStart,
-                        align_content: AlignContent::FlexStart,
-                        flex_direction: FlexDirection::ColumnReverse,
-                        flex_wrap: FlexWrap::Wrap,
-                        padding: Rect {
-                            left: Default::default(),
-                            right: Default::default(),
-                            top: Val::Px(10.0),
-                            bottom: Default::default(),
-                        },
-                        ..Default::default()
-                    },
-                    color: TRANSPARENT.into(),
-                    ..Default::default()
-                })
-                .insert(NarratorPlaceholderMark)
-                .with_children(|parent| {
-                    let entity = parent
-                        .spawn_bundle(TextBundle {
-                            text: Text::with_section(
-                                "Some text",
-                                TextStyle {
-                                    font: text_font.clone(),
-                                    font_size: 20.0,
-                                    color: Color::GREEN,
-                                },
-                                TextAlignment {
-                                    vertical: VerticalAlign::Top,
-                                    horizontal: HorizontalAlign::Left,
-                                },
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(TextFlowMark)
-                        .id();
-                    text_ui_entity = Some(entity);
-                });
-        })
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                        align_items: AlignItems::FlexStart,
-                        align_content: AlignContent::FlexStart,
-                        flex_direction: FlexDirection::ColumnReverse,
-                        flex_wrap: FlexWrap::Wrap,
-                        padding: Rect {
-                            left: Default::default(),
-                            right: Default::default(),
-                            top: Val::Px(10.0),
-                            bottom: Default::default(),
-                        },
-                        ..Default::default()
-                    },
-                    color: TRANSPARENT.into(),
-                    ..Default::default()
-                })
-                .insert(NarratorPlaceholderMark)
-                .with_children(|parent| {
-                    parent
-                        .spawn_bundle(TextBundle {
-                            text: Text::with_section(
-                                "Narrator",
-                                TextStyle {
-                                    font: text_font.clone(),
-                                    font_size: 20.0,
-                                    color: Color::GREEN,
-                                },
-                                TextAlignment {
-                                    vertical: VerticalAlign::Top,
-                                    horizontal: HorizontalAlign::Left,
-                                },
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(NarratorFlowMark);
-                });
-        })
-        .id();
-    // endregion
-
-    // region spawn phrase
-    let phrase_ui_entity = commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                display: Display::None,
-                align_items: AlignItems::Center,
-                align_content: AlignContent::Center,
-                justify_content: JustifyContent::Center,
-                position_type: PositionType::Absolute,
-                flex_wrap: FlexWrap::Wrap,
-                flex_direction: FlexDirection::ColumnReverse,
-                ..Default::default()
-            },
-            color: Color::rgba(0.5, 0.5, 0.5, 0.5).into(),
-            ..Default::default()
-        })
-        .id();
-    // endregion
-
-    // region spawn narrator
-    let narrator_entity = commands
-        .spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                ..Default::default()
-            },
-            transform: make_narrator_transform(w, h),
-            visibility: Visibility { is_visible: false },
-            ..Default::default()
-        })
-        .insert(NarratorMark)
-        .id();
-    // endregion
-
-    // region spawn background
-    let background_entity = commands
-        .spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(w, h)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(0.0, 0.0, Z_BACKGROUND),
-            ..Default::default()
-        })
-        .insert(BackgroundMark)
-        .id();
-    // endregion
-
-    // region spawn scene
-    let scene_entity = commands
-        .spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(w, h)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(0.0, 0.0, Z_SCENE),
-            visibility: Visibility { is_visible: false },
-            ..Default::default()
-        })
-        .insert(SceneMark)
-        .id();
-    // endregion
-
-    GameState {
-        just_init: true,
-        text_narrator_entity,
-        text_background_entity,
-        text_ui_root_entity,
-        text_ui_entity: text_ui_entity.unwrap(),
-        phrase_ui_entity,
-        narrator_entity,
-        background_entity,
-        scene_entity,
-    }
-}
+use crate::ui::{GameUI, OverlayButton, OverlayButtons, UiState};
+use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, load_aerugo, Y_SPRITE, Z_SPRITE};
 
 pub fn setup_game(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    window: Res<Windows>,
-    game_data: Res<GameData>,
+    aerugo: Res<Aerugo>,
     mut next_step_event: EventWriter<NextStepEvent>,
     aerugo_loaded: Option<Res<AerugoLoaded>>,
+    mut game_state: ResMut<State<GameState>>,
+    mut game_ui: ResMut<GameUI>,
+    mut style_query: Query<&mut Style>,
+    mut visibility_query: Query<&mut Visibility>,
+    mut ui_image_query: Query<&mut UiImage>,
+    mut image_query: Query<&mut Handle<Image>>,
 )
 {
     let aerugo_state = aerugo_loaded
         .map(|loaded| { loaded.0.to_owned() })
-        .unwrap_or_else(|| { AerugoState::setup(&game_data.aerugo) });
+        .unwrap_or_else(|| { AerugoState::setup(aerugo.as_ref()) });
     commands.remove_resource::<AerugoLoaded>();
 
-    let game_state = prep_game_space(
-        &mut commands,
-        asset_server,
-        window,
-    );
-
-    commands.insert_resource(game_state);
     commands.insert_resource(aerugo_state);
+    commands.insert_resource(JustInit);
 
     next_step_event.send(NextStepEvent);
+    game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+
+    game_ui.sprites.values().for_each(|&e| {
+        commands.entity(e).despawn_recursive();
+    });
+    game_ui.background_visible = false;
+    game_ui.scene_visible = false;
+    *image_query.get_mut(game_ui.background).unwrap() = Default::default();
+    *image_query.get_mut(game_ui.scene).unwrap() = Default::default();
+    visibility_query.get_mut(game_ui.background).unwrap().is_visible = false;
+    visibility_query.get_mut(game_ui.scene).unwrap().is_visible = false;
+    game_ui.sprites = Default::default();
+    style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+        .display = Display::None;
+    ui_image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+        .0 = Default::default();
 }
 
 pub fn open_overlay(
     mut input: ResMut<Input<KeyCode>>,
-    mut overlay_state: ResMut<State<OverlayState>>,
+    mut game_state: ResMut<State<GameState>>,
 )
 {
-    match overlay_state.current() {
-        OverlayState::Hidden => {
-            if input.clear_just_released(KeyCode::Escape) {
-                overlay_state.set(OverlayState::Menu).unwrap();
-            }
-        }
-        _ => {}
+    if input.clear_just_released(KeyCode::Escape) {
+        game_state.set(GameState::Paused).unwrap_or_else(|e| warn!("{e:?}"));
     }
 }
 
 pub fn next_step_listener(
     mut commands: Commands,
     mut events: EventReader<NextStepEvent>,
-    mut game_state: ResMut<GameState>,
     mut aerugo_state: ResMut<AerugoState>,
-    game_data: Res<GameData>,
+    aerugo: Res<Aerugo>,
     mut new_narrator_event: EventWriter<NewNarratorEvent>,
     mut new_sprite_event: EventWriter<NewSpriteEvent>,
     mut new_background_event: EventWriter<NewBackgroundEvent>,
     mut new_scene_event: EventWriter<NewSceneEvent>,
+    just_init: Option<Res<JustInit>>,
 )
 {
     if events.iter().count() > 0 {
-        if game_state.just_init {
-            game_state.just_init = false;
-        } else {
-            if aerugo_state.next(&game_data.aerugo).is_none() {
-                return;
+        match just_init {
+            None => {
+                if aerugo_state.next(aerugo.as_ref()).is_none() {
+                    return;
+                }
+            }
+            Some(_) => {
+                commands.remove_resource::<JustInit>();
             }
         }
-        let steps = aerugo_state.collect(&game_data.aerugo);
+        let steps = aerugo_state.collect(aerugo.as_ref());
 
         // send events to update graphic part
         for step in steps {
@@ -332,88 +106,92 @@ pub fn next_step_listener(
             }
         }
 
-        let step = aerugo_state.step(&game_data.aerugo);
+        let step = aerugo_state.step(aerugo.as_ref());
         commands.insert_resource(step);
     }
 }
 
 pub fn new_narrator_listener(
-    game_state: Res<GameState>,
+    game_ui: Res<GameUI>,
+    mut style_query: Query<&mut Style>,
+    mut image_query: Query<&mut UiImage>,
     mut new_narrator_event: EventReader<NewNarratorEvent>,
-    mut narrator_query: Query<(&mut Handle<Image>, &mut Visibility), With<NarratorMark>>,
-    mut narrator_placeholder_query: Query<&mut Style, With<NarratorPlaceholderMark>>,
     asset_server: Res<AssetServer>,
 )
 {
     for event in new_narrator_event.iter() {
         let narrator: &Option<String> = &event.0;
-        let (mut narrator_sprite, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
-            narrator_query.get_mut(game_state.narrator_entity).unwrap();
+
         match narrator {
             None => {
-                *narrator_sprite = Default::default();
-                visibility.is_visible = false;
-                narrator_placeholder_query.for_each_mut(|mut e| {
-                    e.padding.left = Default::default();
-                });
+                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .display = Display::None;
+                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .0 = Default::default();
             }
             Some(s) => {
-                *narrator_sprite = asset_server.load(s);
-                visibility.is_visible = true;
-                narrator_placeholder_query.for_each_mut(|mut e| {
-                    e.padding.left = Val::Percent(20.0);
-                });
+                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .display = Display::Flex;
+                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .0 = asset_server.load(s);
             }
         }
     }
 }
 
 pub fn new_background_listener(
-    game_state: Res<GameState>,
+    mut game_ui: ResMut<GameUI>,
     mut new_background_event: EventReader<NewBackgroundEvent>,
-    mut background_query: Query<&mut Handle<Image>, With<BackgroundMark>>,
+    mut background_query: Query<(&mut Handle<Image>, &mut Visibility)>,
     asset_server: Res<AssetServer>,
 )
 {
     for event in new_background_event.iter() {
-        let mut background = background_query.get_mut(game_state.background_entity).unwrap();
+        let (mut background, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
+            background_query.get_mut(game_ui.background).unwrap();
         let cmd: &BackgroundCommand = &event.0;
         match cmd {
             BackgroundCommand::Change { new, .. } => {
                 *background = asset_server.load(new);
+                visibility.is_visible = true;
+                game_ui.background_visible = true;
             }
             BackgroundCommand::Shake => {
                 unimplemented!("Unimplemented 'Shake'")
             }
-            BackgroundCommand::None => {}
+            BackgroundCommand::None => {
+                *background = Default::default();
+                visibility.is_visible = true;
+                game_ui.background_visible = false;
+            }
         }
     }
 }
 
 pub fn new_scene_listener(
-    game_state: Res<GameState>,
+    mut game_ui: ResMut<GameUI>,
     mut new_scene_event: EventReader<NewSceneEvent>,
-    mut scene_query: Query<(&mut Handle<Image>, &mut Visibility), With<SceneMark>>,
+    mut scene_query: Query<(&mut Handle<Image>, &mut Visibility)>,
     asset_server: Res<AssetServer>,
 )
 {
     for event in new_scene_event.iter() {
         let cmd: &SceneCommand = &event.0;
         let (mut scene, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
-            scene_query.get_mut(game_state.scene_entity).unwrap();
+            scene_query.get_mut(game_ui.scene).unwrap();
         match cmd {
             SceneCommand::Set { name } => {
                 *scene = asset_server.load(name);
                 visibility.is_visible = true;
+                game_ui.scene_visible = true;
             }
             SceneCommand::Remove => {
                 *scene = Default::default();
                 visibility.is_visible = false;
+                game_ui.scene_visible = false;
             }
-            SceneCommand::Play { .. } => {
-                visibility.is_visible = true;
-            }
-            SceneCommand::Pause => {}
+            SceneCommand::Play { .. } => { todo!("Play") }
+            SceneCommand::Pause => { todo!("Pause") }
             SceneCommand::None => {}
         }
     }
@@ -421,9 +199,9 @@ pub fn new_scene_listener(
 
 pub fn new_sprite_listener(
     mut commands: Commands,
+    mut game_ui: ResMut<GameUI>,
     mut new_sprite_event: EventReader<NewSpriteEvent>,
     asset_server: Res<AssetServer>,
-    mut sprites: ResMut<SpriteEntities>,
     window: Res<Windows>,
 )
 {
@@ -444,7 +222,7 @@ pub fn new_sprite_listener(
         match cmd {
             SpriteCommand::Set { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
-                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
                         commands.spawn_bundle(SpriteBundle::default())
                     }
@@ -454,10 +232,10 @@ pub fn new_sprite_listener(
                 };
                 entity_cmd.insert(sprite);
                 entity_cmd.insert(Transform::from_xyz(w * position, Y_SPRITE, Z_SPRITE));
-                sprites.entities.insert(name.clone(), entity_cmd.id());
+                game_ui.sprites.insert(name.clone(), entity_cmd.id());
             }
             SpriteCommand::Remove { name } => {
-                sprites.entities
+                game_ui.sprites
                     .remove(name)
                     .or_else(|| {
                         warn!("Invalid sprite name: {}", name);
@@ -470,7 +248,7 @@ pub fn new_sprite_listener(
             }
             SpriteCommand::FadeIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
-                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => { commands.spawn_bundle(SpriteBundle::default()) }
                     Some(entity) => { commands.entity(*entity) }
                 };
@@ -483,10 +261,10 @@ pub fn new_sprite_listener(
                         name: name.clone(),
                     })
                     .id();
-                sprites.entities.insert(name.clone(), entity);
+                game_ui.sprites.insert(name.clone(), entity);
             }
             SpriteCommand::FadeOut { name } => {
-                sprites.entities.get(name)
+                game_ui.sprites.get(name)
                     .and_then(|e| {
                         commands
                             .entity(e.clone())
@@ -500,7 +278,7 @@ pub fn new_sprite_listener(
             }
             SpriteCommand::LeftIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
-                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => { commands.spawn_bundle(SpriteBundle::default()) }
                     Some(entity) => { commands.entity(*entity) }
                 };
@@ -515,10 +293,10 @@ pub fn new_sprite_listener(
                         move_out: false,
                     })
                     .id();
-                sprites.entities.insert(name.clone(), entity);
+                game_ui.sprites.insert(name.clone(), entity);
             }
             SpriteCommand::LeftOut { name } => {
-                sprites.entities.get(name)
+                game_ui.sprites.get(name)
                     .and_then(|e| {
                         commands
                             .entity(e.clone())
@@ -534,7 +312,7 @@ pub fn new_sprite_listener(
             }
             SpriteCommand::RightIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
-                let mut entity_cmd = match sprites.entities.get_mut(name) {
+                let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => { commands.spawn_bundle(SpriteBundle::default()) }
                     Some(entity) => { commands.entity(*entity) }
                 };
@@ -549,10 +327,10 @@ pub fn new_sprite_listener(
                         move_out: false,
                     })
                     .id();
-                sprites.entities.insert(name.clone(), entity);
+                game_ui.sprites.insert(name.clone(), entity);
             }
             SpriteCommand::RightOut { name } => {
-                sprites.entities.get(name)
+                game_ui.sprites.get(name)
                     .and_then(|e| {
                         commands
                             .entity(e.clone())
@@ -567,7 +345,7 @@ pub fn new_sprite_listener(
                     });
             }
             SpriteCommand::Move { name, position } => {
-                sprites.entities.get(name)
+                game_ui.sprites.get(name)
                     .and_then(|e| {
                         commands
                             .entity(e.clone())
@@ -589,42 +367,35 @@ pub fn new_sprite_listener(
 pub fn step_init(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    game_state: Res<GameState>,
+    mut game_control_state: ResMut<State<GameControlState>>,
     step: Option<Res<Step>>,
-    mut text_base_query: Query<&mut Style, With<TextFlowBase>>,
-    mut narrator_flow_query: Query<&mut Text, With<NarratorFlowMark>>,
-    mut text_sprite_query: Query<&mut Visibility, With<Sprite>>,
-    mut style_query: Query<&mut Style, Without<TextFlowBase>>,
-    mut mute_control_state: ResMut<State<MuteControl>>,
+    mut style_query: Query<&mut Style>,
+    mut game_ui: ResMut<GameUI>,
 )
 {
     if let Some(step) = step {
         let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
 
-        text_base_query.for_each_mut(|mut e| { e.display = Display::None });
-        text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = false;
-        text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = false;
-        commands.entity(game_state.phrase_ui_entity).despawn_descendants();
-        style_query.get_mut(game_state.phrase_ui_entity).unwrap().display = Display::None;
+        game_ui.text.force_hide(&mut style_query);
+        game_ui.phrase.force_hide(&mut style_query);
 
         match &step.inner {
             Steps::Text { author, texts } => {
-                text_base_query.for_each_mut(|mut e| { e.display = Display::Flex });
-                text_sprite_query.get_mut(game_state.text_narrator_entity).unwrap().is_visible = true;
-                text_sprite_query.get_mut(game_state.text_background_entity).unwrap().is_visible = true;
+                game_ui.text.force_show(&mut style_query);
 
-                narrator_flow_query.for_each_mut(|mut text| {
-                    text.sections = vec![TextSection {
-                        value: author.clone(),
-                        style: TextStyle {
+                commands
+                    .entity(game_ui.text.narrator)
+                    .insert(Text::with_section(
+                        author.as_str(),
+                        TextStyle {
                             font: text_font.clone(),
                             font_size: 40.0,
                             color: Color::BLACK,
                         },
-                    }];
-                });
+                        Default::default(),
+                    ));
                 commands
-                    .entity(game_state.text_ui_entity)
+                    .entity(game_ui.text.text)
                     .insert(AnimateText {
                         text: texts.clone(),
                         timer: Timer::from_seconds(0.1, true),
@@ -635,15 +406,15 @@ pub fn step_init(
                         },
                         chars: 0,
                     });
-                commands.insert_resource(CurrentStep::Text);
+                game_control_state.set(GameControlState::TextPass).unwrap_or_else(|e| warn!("{e:?}"));
             }
             Steps::Phrase { phrases } => {
-                style_query.get_mut(game_state.phrase_ui_entity).unwrap().display = Display::Flex;
-                let mut ui = commands.entity(game_state.phrase_ui_entity);
-                for phrase in phrases {
-                    let (key, verbose) = phrase;
-                    ui.with_children(|parent| {
-                        parent
+                game_ui.phrase.force_show(&mut style_query);
+
+                let phrase_options: Vec<Entity> = phrases.iter()
+                    .map(|o| {
+                        let (key, verbose) = o;
+                        commands
                             .spawn_bundle(ButtonBundle {
                                 style: Style {
                                     margin: Rect::all(Val::Percent(1.0)),
@@ -668,101 +439,78 @@ pub fn step_init(
                                     ),
                                     ..Default::default()
                                 });
-                            });
-                    });
-                }
-                commands.insert_resource(CurrentStep::Phrase);
+                            })
+                            .id()
+                    })
+                    .collect();
+                commands.entity(game_ui.phrase.root).despawn_descendants();
+                commands.entity(game_ui.phrase.root).push_children(phrase_options.as_slice());
+
+                game_control_state.set(GameControlState::Phrase).unwrap_or_else(|e| warn!("{e:?}"));
             }
-            Steps::ImageSelect { .. } => {}
+            Steps::ImageSelect { .. } => {
+                todo!("ImageSelect")
+            }
             _ => {}
         }
         commands.remove_resource::<Step>();
-        mute_control_state.set(MuteControl::Pass).unwrap_or_else(warn_state_err);
     }
 }
 
-pub fn phrase_button_animate(
-    mut phrase_query: Query<
-        (&Interaction, &mut UiColor),
-        (With<PhraseValue>, Changed<Interaction>)
-    >
+pub fn input_text_pass(
+    mut game_control_state: ResMut<State<GameControlState>>,
+    mut key_input: ResMut<Input<KeyCode>>,
+    mut mouse_button_input: ResMut<Input<MouseButton>>,
 )
 {
-    for (interaction, color) in phrase_query.iter_mut() {
+    if key_input.clear_just_pressed(KeyCode::Space)
+        || key_input.clear_just_pressed(KeyCode::Return)
+        || mouse_button_input.clear_just_pressed(MouseButton::Left) {
+        game_control_state.set(GameControlState::Text).unwrap_or_else(|e| warn!("{e:?}"));
+    }
+}
+
+pub fn input_text_next(
+    mut game_control_state: ResMut<State<GameControlState>>,
+    mut key_input: ResMut<Input<KeyCode>>,
+    mut mouse_button_input: ResMut<Input<MouseButton>>,
+    mut next_step_event: EventWriter<NextStepEvent>,
+)
+{
+    if key_input.clear_just_pressed(KeyCode::Space)
+        || key_input.clear_just_pressed(KeyCode::Return)
+        || mouse_button_input.clear_just_pressed(MouseButton::Left) {
+        game_control_state.set(GameControlState::None).unwrap_or_else(|e| warn!("{e:?}"));
+        next_step_event.send(NextStepEvent);
+    }
+}
+
+pub fn input_phrase(
+    mut aerugo_state: ResMut<AerugoState>,
+    aerugo: Res<Aerugo>,
+    mut game_control_state: ResMut<State<GameControlState>>,
+    mut phrase_query: Query<(&Interaction, &PhraseValue, &mut UiColor), Changed<Interaction>>,
+    mut next_step_event: EventWriter<NextStepEvent>,
+)
+{
+    for (interaction, phrase, color) in phrase_query.iter_mut() {
         let interaction: &Interaction = interaction;
+        let phrase: &PhraseValue = phrase;
         let mut color: Mut<UiColor> = color;
         match interaction {
             Interaction::Clicked => {
-                *color = Color::DARK_GRAY.into();
+                *color = BTN_PRESSED.into();
+
+                let step = aerugo_state.step(aerugo.as_ref());
+                aerugo_state.select_unique(step.id, phrase.0.clone());
+                game_control_state.set(GameControlState::None).unwrap_or_else(|e| warn!("{e:?}"));
+                next_step_event.send(NextStepEvent);
             }
             Interaction::Hovered => {
-                *color = Color::GRAY.into();
+                *color = BTN_HOVERED.into();
             }
             Interaction::None => {
-                *color = Color::WHITE.into();
-            }
-        }
-    }
-}
-
-pub fn input_listener(
-    mut commands: Commands,
-    mut aerugo_state: ResMut<AerugoState>,
-    game_data: Res<GameData>,
-    mut mute_control_state: ResMut<State<MuteControl>>,
-    overlay_state: Res<State<OverlayState>>,
-    mut key_input: ResMut<Input<KeyCode>>,
-    mouse_button_input: Res<Input<MouseButton>>,
-    current_step: Option<Res<CurrentStep>>,
-    mut next_step_event: EventWriter<NextStepEvent>,
-    mut phrase_query: Query<(&Interaction, &PhraseValue)>,
-    mut pass_animate_event: EventWriter<PassAnimateEvent>,
-)
-{
-    let current = mute_control_state.current();
-    if current.eq(&MuteControl::Mute)
-        || current_step.is_none()
-        || !overlay_state.current().eq(&OverlayState::Hidden) {
-        return;
-    }
-    let current_step = current_step.unwrap();
-
-    let any = current.eq(&MuteControl::None);
-    let pass = current.eq(&MuteControl::Pass);
-
-    if pass {
-        if key_input.clear_just_pressed(KeyCode::Space)
-            || key_input.clear_just_pressed(KeyCode::Return)
-            || mouse_button_input.just_pressed(MouseButton::Left) {
-            mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
-            pass_animate_event.send(PassAnimateEvent);
-        }
-    }
-
-    if any && current_step.eq(&CurrentStep::Text) {
-        if key_input.clear_just_pressed(KeyCode::Space)
-            || key_input.clear_just_pressed(KeyCode::Return)
-            || mouse_button_input.just_pressed(MouseButton::Left) {
-            mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
-            next_step_event.send(NextStepEvent);
-            commands.remove_resource::<CurrentStep>();
-        }
-    }
-
-    if any && current_step.eq(&CurrentStep::Phrase) {
-        for (interaction, phrase) in phrase_query.iter_mut() {
-            let interaction: &Interaction = interaction;
-            let phrase: &PhraseValue = phrase;
-            match interaction {
-                Interaction::Clicked => {
-                    let step = aerugo_state.step(&game_data.aerugo);
-                    aerugo_state.select_unique(step.id, phrase.0.clone());
-                    mute_control_state.set(MuteControl::Mute).unwrap_or_else(warn_state_err);
-                    next_step_event.send(NextStepEvent);
-                    commands.remove_resource::<CurrentStep>();
-                }
-                Interaction::Hovered => {}
-                Interaction::None => {}
+                *color = BTN_NORMAL.into();
             }
         }
     }
@@ -771,30 +519,22 @@ pub fn input_listener(
 pub fn animate(
     mut commands: Commands,
     time: Res<Time>,
-    game_state: Res<GameState>,
-    mut mute_control_state: ResMut<State<MuteControl>>,
-    mut sprites: ResMut<SpriteEntities>,
-    mut pass: EventReader<PassAnimateEvent>,
+    mut game_ui: ResMut<GameUI>,
+    mut game_control_state: ResMut<State<GameControlState>>,
     window: Res<Windows>,
-    mut text_query: Query<(&mut Text, &mut AnimateText), With<TextFlowMark>>,
-    mut sprite_fade_query: Query<
-        (&mut Sprite, &mut AnimateFadeSprite),
-        (),
-    >,
-    mut sprite_move_query: Query<
-        (&mut Transform, &mut AnimateMoveSprite),
-        (),
-    >,
+    mut text_query: Query<(&mut Text, &mut AnimateText)>,
+    mut sprite_fade_query: Query<(&mut Sprite, &mut AnimateFadeSprite)>,
+    mut sprite_move_query: Query<(&mut Transform, &mut AnimateMoveSprite)>,
 )
 {
     let mut unmute_control = true;
-    let pass = pass.iter().count() > 0;
+    let pass = game_control_state.current().eq(&GameControlState::Text);
 
     let window = window.get_primary().unwrap();
     let w = window.width() / 2.0;
     // let h = window.height();
 
-    let text_animate = text_query.get_mut(game_state.text_ui_entity);
+    let text_animate = text_query.get_mut(game_ui.text.text);
     if let Ok((text, animate)) = text_animate {
         unmute_control = false;
 
@@ -811,7 +551,7 @@ pub fn animate(
             style: animate.style.clone(),
         }];
         if animate.text.chars().count() <= animate.chars {
-            commands.entity(game_state.text_ui_entity).remove::<AnimateText>();
+            commands.entity(game_ui.text.text).remove::<AnimateText>();
         }
     }
 
@@ -829,9 +569,9 @@ pub fn animate(
         sprite.color.set_a(alfa);
         if animate_fade.timer.just_finished() {
             if animate_fade.fade_in {
-                commands.entity(*sprites.entities.get(&animate_fade.name).unwrap())
+                commands.entity(*game_ui.sprites.get(&animate_fade.name).unwrap())
             } else {
-                commands.entity(sprites.entities.remove(&animate_fade.name).unwrap())
+                commands.entity(game_ui.sprites.remove(&animate_fade.name).unwrap())
             }.remove::<AnimateFadeSprite>();
         }
     }
@@ -861,68 +601,109 @@ pub fn animate(
 
         if animate_move.timer.just_finished() {
             if !animate_move.move_out {
-                commands.entity(*sprites.entities.get(&animate_move.name).unwrap())
+                commands.entity(*game_ui.sprites.get(&animate_move.name).unwrap())
             } else {
-                commands.entity(sprites.entities.remove(&animate_move.name).unwrap())
+                commands.entity(game_ui.sprites.remove(&animate_move.name).unwrap())
             }.remove::<AnimateMoveSprite>();
         }
     }
 
-    if unmute_control && mute_control_state.current().eq(&MuteControl::Mute) {
-        mute_control_state.set(MuteControl::None).unwrap_or_else(warn_state_err);
+    if unmute_control && game_control_state.current().eq(&GameControlState::TextPass) {
+        game_control_state.set(GameControlState::Text).unwrap_or_else(|e| warn!("{e:?}"));
     }
 }
 
-pub fn resize(
-    game_state: Res<GameState>,
-    resize_event: Res<Events<WindowResized>>,
-    mut sprite_query: Query<(&mut Sprite, &mut Transform)>,
+pub fn show_game(
+    game_ui: Res<GameUI>,
+    query: Query<&mut Style>,
+    query_2d: Query<&mut Visibility>,
 )
 {
-    let mut reader = resize_event.get_reader();
-    for e in reader.iter(&resize_event) {
-        let (w, h) = (e.width, e.height);
+    game_ui.show(query, query_2d);
+}
 
-        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
-            .get_mut(game_state.text_narrator_entity).unwrap();
-        sprite.custom_size = Some(Vec2::new(w * 0.99, h * 0.09));
-        *transform = Transform::from_xyz(0.0, h * -0.25, Z_TEXT);
-
-        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
-            .get_mut(game_state.text_background_entity).unwrap();
-        sprite.custom_size = Some(Vec2::new(w * 0.99, h * 0.19));
-        *transform = Transform::from_xyz(0.0, h * -0.4, Z_TEXT);
-
-        let (_sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
-            .get_mut(game_state.narrator_entity).unwrap();
-        *transform = make_narrator_transform(w, h);
-
-        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
-            .get_mut(game_state.background_entity).unwrap();
-        sprite.custom_size = Some(Vec2::new(w, h));
-        *transform = Transform::from_xyz(0.0, 0.0, Z_BACKGROUND);
-
-        let (mut sprite, mut transform): (Mut<Sprite>, Mut<Transform>) = sprite_query
-            .get_mut(game_state.scene_entity).unwrap();
-        sprite.custom_size = Some(Vec2::new(w, h));
-        *transform = Transform::from_xyz(0.0, 0.0, Z_SCENE);
+pub fn hide_game(
+    game_ui: Option<Res<GameUI>>,
+    query: Query<&mut Style>,
+    query_2d: Query<&mut Visibility>,
+)
+{
+    if let Some(game_ui) = game_ui {
+        game_ui.hide(query, query_2d);
     }
 }
 
-pub fn cleanup(
-    mut commands: Commands,
-    game_state: Res<GameState>,
-    mut sprites: ResMut<SpriteEntities>,
+pub fn show_menu(
+    game_ui: Res<GameUI>,
+    query: Query<&mut Style>,
 )
 {
-    commands.entity(game_state.text_narrator_entity).despawn_recursive();
-    commands.entity(game_state.text_background_entity).despawn_recursive();
-    commands.entity(game_state.text_ui_root_entity).despawn_recursive();
-    commands.entity(game_state.phrase_ui_entity).despawn_recursive();
-    commands.entity(game_state.narrator_entity).despawn_recursive();
-    commands.entity(game_state.background_entity).despawn_recursive();
-    sprites.entities.iter().for_each(|(_, e)| { commands.entity(*e).despawn_recursive() });
-    sprites.entities.clear();
-    commands.remove_resource::<GameState>();
-    commands.remove_resource::<AerugoState>();
+    game_ui.show_menu(query);
+}
+
+pub fn hide_menu(
+    game_ui: Res<GameUI>,
+    query: Query<&mut Style>,
+)
+{
+    game_ui.hide_menu(query);
+}
+
+pub fn input_menu(
+    mut ui_state: ResMut<State<UiState>>,
+    mut game_state: ResMut<State<GameState>>,
+    mut query: Query<
+        (&Interaction, &mut UiColor, &OverlayButton),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut input: ResMut<Input<KeyCode>>,
+)
+{
+    if input.clear_just_released(KeyCode::Escape) {
+        game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+        return;
+    }
+
+    for (interaction, mut color, btn) in query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = BTN_PRESSED.into();
+
+                match btn.target {
+                    OverlayButtons::Close => {
+                        game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                    OverlayButtons::Settings => {
+                        ui_state.set(UiState::Settings).unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                    OverlayButtons::Save => {
+                        ui_state.set(UiState::Save).unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                    OverlayButtons::Load => {
+                        ui_state.set(UiState::Load).unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                    OverlayButtons::MainMenu => {
+                        game_state.set(GameState::None).unwrap_or_else(|e| warn!("{e:?}"));
+                        ui_state.set(UiState::MainMenu).unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *color = BTN_HOVERED.into();
+            }
+            Interaction::None => {
+                *color = BTN_NORMAL.into();
+            }
+        }
+    }
+}
+
+pub fn enable_game_input(mut state: ResMut<State<GameControlState>>)
+{
+    state.pop().unwrap_or_else(|e| warn!("{e:?}"));
+}
+
+pub fn disable_game_input(mut state: ResMut<State<GameControlState>>)
+{
+    state.push(GameControlState::None).unwrap_or_else(|e| warn!("{e:?}"));
 }

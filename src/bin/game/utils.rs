@@ -1,8 +1,21 @@
 use std::io::Read;
-use std::ops::Not;
-use bevy::ecs::schedule::{ShouldRun, StateError};
+use bevy::ecs::schedule::{ShouldRun};
 use bevy::prelude::*;
 use aerugo::Aerugo;
+
+pub const BTN_NORMAL: Color = Color::WHITE;
+pub const BTN_HOVERED: Color = Color::GRAY;
+pub const BTN_PRESSED: Color = Color::DARK_GRAY;
+
+pub const TRANSPARENT: Color = Color::rgba(1.0, 1.0, 1.0, 0.0);
+pub const GLASS_RED: Color = Color::rgba(1.0, 0.0, 0.0, 0.5);
+
+pub const Z_SCENE: f32 = 15.0;
+pub const Z_BACKGROUND: f32 = 5.0;
+pub const Z_SPRITE: f32 = 10.0;
+pub const Y_SPRITE: f32 = 0.0;
+
+pub const SIZE_ALL: Size<Val> = Size { width: Val::Percent(100.0), height: Val::Percent(100.0) };
 
 pub fn make_button_closure<B>(
     text: &str,
@@ -49,11 +62,12 @@ pub fn grow_z_index<'closure>(
     builder: &mut ChildBuilder,
     tree_style: Style,
     closure: impl FnOnce(&mut ChildBuilder) + 'closure,
-) {
+)
+{
     builder
         .spawn_bundle(NodeBundle {
             style: tree_style.clone(),
-            color: Color::rgba(1.0, 1.0, 1.0, 0.0).into(),
+            color: TRANSPARENT.into(),
             ..Default::default()
         })
         .with_children(|parent| {
@@ -61,7 +75,7 @@ pub fn grow_z_index<'closure>(
                 parent
                     .spawn_bundle(NodeBundle {
                         style: tree_style.clone(),
-                        color: Color::rgba(1.0, 1.0, 1.0, 0.0).into(),
+                        color: TRANSPARENT.into(),
                         ..Default::default()
                     })
                     .with_children(closure);
@@ -69,14 +83,6 @@ pub fn grow_z_index<'closure>(
                 grow_z_index(deep - 1, parent, tree_style, closure);
             }
         });
-}
-
-pub fn warn_state_err(err: StateError) -> () {
-    match err {
-        StateError::AlreadyInState => { warn!("AlreadyInState") }
-        StateError::StateAlreadyQueued => {}
-        StateError::StackEmpty => { error!("StackEmpty") }
-    }
 }
 
 pub fn load_aerugo() -> Aerugo {
@@ -90,15 +96,7 @@ pub fn load_aerugo() -> Aerugo {
     ron::from_str(&aerugo).unwrap()
 }
 
-pub fn should_run_once(mut run_once: Local<bool>) -> ShouldRun {
-    if run_once.not() {
-        *run_once = true;
-        ShouldRun::Yes
-    } else {
-        ShouldRun::No
-    }
-}
-
+#[allow(dead_code)]
 pub fn run_once_criteria() -> impl FnMut() -> ShouldRun {
     let mut ran = false;
     move || {

@@ -8,7 +8,6 @@ use bevy::prelude::*;
 
 use aerugo::*;
 
-use crate::states::MainState;
 use systems::*;
 use components::*;
 
@@ -17,69 +16,67 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_state(MuteControl::Mute)
             .add_event::<NextStepEvent>()
             .add_event::<NewNarratorEvent>()
             .add_event::<NewSpriteEvent>()
             .add_event::<NewBackgroundEvent>()
             .add_event::<NewSceneEvent>()
-            .add_event::<PassAnimateEvent>()
-            .init_resource::<SpriteEntities>()
-            .add_startup_system(preload_aerugo)
+            .add_state(GameState::None)
             .add_system_set(
-                SystemSet::on_enter(MainState::InGame)
+                SystemSet::on_enter(GameState::None)
+                    .with_system(hide_game)
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Init)
                     .with_system(setup_game)
             )
             .add_system_set(
-                SystemSet::on_update(MainState::InGame)
+                SystemSet::on_exit(GameState::Init)
+                    .with_system(hide_menu)
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Active)
                     .with_system(open_overlay)
                     .with_system(next_step_listener)
                     .with_system(step_init)
-                    .with_system(phrase_button_animate)
-                    .with_system(input_listener)
-                    .with_system(animate)
+                    .with_system(new_narrator_listener)
                     .with_system(new_background_listener)
                     .with_system(new_scene_listener)
-                    .with_system(new_narrator_listener)
                     .with_system(new_sprite_listener)
-                    .with_system(resize)
+                    .with_system(animate)
             )
             .add_system_set(
-                SystemSet::on_exit(MainState::InGame)
-                    .with_system(cleanup)
-            );
+                SystemSet::on_enter(GameState::Paused)
+                    .with_system(disable_game_input)
+                    .with_system(show_menu)
+                    // .with_system(hide_game)
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Paused)
+                    .with_system(input_menu)
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::Paused)
+                    .with_system(enable_game_input)
+                    .with_system(show_game)
+                    .with_system(hide_menu)
+            )
+            .add_plugin(GameControlPlugin)
+        ;
     }
 }
 
-pub struct GameData {
-    pub aerugo: Aerugo,
-}
-
-pub struct GameState {
-    pub just_init: bool,
-
-    pub text_narrator_entity: Entity,
-    pub text_background_entity: Entity,
-    pub text_ui_root_entity: Entity,
-    pub text_ui_entity: Entity,
-
-    pub phrase_ui_entity: Entity,
-
-    pub narrator_entity: Entity,
-
-    pub background_entity: Entity,
-
-    pub scene_entity: Entity,
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub enum MuteControl {
-    Mute,
-    Pass,
+pub enum GameState {
     None,
+    Init,
+    Active,
+    Paused,
 }
 
 pub struct NextStepEvent;
+
+pub struct JustInit;
 
 pub struct NewNarratorEvent(pub Option<String>);
 
@@ -89,17 +86,32 @@ pub struct NewBackgroundEvent(pub BackgroundCommand);
 
 pub struct NewSceneEvent(pub SceneCommand);
 
-#[allow(dead_code)]
+pub struct GameControlPlugin;
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub enum CurrentStep {
+pub enum GameControlState {
+    None,
+    TextPass,
     Text,
     Phrase,
-    ImageSelect,
 }
 
-pub struct PassAnimateEvent;
-
-#[derive(Default)]
-pub struct SpriteEntities {
-    entities: HashMap<String, Entity>,
+impl Plugin for GameControlPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_state(GameControlState::None)
+            .add_system_set(
+                SystemSet::on_update(GameControlState::TextPass)
+                    .with_system(input_text_pass)
+            )
+            .add_system_set(
+                SystemSet::on_update(GameControlState::Text)
+                    .with_system(input_text_next)
+            )
+            .add_system_set(
+                SystemSet::on_update(GameControlState::Phrase)
+                    .with_system(input_phrase)
+            )
+        ;
+    }
 }
