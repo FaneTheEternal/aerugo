@@ -291,7 +291,11 @@ pub enum SceneCommand {
         /// sprite_sheet
         name: String,
         is_loop: bool,
+        tile: (usize, usize),
+        columns: usize,
+        rows: usize,
     },
     Pause,
+    Resume,
     None,
 }

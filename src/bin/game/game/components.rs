@@ -60,3 +60,11 @@ pub struct AnimateMoveSprite {
     pub move_out: bool,
 }
 // endregion
+
+
+#[derive(Debug, Clone, Component)]
+pub struct AnimateScene {
+    pub timer: Timer,
+    pub is_loop: bool,
+    pub is_paused: bool,
+}

@@ -227,9 +227,16 @@ pub(crate) fn spawn_game(
                 custom_size: Some(Vec2::new(w, h)),
                 ..Default::default()
             },
+            ..Default::default()
+        })
+        .insert_bundle(SpriteSheetBundle {
+            sprite: TextureAtlasSprite {
+                custom_size: Some(Vec2::new(w, h)),
+                ..default()
+            },
             transform: Transform::from_xyz(0.0, 0.0, Z_SCENE),
             visibility: Visibility { is_visible: false },
-            ..Default::default()
+            ..default()
         })
         .id();
 

@@ -277,6 +277,57 @@ fn main() {
                 name: "".to_string(),
                 inner: Steps::Text { author: str!(""), texts: str!("Remove them better") },
             },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Try animate scene") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene(SceneCommand::Play {
+                    name: str!("animations/spritesheet_low.png"),
+                    is_loop: true,
+                    tile: (610, 343),
+                    columns: 20,
+                    rows: 1,
+                }),
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Bounce, bounce, bounce...") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene(SceneCommand::Pause),
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("STOP!1!") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene(SceneCommand::Resume),
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Resume") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Scene(SceneCommand::Remove),
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("All done!:)") },
+            },
             // endregion
 
             Step {  // End

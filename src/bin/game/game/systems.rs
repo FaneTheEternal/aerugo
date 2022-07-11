@@ -22,6 +22,7 @@ pub fn setup_game(
     mut visibility_query: Query<&mut Visibility>,
     mut ui_image_query: Query<&mut UiImage>,
     mut image_query: Query<&mut Handle<Image>>,
+    mut atlas_query: Query<&mut Handle<TextureAtlas>>,
 )
 {
     let aerugo_state = aerugo_loaded
@@ -42,6 +43,7 @@ pub fn setup_game(
     game_ui.scene_visible = false;
     *image_query.get_mut(game_ui.background).unwrap() = Default::default();
     *image_query.get_mut(game_ui.scene).unwrap() = Default::default();
+    *atlas_query.get_mut(game_ui.scene).unwrap() = Default::default();
     visibility_query.get_mut(game_ui.background).unwrap().is_visible = false;
     visibility_query.get_mut(game_ui.scene).unwrap().is_visible = false;
     game_ui.sprites = Default::default();
@@ -168,15 +170,18 @@ pub fn new_background_listener(
 }
 
 pub fn new_scene_listener(
+    mut commands: Commands,
     mut game_ui: ResMut<GameUI>,
     mut new_scene_event: EventReader<NewSceneEvent>,
-    mut scene_query: Query<(&mut Handle<Image>, &mut Visibility)>,
+    mut scene_query: Query<(&mut Handle<Image>, &mut Handle<TextureAtlas>, &mut Visibility)>,
     asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut animate_query: Query<&mut AnimateScene>,
 )
 {
     for event in new_scene_event.iter() {
         let cmd: &SceneCommand = &event.0;
-        let (mut scene, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
+        let (mut scene, mut texture_atlas, mut visibility): (Mut<Handle<Image>>, Mut<Handle<TextureAtlas>>, Mut<Visibility>) =
             scene_query.get_mut(game_ui.scene).unwrap();
         match cmd {
             SceneCommand::Set { name } => {
@@ -186,11 +191,39 @@ pub fn new_scene_listener(
             }
             SceneCommand::Remove => {
                 *scene = Default::default();
+                *texture_atlas = default();
                 visibility.is_visible = false;
                 game_ui.scene_visible = false;
+                commands.entity(game_ui.scene).remove::<AnimateScene>();
             }
-            SceneCommand::Play { .. } => { todo!("Play") }
-            SceneCommand::Pause => { todo!("Pause") }
+            SceneCommand::Play { name, is_loop, tile, columns, rows } => {
+                let texture_handle = asset_server.load(name);
+                let new_texture_atlas = TextureAtlas::from_grid(
+                    texture_handle,
+                    Vec2::new(tile.0 as f32, tile.1 as f32),
+                    *columns, *rows,
+                );
+                *texture_atlas = texture_atlases.add(new_texture_atlas);
+                visibility.is_visible = true;
+                game_ui.scene_visible = true;
+                commands
+                    .entity(game_ui.scene)
+                    .insert(AnimateScene {
+                        timer: Timer::from_seconds(0.1, true),
+                        is_loop: *is_loop,
+                        is_paused: false,
+                    });
+            }
+            SceneCommand::Pause => {
+                if let Ok(mut animate) = animate_query.get_mut(game_ui.scene) {
+                    animate.is_paused = true;
+                }
+            }
+            SceneCommand::Resume => {
+                if let Ok(mut animate) = animate_query.get_mut(game_ui.scene) {
+                    animate.is_paused = false;
+                }
+            }
             SceneCommand::None => {}
         }
     }
@@ -524,6 +557,13 @@ pub fn animate(
     mut text_query: Query<(&mut Text, &mut AnimateText)>,
     mut sprite_fade_query: Query<(&mut Sprite, &mut AnimateFadeSprite)>,
     mut sprite_move_query: Query<(&mut Transform, &mut AnimateMoveSprite)>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    mut scene_query: Query<(
+        Entity,
+        &mut AnimateScene,
+        &mut TextureAtlasSprite,
+        &Handle<TextureAtlas>,
+    )>,
 )
 {
     let mut unmute_control = true;
@@ -604,6 +644,22 @@ pub fn animate(
             } else {
                 commands.entity(game_ui.sprites.remove(&animate_move.name).unwrap())
             }.remove::<AnimateMoveSprite>();
+        }
+    }
+
+    for (entity, animate, sprite, texture) in scene_query.iter_mut() {
+        let mut animate: Mut<AnimateScene> = animate;
+        let mut sprite: Mut<TextureAtlasSprite> = sprite;
+        let texture: &Handle<TextureAtlas> = texture;
+
+        if animate.is_paused { continue; }
+        animate.timer.tick(time.delta());
+        if animate.timer.just_finished() {
+            let texture_atlas = texture_atlases.get(texture).unwrap();
+            sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
+            if !animate.is_loop && sprite.index + 1 == texture_atlas.textures.len() {
+                commands.entity(entity).remove::<AnimateScene>();
+            }
         }
     }
 
