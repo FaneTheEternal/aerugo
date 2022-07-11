@@ -209,7 +209,7 @@ pub fn new_scene_listener(
                 commands
                     .entity(game_ui.scene)
                     .insert(AnimateScene {
-                        timer: Timer::from_seconds(0.1, true),
+                        timer: Timer::from_seconds(0.042, true),
                         is_loop: *is_loop,
                         is_paused: false,
                     });
