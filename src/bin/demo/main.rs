@@ -321,6 +321,16 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
+                inner: Steps::Scene(SceneCommand::Stop),
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
+                inner: Steps::Text { author: str!(""), texts: str!("Stop") },
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "".to_string(),
                 inner: Steps::Scene(SceneCommand::Remove),
             },
             Step {

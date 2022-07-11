@@ -297,5 +297,6 @@ pub enum SceneCommand {
     },
     Pause,
     Resume,
+    Stop,
     None,
 }

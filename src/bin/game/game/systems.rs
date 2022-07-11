@@ -225,6 +225,11 @@ pub fn new_scene_listener(
                     animate.is_paused = false;
                 }
             }
+            SceneCommand::Stop => {
+                if let Ok(mut animate) = animate_query.get_mut(game_ui.scene) {
+                    animate.is_loop = false;
+                }
+            }
             SceneCommand::None => {}
         }
     }
