@@ -51,6 +51,7 @@ pub fn setup_game(
         .display = Display::None;
     ui_image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
         .0 = Default::default();
+    commands.entity(game_ui.scene).remove::<AnimateScene>();
 }
 
 pub fn open_overlay(
