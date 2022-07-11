@@ -662,9 +662,10 @@ pub fn animate(
         animate.timer.tick(time.delta());
         if animate.timer.just_finished() {
             let texture_atlas = texture_atlases.get(texture).unwrap();
-            sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
             if !animate.is_loop && sprite.index + 1 == texture_atlas.textures.len() {
                 commands.entity(entity).remove::<AnimateScene>();
+            } else {
+                sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
             }
         }
     }
