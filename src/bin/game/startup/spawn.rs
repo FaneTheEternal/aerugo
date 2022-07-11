@@ -50,7 +50,7 @@ fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entit
                 .spawn_bundle(NodeBundle {
                     style: Style {
                         size: Size::new(Val::Px(300.0), Val::Percent(100.0)),
-                        padding: Rect::all(Val::Percent(10.0)),
+                        padding: UiRect::all(Val::Percent(10.0)),
                         align_items: AlignItems::Center,
                         flex_direction: FlexDirection::ColumnReverse,
                         flex_wrap: FlexWrap::Wrap,
@@ -173,7 +173,7 @@ fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> En
                     .spawn_bundle(NodeBundle {
                         style: Style {
                             size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                            padding: Rect::all(Val::Px(10.0)),
+                            padding: UiRect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::FlexStart,
                             align_items: AlignItems::FlexStart,
                             ..Default::default()
@@ -202,7 +202,7 @@ fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> En
                     .spawn_bundle(NodeBundle {
                         style: Style {
                             size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                            padding: Rect::all(Val::Px(10.0)),
+                            padding: UiRect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
                             ..Default::default()

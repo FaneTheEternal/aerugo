@@ -1,9 +1,8 @@
 use std::io::Read;
 use substring::Substring;
-use bevy::app::Events;
-use bevy::prelude::*;
-use bevy::text::Text2dSize;
-use bevy::window::WindowResized;
+use bevy::{
+    prelude::*,
+};
 
 use aerugo::*;
 use crate::saves::AerugoLoaded;
@@ -417,7 +416,7 @@ pub fn step_init(
                         commands
                             .spawn_bundle(ButtonBundle {
                                 style: Style {
-                                    margin: Rect::all(Val::Percent(1.0)),
+                                    margin: UiRect::all(Val::Percent(1.0)),
                                     ..Default::default()
                                 },
                                 ..Default::default()

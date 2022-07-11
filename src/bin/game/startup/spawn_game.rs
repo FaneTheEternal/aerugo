@@ -43,7 +43,7 @@ pub(crate) fn spawn_game(
                 .spawn_bundle(NodeBundle {
                     style: Style {
                         size: SIZE_ALL,
-                        padding: Rect::all(Val::Px(10.0)),
+                        padding: UiRect::all(Val::Px(10.0)),
                         position_type: PositionType::Absolute,
                         ..Default::default()
                     },
@@ -97,7 +97,7 @@ pub(crate) fn spawn_game(
                                         .spawn_bundle(NodeBundle {
                                             style: Style {
                                                 size: Size::new(Val::Percent(100.0), Val::Percent(67.0)),
-                                                padding: Rect::all(Val::Px(10.0)),
+                                                padding: UiRect::all(Val::Px(10.0)),
                                                 ..Default::default()
                                             },
                                             color: TRANSPARENT.into(),
@@ -142,7 +142,7 @@ pub(crate) fn spawn_game(
                                         .spawn_bundle(NodeBundle {
                                             style: Style {
                                                 size: Size::new(Val::Percent(100.0), Val::Percent(33.0)),
-                                                padding: Rect::all(Val::Px(10.0)),
+                                                padding: UiRect::all(Val::Px(10.0)),
                                                 ..Default::default()
                                             },
                                             color: TRANSPARENT.into(),

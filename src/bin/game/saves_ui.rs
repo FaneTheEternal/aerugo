@@ -34,7 +34,7 @@ pub fn save_load_base(
                     .spawn_bundle(NodeBundle {
                         style: Style {
                             size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                            padding: Rect::all(Val::Px(10.0)),
+                            padding: UiRect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::FlexStart,
                             align_items: AlignItems::FlexStart,
                             ..Default::default()
@@ -63,7 +63,7 @@ pub fn save_load_base(
                     .spawn_bundle(NodeBundle {
                         style: Style {
                             size: Size::new(Val::Percent(100.0), Val::Percent(90.0)),
-                            padding: Rect::all(Val::Px(10.0)),
+                            padding: UiRect::all(Val::Px(10.0)),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
                             flex_wrap: FlexWrap::WrapReverse,
@@ -83,7 +83,7 @@ fn _make_card_base() -> impl Bundle {
     NodeBundle {
         style: Style {
             size: Size::new(Val::Percent(33.3), Val::Percent(50.0)),
-            padding: Rect::all(Val::Percent(5.0)),
+            padding: UiRect::all(Val::Percent(5.0)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             ..Default::default()

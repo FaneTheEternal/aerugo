@@ -14,7 +14,11 @@ name = "editor"
 name = "demo"
 
 [dependencies]
-bevy = { version = "0.6.1", features = ["jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"] }
+bevy = { path = "bevy", features = [
+    "bevy_sprite",
+    "jpeg", "tga", "bmp", "dds",
+    "flac", "mp3", "wav"
+] }
 #bevy_egui = { path = "bevy_egui", features = ["multi_threaded"] }
 
 ron = "0.7"

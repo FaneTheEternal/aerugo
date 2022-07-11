@@ -30,7 +30,7 @@ pub fn make_button_closure<B>(
             .spawn_bundle(ButtonBundle {
                 style: Style {
                     size: Size::new(Val::Px(200.0), Val::Px(60.0)),
-                    margin: Rect::all(Val::Px(20.0)),
+                    margin: UiRect::all(Val::Px(20.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..Default::default()
