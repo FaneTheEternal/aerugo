@@ -13,6 +13,12 @@ name = "editor"
 [[bin]]
 name = "demo"
 
+[profile.release-max]
+inherits = "release"
+strip = true
+lto = true
+codegen-units = 1
+
 [dependencies]
 bevy = { path = "bevy", features = [
     "bevy_sprite",
