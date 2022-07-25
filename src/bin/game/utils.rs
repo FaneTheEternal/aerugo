@@ -42,14 +42,13 @@ pub fn make_button_closure<B>(
             .with_children(|parent| {
                 parent
                     .spawn_bundle(TextBundle {
-                        text: Text::with_section(
+                        text: Text::from_section(
                             text,
                             TextStyle {
                                 font,
                                 font_size: 40.0,
                                 color: Color::BLACK,
                             },
-                            Default::default(),
                         ),
                         ..Default::default()
                     });

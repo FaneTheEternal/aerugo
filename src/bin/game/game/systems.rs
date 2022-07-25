@@ -423,14 +423,13 @@ pub fn step_init(
 
                 commands
                     .entity(game_ui.text.narrator)
-                    .insert(Text::with_section(
+                    .insert(Text::from_section(
                         author.as_str(),
                         TextStyle {
                             font: text_font.clone(),
                             font_size: 40.0,
                             color: Color::BLACK,
                         },
-                        Default::default(),
                     ));
                 commands
                     .entity(game_ui.text.text)
@@ -463,18 +462,17 @@ pub fn step_init(
                             .insert(PhraseValue(key.clone()))
                             .with_children(|parent| {
                                 parent.spawn_bundle(TextBundle {
-                                    text: Text::with_section(
+                                    text: Text::from_section(
                                         verbose.as_str(),
                                         TextStyle {
                                             font: text_font.clone(),
                                             font_size: 40.0,
                                             color: Color::BLACK,
                                         },
-                                        TextAlignment {
-                                            vertical: VerticalAlign::Center,
-                                            horizontal: HorizontalAlign::Center,
-                                        },
-                                    ),
+                                    ).with_alignment(TextAlignment {
+                                        vertical: VerticalAlign::Center,
+                                        horizontal: HorizontalAlign::Center,
+                                    }),
                                     ..Default::default()
                                 });
                             })

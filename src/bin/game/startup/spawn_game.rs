@@ -123,14 +123,13 @@ pub(crate) fn spawn_game(
                                                 .with_children(|parent| {
                                                     text_flow_entity = parent
                                                         .spawn_bundle(TextBundle {
-                                                            text: Text::with_section(
+                                                            text: Text::from_section(
                                                                 "Some text",
                                                                 TextStyle {
                                                                     font: text_font.clone(),
                                                                     font_size: 20.0,
                                                                     color: Color::GREEN,
                                                                 },
-                                                                default(),
                                                             ),
                                                             ..Default::default()
                                                         })
@@ -168,14 +167,13 @@ pub(crate) fn spawn_game(
                                                 .with_children(|parent| {
                                                     text_narrator_entity = parent
                                                         .spawn_bundle(TextBundle {
-                                                            text: Text::with_section(
+                                                            text: Text::from_section(
                                                                 "Narrator",
                                                                 TextStyle {
                                                                     font: text_font.clone(),
                                                                     font_size: 20.0,
                                                                     color: Color::GREEN,
                                                                 },
-                                                                default(),
                                                             ),
                                                             ..Default::default()
                                                         })

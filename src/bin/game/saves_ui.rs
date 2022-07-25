@@ -45,14 +45,13 @@ pub fn save_load_base(
                     .with_children(|parent| {
                         parent
                             .spawn_bundle(TextBundle {
-                                text: Text::with_section(
+                                text: Text::from_section(
                                     header,
                                     TextStyle {
                                         font: text_font.clone(),
                                         font_size: 40.0,
                                         color: Color::BLACK,
                                     },
-                                    Default::default(),
                                 ),
                                 ..Default::default()
                             });
@@ -108,14 +107,13 @@ fn _empty_card(text_font: Handle<Font>) -> impl FnOnce(&mut ChildBuilder) {
     move |parent| {
         parent
             .spawn_bundle(TextBundle {
-                text: Text::with_section(
+                text: Text::from_section(
                     "Empty save",
                     TextStyle {
                         font: text_font,
                         font_size: 20.0,
                         color: Color::BLACK,
                     },
-                    Default::default(),
                 ),
                 ..Default::default()
             });
@@ -154,28 +152,26 @@ pub fn make_load_items(
                                 .insert(LoadMark(n))
                                 .with_children(|parent| {
                                     parent.spawn_bundle(TextBundle {
-                                        text: Text::with_section(
+                                        text: Text::from_section(
                                             format!("Some save {}", n),
                                             TextStyle {
                                                 font: save_font.clone(),
                                                 font_size: 20.0,
                                                 color: Color::BLACK,
                                             },
-                                            Default::default(),
                                         ),
                                         ..Default::default()
                                     });
                                 })
                                 .with_children(|parent| {
                                     parent.spawn_bundle(TextBundle {
-                                        text: Text::with_section(
+                                        text: Text::from_section(
                                             format!("{}", save.0.current),
                                             TextStyle {
                                                 font: save_font.clone(),
                                                 font_size: 15.0,
                                                 color: Color::BLACK,
                                             },
-                                            Default::default(),
                                         ),
                                         ..Default::default()
                                     });
@@ -215,28 +211,26 @@ pub fn make_save_items(
                             card
                                 .with_children(|parent| {
                                     parent.spawn_bundle(TextBundle {
-                                        text: Text::with_section(
+                                        text: Text::from_section(
                                             format!("Some save {}", n),
                                             TextStyle {
                                                 font: save_font.clone(),
                                                 font_size: 20.0,
                                                 color: Color::BLACK,
                                             },
-                                            Default::default(),
                                         ),
                                         ..Default::default()
                                     });
                                 })
                                 .with_children(|parent| {
                                     parent.spawn_bundle(TextBundle {
-                                        text: Text::with_section(
+                                        text: Text::from_section(
                                             format!("{}", save.0.current),
                                             TextStyle {
                                                 font: save_font.clone(),
                                                 font_size: 15.0,
                                                 color: Color::BLACK,
                                             },
-                                            Default::default(),
                                         ),
                                         ..Default::default()
                                     });

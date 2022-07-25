@@ -23,14 +23,13 @@ pub fn spawn_splash_screen(
         .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
-                    text: Text::with_section(
+                    text: Text::from_section(
                         "Aerugo",
                         TextStyle {
                             font: asset_server.load("fonts/FiraMono-Medium.ttf"),
                             font_size: 50.0,
                             color: Color::WHITE,
                         },
-                        Default::default(),
                     ),
                     ..Default::default()
                 });

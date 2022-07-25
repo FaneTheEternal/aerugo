@@ -184,14 +184,13 @@ fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> En
                     .with_children(|parent| {
                         parent
                             .spawn_bundle(TextBundle {
-                                text: Text::with_section(
+                                text: Text::from_section(
                                     "Settings",
                                     TextStyle {
                                         font: text_font.clone(),
                                         font_size: 40.0,
                                         color: Color::BLACK,
                                     },
-                                    Default::default(),
                                 ),
                                 ..Default::default()
                             });
@@ -213,14 +212,13 @@ fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> En
                     .with_children(|parent| {
                         parent
                             .spawn_bundle(TextBundle {
-                                text: Text::with_section(
+                                text: Text::from_section(
                                     "TODO: Settings",
                                     TextStyle {
                                         font: text_font.clone(),
                                         font_size: 60.0,
                                         color: Color::ANTIQUE_WHITE,
                                     },
-                                    Default::default(),
                                 ),
                                 ..Default::default()
                             });
