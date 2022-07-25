@@ -1,8 +1,8 @@
 use bevy::prelude::*;
+
 use crate::utils::{BTN_NORMAL, GLASS_RED, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
 
 use super::*;
-
 
 pub(crate) fn spawn_game(
     commands: &mut Commands,
@@ -83,6 +83,9 @@ pub(crate) fn spawn_game(
                                     style: Style {
                                         flex_wrap: FlexWrap::Wrap,
                                         flex_direction: FlexDirection::Column,
+                                        align_items: AlignItems::Center,
+                                        align_content: AlignContent::Center,
+                                        justify_content: JustifyContent::Center,
                                         flex_grow: 1.0,
                                         flex_shrink: 0.0,
                                         ..Default::default()
@@ -127,7 +130,7 @@ pub(crate) fn spawn_game(
                                                                     font_size: 20.0,
                                                                     color: Color::GREEN,
                                                                 },
-                                                                TextAlignment::default(),
+                                                                default(),
                                                             ),
                                                             ..Default::default()
                                                         })
@@ -141,7 +144,7 @@ pub(crate) fn spawn_game(
                                         // wrapper
                                         .spawn_bundle(NodeBundle {
                                             style: Style {
-                                                size: Size::new(Val::Percent(100.0), Val::Percent(33.0)),
+                                                size: Size::new(Val::Percent(100.0), Val::Percent(30.0)),
                                                 padding: UiRect::all(Val::Px(10.0)),
                                                 ..Default::default()
                                             },
@@ -153,8 +156,8 @@ pub(crate) fn spawn_game(
                                                 .spawn_bundle(NodeBundle {
                                                     style: Style {
                                                         size: SIZE_ALL,
-                                                        justify_content: JustifyContent::Center,
                                                         align_items: AlignItems::FlexStart,
+                                                        align_content: AlignContent::FlexStart,
                                                         flex_direction: FlexDirection::ColumnReverse,
                                                         flex_wrap: FlexWrap::Wrap,
                                                         ..Default::default()
@@ -172,10 +175,7 @@ pub(crate) fn spawn_game(
                                                                     font_size: 20.0,
                                                                     color: Color::GREEN,
                                                                 },
-                                                                TextAlignment {
-                                                                    vertical: VerticalAlign::Top,
-                                                                    horizontal: HorizontalAlign::Left,
-                                                                },
+                                                                default(),
                                                             ),
                                                             ..Default::default()
                                                         })
