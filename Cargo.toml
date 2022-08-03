@@ -20,15 +20,12 @@ lto = true
 codegen-units = 1
 
 [dependencies]
-bevy = { path = "bevy", features = [
-    "bevy_sprite",
-    "jpeg", "tga", "bmp", "dds",
-    "flac", "mp3", "wav"
-] }
-#bevy_egui = { path = "bevy_egui", features = ["multi_threaded"] }
-
 ron = "0.7"
 serde = { version = "1", features = ["derive"] }
 
 uuid = { version = "0.8", features = ["serde", "v4"] }
 substring = "1.4.5"
+
+[dependencies.bevy]
+path = '..\bevy'
+features = ["bevy_sprite", "jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"]

@@ -15,7 +15,7 @@ pub const Z_BACKGROUND: f32 = 5.0;
 pub const Z_SPRITE: f32 = 10.0;
 pub const Y_SPRITE: f32 = 0.0;
 
-pub const SIZE_ALL: Size<Val> = Size { width: Val::Percent(100.0), height: Val::Percent(100.0) };
+pub const SIZE_ALL: Size = Size { width: Val::Percent(100.0), height: Val::Percent(100.0) };
 
 pub fn make_button_closure<B>(
     text: &str,
