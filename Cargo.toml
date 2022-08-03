@@ -22,10 +22,15 @@ codegen-units = 1
 [dependencies]
 ron = "0.7"
 serde = { version = "1", features = ["derive"] }
-
 uuid = { version = "0.8", features = ["serde", "v4"] }
 substring = "1.4.5"
+const_format = "0.2.26"
 
 [dependencies.bevy]
-path = '..\bevy'
+#path = '..\bevy'
+version = '0.8.0'
 features = ["bevy_sprite", "jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"]
+
+[dependencies.bevy_egui]
+#path = '..\bevy_egui'
+version = '0.15.0'
