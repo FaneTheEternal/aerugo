@@ -26,6 +26,8 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 substring = "1.4.5"
 const_format = "0.2.26"
 
+bevy-inspector-egui = "0.12.1"
+
 [dependencies.bevy]
 #path = '..\bevy'
 version = '0.8.0'

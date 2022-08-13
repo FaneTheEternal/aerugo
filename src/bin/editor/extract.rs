@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 use bevy::reflect::GetTypeRegistration;
 use bevy::ui::FocusPolicy;
+use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use serde::{Deserialize, Serialize};
+use aerugo::bevy_glue::{ImageTip, MainMenuButtons};
 
-use crate::{BuildWorldChildren, Children, default, EditorState, Entity, Mut, World};
+use crate::{BuildWorldChildren, Children, default, EditorState, Entity, Mut, UIRoot, World};
 
 pub struct ExtractorPlugin;
 
@@ -11,6 +13,10 @@ impl Plugin for ExtractorPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<EntityCloneSystems>()
+            // my
+            .register_cloneable::<UIRoot>()
+            .register_cloneable::<MainMenuButtons>().register_inspectable::<MainMenuButtons>()
+            .register_cloneable::<ImageTip>().register_inspectable::<ImageTip>()
             // base
             .register_cloneable::<Transform>()
             .register_cloneable::<GlobalTransform>()
@@ -22,6 +28,9 @@ impl Plugin for ExtractorPlugin {
             .register_cloneable::<UiColor>()
             .register_cloneable::<UiImage>()
             .register_cloneable::<FocusPolicy>()
+            // my serde
+            .register_serde::<MainMenuButtons>()
+            .register_serde::<ImageTip>()
             // some wiping snot
             .register_serde::<Option<f32>>()
         ;
@@ -29,12 +38,13 @@ impl Plugin for ExtractorPlugin {
 }
 
 trait ExtractableApp {
-    fn register_cloneable<T: Clone + Component>(&mut self) -> &mut Self;
-    fn register_serde<T: Reflect + for<'a> Deserialize<'a> + GetTypeRegistration + Serialize + 'static>(&mut self);
+    fn register_cloneable<T: Clone + Component + GetTypeRegistration>(&mut self) -> &mut Self;
+    fn register_serde<T: Reflect + for<'a> Deserialize<'a> + GetTypeRegistration + Serialize + 'static>(&mut self) -> &mut Self;
 }
 
 impl ExtractableApp for App {
-    fn register_cloneable<T: Clone + Component>(&mut self) -> &mut Self {
+    fn register_cloneable<T: Clone + Component + GetTypeRegistration>(&mut self) -> &mut Self {
+        self.register_type::<T>();
         self.world
             .get_resource_mut::<EntityCloneSystems>()
             .unwrap()
@@ -42,11 +52,12 @@ impl ExtractableApp for App {
         self
     }
 
-    fn register_serde<T: Reflect + for<'a> Deserialize<'a> + GetTypeRegistration + Serialize + 'static>(&mut self) {
+    fn register_serde<T: Reflect + for<'a> Deserialize<'a> + GetTypeRegistration + Serialize + 'static>(&mut self) -> &mut Self {
         self.register_type::<T>()
             .register_type_data::<T, ReflectSerialize>()
             .register_type_data::<T, ReflectDeserialize>()
         ;
+        self
     }
 }
 
@@ -76,6 +87,7 @@ pub fn extract_ui(world: &mut World) -> World {
 
     let state = world.remove_resource::<EditorState>().unwrap();
     let root = state.root;
+    world.insert_resource(state);
     let new_root = clone_entity(world, &mut scene_world, &root);
 
     fn _clone_recursive(root: Entity, new_root: Entity, src: &mut World, dest: &mut World) {
