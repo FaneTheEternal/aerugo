@@ -1,10 +1,11 @@
 use bevy::prelude::*;
 
+use aerugo::bevy_glue::MainMenuButtons;
+
 use crate::utils::*;
 
 use super::*;
 use super::spawn_game::*;
-
 
 pub fn spawn(
     mut commands: Commands,
@@ -63,7 +64,7 @@ fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entit
                     make_button_closure(
                         "New game",
                         button_font.clone(),
-                        MainMenuButton { target: MainMenuButtons::NewGame },
+                        MainMenuButtons::NewGame,
                         BTN_NORMAL,
                     )
                 )
@@ -71,7 +72,7 @@ fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entit
                     make_button_closure(
                         "Load",
                         button_font.clone(),
-                        MainMenuButton { target: MainMenuButtons::Load },
+                        MainMenuButtons::Load,
                         BTN_NORMAL,
                     )
                 )
@@ -79,7 +80,7 @@ fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entit
                     make_button_closure(
                         "Settings",
                         button_font.clone(),
-                        MainMenuButton { target: MainMenuButtons::Settings },
+                        MainMenuButtons::Settings,
                         BTN_NORMAL,
                     )
                 )
@@ -87,7 +88,7 @@ fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entit
                     make_button_closure(
                         "Exit",
                         button_font.clone(),
-                        MainMenuButton { target: MainMenuButtons::Exit },
+                        MainMenuButtons::Exit,
                         BTN_NORMAL,
                     )
                 );

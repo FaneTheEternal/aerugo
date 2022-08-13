@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use aerugo::bevy_glue::MainMenuButtons;
 use crate::utils::{BTN_HOVERED, BTN_NORMAL};
 
 use super::*;
@@ -30,7 +31,7 @@ pub fn main_menu_actions(
     mut ui_state: ResMut<State<UiState>>,
     mut game_state: ResMut<State<GameState>>,
     mut query: Query<
-        (&Interaction, &mut UiColor, &MainMenuButton),
+        (&Interaction, &mut UiColor, &MainMenuButtons),
         (Changed<Interaction>, With<Button>)
     >,
     mut exit: EventWriter<AppExit>,
@@ -41,7 +42,7 @@ pub fn main_menu_actions(
             Interaction::Clicked => {
                 *color = BTN_NORMAL.into();
 
-                match btn.target {
+                match btn {
                     MainMenuButtons::NewGame => {
                         ui_state.set(UiState::Game).unwrap_or_else(|e| warn!("{e:?}"));
                         game_state.set(GameState::Init).unwrap_or_else(|e| warn!("{e:?}"));

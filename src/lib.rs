@@ -3,6 +3,7 @@
 mod simple_sprite;
 mod condition;
 mod inspect;
+pub mod bevy_glue;
 
 use std::collections::HashMap;
 use std::fmt::{Debug};

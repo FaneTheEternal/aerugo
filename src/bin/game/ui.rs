@@ -1,26 +1,26 @@
-mod main_menu;
-mod save;
-mod game;
-mod load;
-
 use bevy::app::AppExit;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+
+pub use {
+    game::GameUI,
+    game::PhraseUI,
+    game::TextUI,
+    load::LoadUI, main_menu::MainMenuUI, save::SaveUI,
+};
+use game::*;
+use load::*;
+use main_menu::*;
+use save::*;
+
 use crate::game::GameState;
 use crate::saves::{LoadMark, SaveMark, Saves};
 use crate::saves_ui::{LoadItemsParentMark, make_load_items, make_save_items, SaveItemsParentMark};
 
-use main_menu::*;
-use save::*;
-use load::*;
-use game::*;
-
-pub use {
-    main_menu::MainMenuUI,
-    save::SaveUI,
-    load::LoadUI,
-    game::GameUI, game::TextUI, game::PhraseUI,
-};
+mod main_menu;
+mod save;
+mod game;
+mod load;
 
 pub struct UiPlugin;
 
@@ -154,17 +154,4 @@ pub enum OverlayButtons {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct OverlayButton {
     pub target: OverlayButtons,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum MainMenuButtons {
-    NewGame,
-    Load,
-    Settings,
-    Exit,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
-pub struct MainMenuButton {
-    pub target: MainMenuButtons,
 }
