@@ -24,6 +24,16 @@ pub struct AerugoState {
 }
 
 impl AerugoState {
+    pub fn new(aerugo: &Aerugo) -> Self {
+        let mut current = aerugo.steps.get(0).unwrap().id;
+        Self {
+            current,
+            select_story: vec![],
+            inspector: Default::default(),
+            _pre_collected: None,
+        }
+    }
+
     fn apply_jump(
         current: &mut Uuid,
         select_story: &Vec<(Uuid, String)>,
@@ -251,7 +261,7 @@ impl Step {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub enum CommonAnimation {
     // -1|-----0-----|1
     FadeIn(f32),
@@ -262,6 +272,7 @@ pub enum CommonAnimation {
     RightOut,
     Jump,
     Move(f32),
+    #[default]
     None,
 }
 
