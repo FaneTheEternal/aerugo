@@ -8,9 +8,6 @@ edition = "2021"
 name = "game"
 
 [[bin]]
-name = "editor"
-
-[[bin]]
 name = "demo"
 
 [profile.release-max]
