@@ -126,24 +126,32 @@ pub fn new_narrator_listener(
 
         match cmd {
             NarratorCommand::Set { name, sprite } => {
-                // TODO: named set
-                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .display = Display::Flex;
-                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .0 = asset_server.load(sprite);
+                if let Some(narrator) = game_ui.text.narrator_sprites.get(name) {
+                    style_query.get_mut(*narrator).unwrap()
+                        .display = Display::Flex;
+                    image_query.get_mut(*narrator).unwrap()
+                        .0 = asset_server.load(sprite);
+                } else {
+                    warn!("Unknown narrator name: {:?}", name);
+                }
             }
             NarratorCommand::Remove { name } => {
-                // TODO: named remove
-                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .display = Display::None;
-                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .0 = Default::default();
+                if let Some(narrator) = game_ui.text.narrator_sprites.get(name) {
+                    style_query.get_mut(*narrator).unwrap()
+                        .display = Display::None;
+                    image_query.get_mut(*narrator).unwrap()
+                        .0 = default();
+                } else {
+                    warn!("Unknown narrator name: {:?}", name);
+                }
             }
             NarratorCommand::Clean => {
-                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .display = Display::None;
-                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .0 = Default::default();
+                for (_, narrator) in &game_ui.text.narrator_sprites {
+                    style_query.get_mut(*narrator).unwrap()
+                        .display = Display::None;
+                    image_query.get_mut(*narrator).unwrap()
+                        .0 = Default::default();
+                }
             }
             NarratorCommand::None => {}
         }

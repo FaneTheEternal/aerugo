@@ -9,6 +9,7 @@ pub struct TextUI {
     pub(crate) narrator: Entity,
     pub(crate) text: Entity,
     pub(crate) narrator_sprite: Entity,
+    pub(crate) narrator_sprites: HashMap<String, Entity>,
 }
 
 impl TextUI {

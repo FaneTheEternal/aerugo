@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 
 use crate::utils::{BTN_NORMAL, GLASS_RED, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
 
@@ -330,6 +331,9 @@ pub(crate) fn spawn_game(
         })
         .id();
 
+    let mut narrator_sprites = HashMap::new();
+    narrator_sprites.insert("".to_string(), narrator_entity.clone());
+
     GameUI {
         ui_root: root,
         background,
@@ -343,6 +347,7 @@ pub(crate) fn spawn_game(
             narrator: text_narrator_entity,
             text: text_flow_entity,
             narrator_sprite: narrator_entity,
+            narrator_sprites,
         },
         phrase: PhraseUI { root: ui_phrase, is_visible: false },
         menu,
