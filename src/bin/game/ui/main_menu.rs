@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::utils::{BTN_HOVERED, BTN_NORMAL, TRANSPARENT};
+
+use crate::utils::*;
 
 use super::*;
-
 
 pub struct MainMenuUI {
     pub(crate) entity_root: Entity,

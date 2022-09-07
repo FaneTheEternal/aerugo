@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use aerugo::bevy_glue::MainMenuButtons;
-
 use crate::utils::*;
 
 use super::*;

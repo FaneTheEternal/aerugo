@@ -1,7 +1,5 @@
 use bevy::prelude::*;
-use aerugo::*;
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::ui::{BtnImg};
 use crate::utils::*;
 
 pub fn spawn(

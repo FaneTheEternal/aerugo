@@ -25,9 +25,8 @@ pub struct AerugoState {
 
 impl AerugoState {
     pub fn new(aerugo: &Aerugo) -> Self {
-        let mut current = aerugo.steps.get(0).unwrap().id;
         Self {
-            current,
+            current: aerugo.steps.first().unwrap().id,
             select_story: vec![],
             inspector: Default::default(),
             _pre_collected: None,
