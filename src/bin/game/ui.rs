@@ -155,3 +155,9 @@ pub enum OverlayButtons {
 pub struct OverlayButton {
     pub target: OverlayButtons,
 }
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct BtnImg {
+    pub(crate) default: Handle<Image>,
+    pub(crate) hover: Handle<Image>,
+}

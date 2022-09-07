@@ -8,7 +8,9 @@ pub enum MainMenuButtons {
     #[default]
     NewGame,
     Load,
+    Gallery,
     Settings,
+    About,
     Exit,
 }
 

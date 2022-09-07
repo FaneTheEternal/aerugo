@@ -15,7 +15,7 @@ pub fn spawn(
     mut state: ResMut<State<MainState>>,
 )
 {
-    let main_menu = spawn_main_menu(&mut commands, asset_server.as_ref());
+    let main_menu = spawn_main_menu::spawn(&mut commands, asset_server.as_ref());
     commands.insert_resource(MainMenuUI { entity_root: main_menu });
 
     let save = spawn_save(&mut commands, asset_server.as_ref(), saves.as_ref());
@@ -30,72 +30,6 @@ pub fn spawn(
     commands.insert_resource(game);
 
     state.set(MainState::Ready).unwrap_or_else(|e| warn!("{e:?}"));
-}
-
-fn spawn_main_menu(commands: &mut Commands, asset_server: &AssetServer) -> Entity {
-    // let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let ui_entity = commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: SIZE_ALL,
-                display: Display::None,
-                ..Default::default()
-            },
-            color: Color::rgba(0.5, 0.5, 0.5, 0.5).into(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Px(300.0), Val::Percent(100.0)),
-                        padding: UiRect::all(Val::Percent(10.0)),
-                        align_items: AlignItems::Center,
-                        flex_direction: FlexDirection::ColumnReverse,
-                        flex_wrap: FlexWrap::Wrap,
-                        ..Default::default()
-                    },
-                    color: Color::rgba(0.65, 0.65, 0.65, 0.5).into(),
-                    ..Default::default()
-                })
-                .with_children(
-                    make_button_closure(
-                        "New game",
-                        button_font.clone(),
-                        MainMenuButtons::NewGame,
-                        BTN_NORMAL,
-                    )
-                )
-                .with_children(
-                    make_button_closure(
-                        "Load",
-                        button_font.clone(),
-                        MainMenuButtons::Load,
-                        BTN_NORMAL,
-                    )
-                )
-                .with_children(
-                    make_button_closure(
-                        "Settings",
-                        button_font.clone(),
-                        MainMenuButtons::Settings,
-                        BTN_NORMAL,
-                    )
-                )
-                .with_children(
-                    make_button_closure(
-                        "Exit",
-                        button_font.clone(),
-                        MainMenuButtons::Exit,
-                        BTN_NORMAL,
-                    )
-                );
-        })
-        .id();
-
-    ui_entity
 }
 
 fn make_ui_base(

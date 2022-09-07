@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::utils::{BTN_HOVERED, BTN_NORMAL};
+use crate::utils::{BTN_HOVERED, BTN_NORMAL, TRANSPARENT};
 
 use super::*;
 
@@ -38,9 +38,10 @@ pub fn main_menu_actions(
 )
 {
     for (interaction, mut color, btn) in query.iter_mut() {
+        let btn: &MainMenuButtons = btn;
         match *interaction {
             Interaction::Clicked => {
-                *color = BTN_NORMAL.into();
+                *color = TRANSPARENT.into();
 
                 match btn {
                     MainMenuButtons::NewGame => {
@@ -50,19 +51,22 @@ pub fn main_menu_actions(
                     MainMenuButtons::Load => {
                         ui_state.set(UiState::Load).unwrap_or_else(|e| warn!("{e:?}"));
                     }
+                    MainMenuButtons::Gallery => {}
                     MainMenuButtons::Settings => {
                         ui_state.set(UiState::Settings).unwrap_or_else(|e| warn!("{e:?}"));
                     }
+                    MainMenuButtons::About => {}
                     MainMenuButtons::Exit => {
                         exit.send(AppExit);
                     }
                 }
             }
             Interaction::Hovered => {
-                *color = BTN_HOVERED.into();
+                *color = Color::WHITE.into();
             }
             Interaction::None => {
-                *color = BTN_NORMAL.into();
+                // *img = default();
+                *color = TRANSPARENT.into();
             }
         }
     }
