@@ -212,10 +212,7 @@ pub enum Steps {
         /// (sprite, (x, y))
         options: HashMap<String, (String, (isize, isize))>,
     },
-    SpriteNarrator {
-        /// None -> cleanup any active
-        sprite: Option<String>,
-    },
+    SpriteNarrator(NarratorCommand),
     Sprite(SpriteCommand),
     Background(BackgroundCommand),
     Scene(SceneCommand),
@@ -258,6 +255,20 @@ impl Step {
         self.inner = inner;
         self
     }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub enum NarratorCommand {
+    Set {
+        name: String,
+        sprite: String,
+    },
+    Remove {
+        name: String,
+    },
+    Clean,
+    #[default]
+    None,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

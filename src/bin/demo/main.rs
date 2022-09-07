@@ -97,7 +97,10 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::SpriteNarrator { sprite: Some(str!("textures/char/female_sprite.png")) },
+                inner: Steps::SpriteNarrator(NarratorCommand::Set {
+                    name: str!(""),
+                    sprite: str!("textures/char/female_sprite.png"),
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
@@ -107,7 +110,7 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::SpriteNarrator { sprite: None },
+                inner: Steps::SpriteNarrator(NarratorCommand::Clean),
             },
             Step {
                 id: Uuid::new_v4(),

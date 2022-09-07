@@ -92,8 +92,8 @@ pub fn next_step_listener(
         // send events to update graphic part
         for step in steps {
             match step {
-                Steps::SpriteNarrator { sprite } => {
-                    new_narrator_event.send(NewNarratorEvent(sprite));
+                Steps::SpriteNarrator(cmd) => {
+                    new_narrator_event.send(NewNarratorEvent(cmd));
                 }
                 Steps::Sprite(command) => {
                     new_sprite_event.send(NewSpriteEvent(command));
@@ -122,21 +122,30 @@ pub fn new_narrator_listener(
 )
 {
     for event in new_narrator_event.iter() {
-        let narrator: &Option<String> = &event.0;
+        let cmd: &NarratorCommand = &event.0;
 
-        match narrator {
-            None => {
+        match cmd {
+            NarratorCommand::Set { name, sprite } => {
+                // TODO: named set
+                style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .display = Display::Flex;
+                image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
+                    .0 = asset_server.load(sprite);
+            }
+            NarratorCommand::Remove { name } => {
+                // TODO: named remove
                 style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
                     .display = Display::None;
                 image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
                     .0 = Default::default();
             }
-            Some(s) => {
+            NarratorCommand::Clean => {
                 style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .display = Display::Flex;
+                    .display = Display::None;
                 image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-                    .0 = asset_server.load(s);
+                    .0 = Default::default();
             }
+            NarratorCommand::None => {}
         }
     }
 }

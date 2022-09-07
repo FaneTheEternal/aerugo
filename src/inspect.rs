@@ -7,7 +7,8 @@ use super::*;
 pub struct Inspector {
     /// name: (path, position)
     pub sprites: HashMap<String, (String, f32)>,
-    pub narrator: Option<String>,
+    /// name: sprite
+    pub narrator: HashMap<String, String>,
     pub background: Option<String>,
     pub scene: Option<SceneCommand>,
 }
@@ -16,8 +17,19 @@ impl Inspector {
     pub fn keep(&mut self, steps: &Vec<Steps>) {
         for step in steps {
             match step {
-                Steps::SpriteNarrator { sprite } => {
-                    self.narrator = sprite.clone();
+                Steps::SpriteNarrator(cmd) => {
+                    match cmd {
+                        NarratorCommand::Clean => {
+                            self.narrator.clear();
+                        }
+                        NarratorCommand::Set { name, sprite } => {
+                            self.narrator.insert(name.clone(), sprite.clone());
+                        }
+                        NarratorCommand::Remove { name } => {
+                            self.narrator.remove(name);
+                        }
+                        NarratorCommand::None => {}
+                    }
                 }
                 Steps::Sprite(cmd) => {
                     match cmd {
@@ -79,10 +91,16 @@ impl Inspector {
                 position: *position,
             }));
         }
-        data.push(match &self.narrator {
-            None => { Steps::SpriteNarrator { sprite: None } }
-            Some(sprite) => { Steps::SpriteNarrator { sprite: Some(sprite.clone()) } }
-        });
+        for (name, sprite) in &self.narrator {
+            data.push(
+                Steps::SpriteNarrator(
+                    NarratorCommand::Set {
+                        name: name.clone(),
+                        sprite: sprite.clone()
+                    }
+                )
+            );
+        }
         data.push(match &self.background {
             None => { Steps::Background(BackgroundCommand::None) }
             Some(sprite) => {

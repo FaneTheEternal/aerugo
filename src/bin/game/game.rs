@@ -82,7 +82,7 @@ pub struct NextStepEvent;
 
 pub struct JustInit;
 
-pub struct NewNarratorEvent(pub Option<String>);
+pub struct NewNarratorEvent(pub NarratorCommand);
 
 pub struct NewSpriteEvent(pub SpriteCommand);
 
