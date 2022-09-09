@@ -14,7 +14,7 @@ pub(crate) fn spawn_game(
 ) -> GameUI
 {
     let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     let window = window.get_primary().unwrap();
     let w = window.width();
@@ -96,97 +96,10 @@ pub(crate) fn spawn_game(
         })
         .id();
 
-    let menu = commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                display: Display::None,
-                size: SIZE_ALL,
-                position_type: PositionType::Absolute,
-                ..Default::default()
-            },
-            color: TRANSPARENT.into(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            grow_z_index(
-                10, parent,
-                Style {
-                    size: SIZE_ALL,
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                |parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: SIZE_ALL,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..Default::default()
-                            },
-                            color: Color::rgba(0.0, 0.0, 0.0, 0.4).into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(50.0), Val::Percent(50.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        flex_direction: FlexDirection::ColumnReverse,
-                                        flex_wrap: FlexWrap::Wrap,
-                                        ..Default::default()
-                                    },
-                                    color: Color::rgba(1.0, 0.5, 0.5, 0.8).into(),
-                                    ..Default::default()
-                                })
-                                .with_children(
-                                    make_button_closure(
-                                        "Close",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Close },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Settings",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Settings },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Save",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Save },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Load",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::Load },
-                                        BTN_NORMAL,
-                                    )
-                                )
-                                .with_children(
-                                    make_button_closure(
-                                        "Main Menu",
-                                        button_font.clone(),
-                                        OverlayButton { target: OverlayButtons::MainMenu },
-                                        BTN_NORMAL,
-                                    )
-                                );
-                        });
-                },
-            )
-        })
-        .id();
+    let menu = spawn_game_menu::spawn(
+        commands,
+        &asset_server,
+    );
 
     GameUI {
         ui_root: root,

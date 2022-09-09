@@ -8,10 +8,11 @@ use bevy::log::Level;
 use bevy::utils::tracing::span;
 
 use aerugo::*;
+use aerugo::bevy_glue::GameMenuButtons;
 use crate::saves::AerugoLoaded;
 
 use super::*;
-use crate::ui::{GameUI, OverlayButton, OverlayButtons, UiState};
+use crate::ui::{GameUI, UiState};
 use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, load_aerugo, SIZE_ALL, TRANSPARENT, Y_SPRITE, Z_SPRITE};
 
 pub fn setup_game(
@@ -789,7 +790,7 @@ pub fn input_menu(
     mut ui_state: ResMut<State<UiState>>,
     mut game_state: ResMut<State<GameState>>,
     mut query: Query<
-        (&Interaction, &mut UiColor, &OverlayButton),
+        (&Interaction, &mut UiColor, &GameMenuButtons),
         (Changed<Interaction>, With<Button>),
     >,
     mut input: ResMut<Input<KeyCode>>,
@@ -808,26 +809,25 @@ pub fn input_menu(
     for (interaction, mut color, btn) in query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
-                *color = BTN_PRESSED.into();
+                *color = TRANSPARENT.into();
 
-                match btn.target {
-                    OverlayButtons::Close => {
-                        game_state.set(GameState::Active)
+                match btn {
+                    GameMenuButtons::Continue => {
+                        game_state.set(GameState::Init)
                             .unwrap_or_else(|e| warn!("{e:?}"));
+                        commands.insert_resource(AerugoLoaded(state.clone().reload()));
                     }
-                    OverlayButtons::Settings => {
-                        ui_state.set(UiState::Settings)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                    }
-                    OverlayButtons::Save => {
-                        ui_state.set(UiState::Save)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                    }
-                    OverlayButtons::Load => {
+                    GameMenuButtons::Load => {
                         ui_state.set(UiState::Load)
                             .unwrap_or_else(|e| warn!("{e:?}"));
                     }
-                    OverlayButtons::MainMenu => {
+                    GameMenuButtons::Save => {
+                        ui_state.set(UiState::Save)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
+                    }
+                    GameMenuButtons::Gallery => {}
+                    GameMenuButtons::Settings => {}
+                    GameMenuButtons::MainMenu => {
                         game_state.set(GameState::None)
                             .unwrap_or_else(|e| warn!("{e:?}"));
                         ui_state.set(UiState::MainMenu)
@@ -836,10 +836,10 @@ pub fn input_menu(
                 }
             }
             Interaction::Hovered => {
-                *color = BTN_HOVERED.into();
+                *color = Color::WHITE.into();
             }
             Interaction::None => {
-                *color = BTN_NORMAL.into();
+                *color = TRANSPARENT.into();
             }
         }
     }

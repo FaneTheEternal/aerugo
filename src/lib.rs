@@ -157,7 +157,7 @@ impl AerugoState {
     }
 
     pub fn load(aerugo: &Aerugo, data: &String) -> Option<AerugoState> {
-        let mut state: AerugoState = match ron::from_str(data) {
+        let state: AerugoState = match ron::from_str(data) {
             Ok(r) => { r }
             Err(_) => return None,
         };

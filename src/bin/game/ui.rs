@@ -7,11 +7,6 @@ pub use load::*;
 pub use main_menu::*;
 pub use save::*;
 
-use game::*;
-use load::*;
-use main_menu::*;
-use save::*;
-
 use crate::game::GameState;
 use crate::saves::{LoadMark, SaveMark, Saves};
 use crate::saves_ui::{LoadItemsParentMark, make_load_items, make_save_items, SaveItemsParentMark};
@@ -140,17 +135,3 @@ pub fn settings_hide(settings: Res<SettingsUI>, query: Query<&mut Style>) {
     settings.hide(query);
 }
 
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum OverlayButtons {
-    Close,
-    Settings,
-    Save,
-    Load,
-    MainMenu,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
-pub struct OverlayButton {
-    pub target: OverlayButtons,
-}

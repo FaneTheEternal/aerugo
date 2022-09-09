@@ -2,6 +2,7 @@ mod systems;
 mod spawn;
 mod spawn_game;
 mod spawn_main_menu;
+pub mod spawn_game_menu;
 
 use bevy::prelude::*;
 use crate::saves::{pre_load_saves, Saves};

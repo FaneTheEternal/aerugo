@@ -53,9 +53,7 @@ pub fn main_menu_actions(
                         ui_state.set(UiState::Load).unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     MainMenuButtons::Gallery => {}
-                    MainMenuButtons::Settings => {
-                        ui_state.set(UiState::Settings).unwrap_or_else(|e| warn!("{e:?}"));
-                    }
+                    MainMenuButtons::Settings => {}
                     MainMenuButtons::About => {}
                     MainMenuButtons::Exit => {
                         exit.send(AppExit);
@@ -66,7 +64,6 @@ pub fn main_menu_actions(
                 *color = Color::WHITE.into();
             }
             Interaction::None => {
-                // *img = default();
                 *color = TRANSPARENT.into();
             }
         }

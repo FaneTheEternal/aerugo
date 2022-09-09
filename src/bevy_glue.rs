@@ -16,6 +16,18 @@ pub enum MainMenuButtons {
 
 #[derive(Component, Reflect, Default, Clone, Inspectable, Serialize, Deserialize)]
 #[reflect(Component)]
+pub enum GameMenuButtons {
+    #[default]
+    Continue,
+    Load,
+    Save,
+    Gallery,
+    Settings,
+    MainMenu,
+}
+
+#[derive(Component, Reflect, Default, Clone, Inspectable, Serialize, Deserialize)]
+#[reflect(Component)]
 pub struct ImageTip {
     pub name: String,
     pub loaded: bool,

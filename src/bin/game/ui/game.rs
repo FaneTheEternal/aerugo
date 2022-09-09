@@ -115,6 +115,7 @@ impl TextUI {
         if self.is_visible { self._hide(query) }
     }
 
+    #[allow(dead_code)]
     pub fn force_hide(&mut self, query: &mut Query<&mut Style>) {
         self.is_visible = false;
         self._hide(query);
