@@ -1,8 +1,9 @@
 use std::ops::Deref;
+
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
-use crate::utils::{BTN_NORMAL, FLOW_DEFAULT, GLASS_RED, NARRATOR_DEFAULT, NARRATOR_FRAME, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
+use crate::utils::*;
 
 use super::*;
 
@@ -40,7 +41,6 @@ pub(crate) fn spawn_game(
             text_ui = Some(spawn_text_ui(
                 parent,
                 text_font.clone(),
-                button_font.clone(),
                 asset_server,
             ));
         })
@@ -204,7 +204,6 @@ pub(crate) fn spawn_game(
 fn spawn_text_ui(
     builder: &mut ChildBuilder,
     text_font: Handle<Font>,
-    button_font: Handle<Font>,
     asset_server: &AssetServer,
 ) -> TextUI
 {
@@ -315,21 +314,21 @@ fn spawn_text_ui(
 
     let mut narrator_sprites: HashMap<String, NarratorUI> = default();
     root.with_children(|parent| {
-        let mut narrator = spawn_narrator_frame(
+        let narrator = spawn_narrator_frame(
             parent,
             "hud/game_narrator_first.png",
             JustifyContent::FlexStart,
-            asset_server.deref()
+            asset_server.deref(),
         );
         narrator_sprites.insert("".into(), narrator.clone());
         narrator_sprites.insert("first".into(), narrator);
     });
     root.with_children(|parent| {
-        let mut narrator = spawn_narrator_frame(
+        let narrator = spawn_narrator_frame(
             parent,
             "hud/game_narrator_second.png",
             JustifyContent::FlexEnd,
-            asset_server.deref()
+            asset_server.deref(),
         );
         narrator_sprites.insert("second".into(), narrator);
     });

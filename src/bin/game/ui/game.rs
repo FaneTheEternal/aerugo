@@ -10,6 +10,7 @@ pub struct NarratorUI {
     pub img: Entity,
 }
 
+#[allow(dead_code)]
 pub struct TextUI {
     pub(crate) root: Entity,
     pub(crate) is_visible: bool,
