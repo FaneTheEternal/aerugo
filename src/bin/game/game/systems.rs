@@ -3,6 +3,7 @@ use substring::Substring;
 use bevy::{
     prelude::*,
 };
+use bevy::ecs::schedule::IntoRunCriteria;
 
 use aerugo::*;
 use crate::saves::AerugoLoaded;
@@ -47,10 +48,10 @@ pub fn setup_game(
     visibility_query.get_mut(game_ui.background).unwrap().is_visible = false;
     visibility_query.get_mut(game_ui.scene).unwrap().is_visible = false;
     game_ui.sprites = Default::default();
-    style_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-        .display = Display::None;
-    ui_image_query.get_mut(game_ui.text.narrator_sprite).unwrap()
-        .0 = Default::default();
+    game_ui.text.clean_narrators(
+        &mut style_query,
+        &mut ui_image_query,
+    );
     commands.entity(game_ui.scene).remove::<AnimateScene>();
 }
 
@@ -126,32 +127,28 @@ pub fn new_narrator_listener(
 
         match cmd {
             NarratorCommand::Set { name, sprite } => {
-                if let Some(narrator) = game_ui.text.narrator_sprites.get(name) {
-                    style_query.get_mut(*narrator).unwrap()
-                        .display = Display::Flex;
-                    image_query.get_mut(*narrator).unwrap()
-                        .0 = asset_server.load(sprite);
-                } else {
-                    warn!("Unknown narrator name: {:?}", name);
-                }
+                game_ui.text.set_narrator(
+                    &mut style_query,
+                    &mut image_query,
+                    name,
+                    Some(sprite.clone()),
+                    asset_server.as_ref(),
+                );
             }
             NarratorCommand::Remove { name } => {
-                if let Some(narrator) = game_ui.text.narrator_sprites.get(name) {
-                    style_query.get_mut(*narrator).unwrap()
-                        .display = Display::None;
-                    image_query.get_mut(*narrator).unwrap()
-                        .0 = default();
-                } else {
-                    warn!("Unknown narrator name: {:?}", name);
-                }
+                game_ui.text.set_narrator(
+                    &mut style_query,
+                    &mut image_query,
+                    name,
+                    None,
+                    asset_server.as_ref(),
+                );
             }
             NarratorCommand::Clean => {
-                for (_, narrator) in &game_ui.text.narrator_sprites {
-                    style_query.get_mut(*narrator).unwrap()
-                        .display = Display::None;
-                    image_query.get_mut(*narrator).unwrap()
-                        .0 = Default::default();
-                }
+                game_ui.text.clean_narrators(
+                    &mut style_query,
+                    &mut image_query,
+                )
             }
             NarratorCommand::None => {}
         }

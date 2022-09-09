@@ -6,7 +6,10 @@ pub use {
     game::GameUI,
     game::PhraseUI,
     game::TextUI,
-    load::LoadUI, main_menu::MainMenuUI, save::SaveUI,
+    game::NarratorUI,
+    load::LoadUI,
+    main_menu::MainMenuUI,
+    save::SaveUI,
 };
 use game::*;
 use load::*;

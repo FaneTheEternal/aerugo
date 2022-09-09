@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
-use crate::utils::{BTN_NORMAL, GLASS_RED, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
+use crate::utils::{BTN_NORMAL, FLOW_DEFAULT, GLASS_RED, NARRATOR_DEFAULT, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
 
 use super::*;
 
@@ -19,10 +19,8 @@ pub(crate) fn spawn_game(
     let h = window.height();
 
     let mut ui_text = Entity::from_raw(0);
-    let mut text_flow_entity = ui_text;
-    let mut text_narrator_entity = ui_text;
     let mut narrator_entity = ui_text;
-    let mut text_items = ui_text;
+    let mut text_ui = None;
 
     let mut ui_phrase = Entity::from_raw(0);
 
@@ -40,152 +38,12 @@ pub(crate) fn spawn_game(
         })
         // TextUI
         .with_children(|parent| {
-            let mut entity = parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: SIZE_ALL,
-                        padding: UiRect::all(Val::Px(10.0)),
-                        position_type: PositionType::Absolute,
-                        ..Default::default()
-                    },
-                    color: TRANSPARENT.into(),
-                    ..Default::default()
-                });
-            ui_text = entity
-                .with_children(|parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(30.0)),
-                                flex_wrap: FlexWrap::Wrap,
-                                flex_direction: FlexDirection::Row,
-                                ..Default::default()
-                            },
-                            color: TRANSPARENT.into(),
-                            ..Default::default()
-                        })
-                        // narrator
-                        .with_children(|parent| {
-                            narrator_entity = parent
-                                .spawn_bundle(ImageBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Percent(20.0), Val::Percent(100.0)),
-                                        display: Display::None,
-                                        ..Default::default()
-                                    },
-                                    ..Default::default()
-                                })
-                                .id();
-                        })
-                        // text items
-                        .with_children(|parent| {
-                            text_items = parent
-                                .spawn_bundle(NodeBundle {
-                                    style: Style {
-                                        flex_wrap: FlexWrap::Wrap,
-                                        flex_direction: FlexDirection::Column,
-                                        align_items: AlignItems::Center,
-                                        align_content: AlignContent::Center,
-                                        justify_content: JustifyContent::Center,
-                                        flex_grow: 1.0,
-                                        flex_shrink: 0.0,
-                                        ..Default::default()
-                                    },
-                                    color: TRANSPARENT.into(),
-                                    ..Default::default()
-                                })
-                                // flow
-                                .with_children(|parent| {
-                                    parent
-                                        // wrapper
-                                        .spawn_bundle(NodeBundle {
-                                            style: Style {
-                                                size: Size::new(Val::Percent(100.0), Val::Percent(67.0)),
-                                                padding: UiRect::all(Val::Px(10.0)),
-                                                ..Default::default()
-                                            },
-                                            color: TRANSPARENT.into(),
-                                            ..Default::default()
-                                        })
-                                        .with_children(|parent| {
-                                            parent
-                                                .spawn_bundle(NodeBundle {
-                                                    style: Style {
-                                                        size: SIZE_ALL,
-                                                        align_items: AlignItems::FlexStart,
-                                                        align_content: AlignContent::FlexStart,
-                                                        flex_direction: FlexDirection::ColumnReverse,
-                                                        flex_wrap: FlexWrap::Wrap,
-                                                        ..Default::default()
-                                                    },
-                                                    color: GLASS_RED.into(),
-                                                    ..Default::default()
-                                                })
-                                                .with_children(|parent| {
-                                                    text_flow_entity = parent
-                                                        .spawn_bundle(TextBundle {
-                                                            text: Text::from_section(
-                                                                "Some text",
-                                                                TextStyle {
-                                                                    font: text_font.clone(),
-                                                                    font_size: 20.0,
-                                                                    color: Color::GREEN,
-                                                                },
-                                                            ),
-                                                            ..Default::default()
-                                                        })
-                                                        .id();
-                                                });
-                                        });
-                                })
-                                // narrator
-                                .with_children(|parent| {
-                                    parent
-                                        // wrapper
-                                        .spawn_bundle(NodeBundle {
-                                            style: Style {
-                                                size: Size::new(Val::Percent(100.0), Val::Percent(30.0)),
-                                                padding: UiRect::all(Val::Px(10.0)),
-                                                ..Default::default()
-                                            },
-                                            color: TRANSPARENT.into(),
-                                            ..Default::default()
-                                        })
-                                        .with_children(|parent| {
-                                            parent
-                                                .spawn_bundle(NodeBundle {
-                                                    style: Style {
-                                                        size: SIZE_ALL,
-                                                        align_items: AlignItems::FlexStart,
-                                                        align_content: AlignContent::FlexStart,
-                                                        flex_direction: FlexDirection::ColumnReverse,
-                                                        flex_wrap: FlexWrap::Wrap,
-                                                        ..Default::default()
-                                                    },
-                                                    color: GLASS_RED.into(),
-                                                    ..Default::default()
-                                                })
-                                                .with_children(|parent| {
-                                                    text_narrator_entity = parent
-                                                        .spawn_bundle(TextBundle {
-                                                            text: Text::from_section(
-                                                                "Narrator",
-                                                                TextStyle {
-                                                                    font: text_font.clone(),
-                                                                    font_size: 20.0,
-                                                                    color: Color::GREEN,
-                                                                },
-                                                            ),
-                                                            ..Default::default()
-                                                        })
-                                                        .id();
-                                                });
-                                        });
-                                })
-                                .id();
-                        });
-                })
-                .id();
+            text_ui = Some(spawn_text_ui(
+                parent,
+                text_font.clone(),
+                button_font.clone(),
+                asset_server,
+            ));
         })
         // PhraseUI
         .with_children(|parent| {
@@ -341,15 +199,232 @@ pub(crate) fn spawn_game(
         scene,
         scene_visible: false,
         sprites: Default::default(),
-        text: TextUI {
-            root: ui_text,
-            is_visible: false,
-            narrator: text_narrator_entity,
-            text: text_flow_entity,
-            narrator_sprite: narrator_entity,
-            narrator_sprites,
-        },
+        text: text_ui.unwrap(),
         phrase: PhraseUI { root: ui_phrase, is_visible: false },
         menu,
+    }
+}
+
+fn spawn_text_ui(
+    builder: &mut ChildBuilder,
+    text_font: Handle<Font>,
+    button_font: Handle<Font>,
+    asset_server: &AssetServer,
+) -> TextUI
+{
+    let mut root = builder
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: SIZE_ALL,
+                position_type: PositionType::Absolute,
+                ..Default::default()
+            },
+            color: TRANSPARENT.into(),
+            ..default()
+        });
+
+    let mut flow = root.id();
+    let mut narrator = root.id();
+    let mut text = root.id();
+    let mut narrator_base = root.id();
+    let mut text_base = root.id();
+    root.with_children(|parent| {
+        flow = parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: SIZE_ALL,
+                    position_type: PositionType::Absolute,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    align_items: AlignItems::FlexStart,
+                    justify_content: JustifyContent::FlexEnd,
+                    ..default()
+                },
+                color: TRANSPARENT.into(),
+                ..default()
+            })
+            .with_children(|parent| {
+                narrator_base = parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Percent(50.0),
+                                Val::Percent(10.0),
+                            ),
+                            align_items: AlignItems::Center,
+                            align_content: AlignContent::Center,
+                            flex_wrap: FlexWrap::Wrap,
+                            flex_direction: FlexDirection::Row,
+                            padding: UiRect::all(Val::Px(20.0)),
+                            margin: NARRATOR_DEFAULT,
+                            ..default()
+                        },
+                        image: asset_server
+                            .load("hud/game_narrator_name.png").into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        narrator = parent.spawn_bundle(TextBundle {
+                            text: Text::from_section(
+                                "Narrator",
+                                TextStyle {
+                                    font: text_font.clone(),
+                                    font_size: 20.0,
+                                    color: Color::GREEN,
+                                },
+                            ),
+                            ..default()
+                        }).id();
+                    })
+                    .id();
+            })
+            .with_children(|parent| {
+                text_base = parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Percent(75.0),
+                                Val::Percent(30.0),
+                            ),
+                            flex_wrap: FlexWrap::Wrap,
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::FlexEnd,
+                            justify_content: JustifyContent::FlexStart,
+                            padding: FLOW_DEFAULT,
+                            ..default()
+                        },
+                        image: asset_server
+                            .load("hud/game_text_flow.png").into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        text = parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::from_section(
+                                    "Some text",
+                                    TextStyle {
+                                        font: text_font.clone(),
+                                        font_size: 20.0,
+                                        color: Color::GREEN,
+                                    },
+                                ),
+                                ..Default::default()
+                            })
+                            .id();
+                    })
+                    .id();
+            })
+            .id();
+    });
+
+    let mut narrator_sprites: HashMap<String, NarratorUI> = default();
+    root.with_children(|parent| {
+        let mut narrator = NarratorUI {
+            root: flow.clone(),
+            img: flow.clone(),
+        };
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: SIZE_ALL,
+                    position_type: PositionType::Absolute,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::FlexStart,
+                    justify_content: JustifyContent::FlexStart,
+                    ..default()
+                },
+                color: TRANSPARENT.into(),
+                ..default()
+            })
+            .with_children(|parent| {
+                let entity = parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(300.0),
+                                Val::Px(300.0),
+                            ),
+                            ..default()
+                        },
+                        image: asset_server
+                            .load("hud/game_narrator_first.png").into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        narrator.img = parent
+                            .spawn_bundle(NodeBundle {
+                                style: Style {
+                                    size: SIZE_ALL,
+                                    ..default()
+                                },
+                                ..default()
+                            })
+                            .id();
+                    })
+                    .id();
+                narrator.root = entity;
+            });
+        narrator_sprites.insert("".into(), narrator.clone());
+        narrator_sprites.insert("first".into(), narrator);
+    });
+    root.with_children(|parent| {
+        let mut narrator = NarratorUI {
+            root: flow.clone(),
+            img: flow.clone(),
+        };
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: SIZE_ALL,
+                    position_type: PositionType::Absolute,
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::FlexStart,
+                    justify_content: JustifyContent::FlexEnd,
+                    ..default()
+                },
+                color: TRANSPARENT.into(),
+                ..default()
+            })
+            .with_children(|parent| {
+                narrator.root = parent.
+                    spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(300.0),
+                                Val::Px(300.0),
+                            ),
+                            ..default()
+                        },
+                        image: asset_server
+                            .load("hud/game_narrator_second.png").into(),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        narrator.img = parent
+                            .spawn_bundle(NodeBundle {
+                                style: Style {
+                                    size: SIZE_ALL,
+                                    ..default()
+                                },
+                                ..default()
+                            })
+                            .id();
+                    })
+                    .id();
+            });
+        narrator_sprites.insert("second".into(), narrator);
+    });
+
+    TextUI {
+        root: root.id(),
+        is_visible: false,
+        flow,
+        narrator,
+        text,
+        narrator_sprites,
+        narrator_base,
+        text_base,
     }
 }

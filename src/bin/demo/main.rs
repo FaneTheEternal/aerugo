@@ -110,7 +110,9 @@ fn main() {
             Step {
                 id: Uuid::new_v4(),
                 name: "".to_string(),
-                inner: Steps::SpriteNarrator(NarratorCommand::Remove { name: str!("") }),
+                inner: Steps::SpriteNarrator(NarratorCommand::Remove {
+                    name: str!("")
+                }),
             },
             Step {
                 id: Uuid::new_v4(),
