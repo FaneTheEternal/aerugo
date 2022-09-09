@@ -435,16 +435,23 @@ pub fn step_init(
             Steps::Text { author, texts } => {
                 game_ui.text.force_show(&mut style_query);
 
-                commands
-                    .entity(game_ui.text.narrator)
-                    .insert(Text::from_section(
-                        author.as_str(),
-                        TextStyle {
-                            font: text_font.clone(),
-                            font_size: 40.0,
-                            color: Color::BLACK,
-                        },
-                    ));
+                if author.is_empty() {
+                    style_query.get_mut(game_ui.text.narrator_base).unwrap()
+                        .display = Display::None;
+                } else {
+                    style_query.get_mut(game_ui.text.narrator_base).unwrap()
+                        .display = Display::Flex;
+                    commands
+                        .entity(game_ui.text.narrator)
+                        .insert(Text::from_section(
+                            author.as_str(),
+                            TextStyle {
+                                font: text_font.clone(),
+                                font_size: 30.0,
+                                color: Color::BLACK,
+                            },
+                        ));
+                }
                 commands
                     .entity(game_ui.text.text)
                     .insert(AnimateText {
@@ -452,7 +459,7 @@ pub fn step_init(
                         timer: Timer::from_seconds(0.1, true),
                         style: TextStyle {
                             font: text_font.clone(),
-                            font_size: 40.0,
+                            font_size: 30.0,
                             color: Color::BLACK,
                         },
                         chars: 0,

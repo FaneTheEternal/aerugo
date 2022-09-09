@@ -29,7 +29,7 @@ pub const NARRATOR_DEFAULT: UiRect<Val> = UiRect {
     bottom: Val::Undefined,
 };
 pub const NARRATOR_SHIFT: UiRect<Val> = UiRect {
-    left: Val::Px(310.0),
+    left: Val::Px(10.0 + NARRATOR_SIDE),
     right: Val::Px(10.0),
     top: Val::Px(10.0),
     bottom: Val::Undefined,
@@ -41,10 +41,15 @@ pub const FLOW_DEFAULT: UiRect<Val> = UiRect {
     bottom: Val::Px(10.0),
 };
 pub const FLOW_SHIFT: UiRect<Val> = UiRect {
-    left: Val::Px(310.0),
+    left: Val::Px(10.0 + NARRATOR_SIDE),
     right: Val::Px(10.0),
     top: Val::Px(40.0),
     bottom: Val::Px(10.0),
+};
+const NARRATOR_SIDE: f32 = 200.0;
+pub const NARRATOR_FRAME: Size<Val> = Size {
+    width: Val::Px(NARRATOR_SIDE),
+    height: Val::Px(NARRATOR_SIDE),
 };
 
 pub fn make_button_closure<B>(

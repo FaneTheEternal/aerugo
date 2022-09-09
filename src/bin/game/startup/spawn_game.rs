@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
-use crate::utils::{BTN_NORMAL, FLOW_DEFAULT, GLASS_RED, NARRATOR_DEFAULT, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
+use crate::utils::{BTN_NORMAL, FLOW_DEFAULT, GLASS_RED, NARRATOR_DEFAULT, NARRATOR_FRAME, SIZE_ALL, TRANSPARENT, Z_BACKGROUND, Z_SCENE};
 
 use super::*;
 
@@ -248,8 +248,8 @@ fn spawn_text_ui(
                     .spawn_bundle(NodeBundle {
                         style: Style {
                             size: Size::new(
-                                Val::Percent(50.0),
-                                Val::Percent(10.0),
+                                Val::Percent(25.0),
+                                Val::Percent(5.0),
                             ),
                             align_items: AlignItems::Center,
                             align_content: AlignContent::Center,
@@ -284,7 +284,7 @@ fn spawn_text_ui(
                         style: Style {
                             size: Size::new(
                                 Val::Percent(75.0),
-                                Val::Percent(30.0),
+                                Val::Percent(20.0),
                             ),
                             flex_wrap: FlexWrap::Wrap,
                             flex_direction: FlexDirection::Row,
@@ -341,10 +341,7 @@ fn spawn_text_ui(
                 let entity = parent
                     .spawn_bundle(NodeBundle {
                         style: Style {
-                            size: Size::new(
-                                Val::Px(300.0),
-                                Val::Px(300.0),
-                            ),
+                            size: NARRATOR_FRAME,
                             ..default()
                         },
                         image: asset_server
@@ -391,10 +388,7 @@ fn spawn_text_ui(
                 narrator.root = parent.
                     spawn_bundle(NodeBundle {
                         style: Style {
-                            size: Size::new(
-                                Val::Px(300.0),
-                                Val::Px(300.0),
-                            ),
+                            size: NARRATOR_FRAME,
                             ..default()
                         },
                         image: asset_server
