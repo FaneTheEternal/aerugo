@@ -4,13 +4,15 @@ use bevy::{
     prelude::*,
 };
 use bevy::ecs::schedule::IntoRunCriteria;
+use bevy::log::Level;
+use bevy::utils::tracing::span;
 
 use aerugo::*;
 use crate::saves::AerugoLoaded;
 
 use super::*;
 use crate::ui::{GameUI, OverlayButton, OverlayButtons, UiState};
-use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, load_aerugo, Y_SPRITE, Z_SPRITE};
+use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, load_aerugo, SIZE_ALL, TRANSPARENT, Y_SPRITE, Z_SPRITE};
 
 pub fn setup_game(
     mut commands: Commands,
@@ -24,8 +26,12 @@ pub fn setup_game(
     mut ui_image_query: Query<&mut UiImage>,
     mut image_query: Query<&mut Handle<Image>>,
     mut atlas_query: Query<&mut Handle<TextureAtlas>>,
+    mut game_control_state: ResMut<State<GameControlState>>,
 )
 {
+    let span = span!(Level::WARN, "setup_game");
+    let _enter = span.enter();
+
     let aerugo_state = aerugo_loaded
         .map(|loaded| { loaded.0.to_owned() })
         .unwrap_or_else(|| { AerugoState::setup(aerugo.as_ref()) });
@@ -35,7 +41,8 @@ pub fn setup_game(
     commands.insert_resource(JustInit);
 
     next_step_event.send(NextStepEvent);
-    game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+    game_state.set(GameState::Active)
+        .unwrap_or_else(|e| warn!("{e:?}"));
 
     game_ui.sprites.values().for_each(|&e| {
         commands.entity(e).despawn_recursive();
@@ -53,6 +60,10 @@ pub fn setup_game(
         &mut ui_image_query,
     );
     commands.entity(game_ui.scene).remove::<AnimateScene>();
+    if !game_control_state.current().eq(&GameControlState::None) {
+        game_control_state.set(GameControlState::None)
+            .unwrap_or_else(|e| warn!("{:?}", e));
+    }
 }
 
 pub fn open_overlay(
@@ -60,8 +71,12 @@ pub fn open_overlay(
     mut game_state: ResMut<State<GameState>>,
 )
 {
+    let span = span!(Level::WARN, "open_overlay");
+    let _enter = span.enter();
+
     if input.clear_just_released(KeyCode::Escape) {
-        game_state.set(GameState::Paused).unwrap_or_else(|e| warn!("{e:?}"));
+        game_state.set(GameState::Paused)
+            .unwrap_or_else(|e| warn!("{e:?}"));
     }
 }
 
@@ -425,10 +440,13 @@ pub fn step_init(
     mut game_ui: ResMut<GameUI>,
 )
 {
+    let span = span!(Level::WARN, "step_init");
+    let _enter = span.enter();
+
     if let Some(step) = step {
         let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
 
-        game_ui.text.force_hide(&mut style_query);
+        // game_ui.text.force_hide(&mut style_query);
         game_ui.phrase.force_hide(&mut style_query);
 
         match &step.inner {
@@ -464,7 +482,8 @@ pub fn step_init(
                         },
                         chars: 0,
                     });
-                game_control_state.set(GameControlState::TextPass).unwrap_or_else(|e| warn!("{e:?}"));
+                game_control_state.overwrite_set(GameControlState::TextPass)
+                    .unwrap_or_else(|e| warn!("{e:?}"));
             }
             Steps::Phrase { phrases } => {
                 game_ui.phrase.force_show(&mut style_query);
@@ -473,29 +492,48 @@ pub fn step_init(
                     .map(|o| {
                         let (key, verbose) = o;
                         commands
-                            .spawn_bundle(ButtonBundle {
+                            .spawn_bundle(NodeBundle {
                                 style: Style {
+                                    size: Size::new(
+                                        Val::Percent(40.0),
+                                        Val::Auto,
+                                    ),
                                     margin: UiRect::all(Val::Percent(1.0)),
-                                    ..Default::default()
+                                    ..default()
                                 },
-                                ..Default::default()
+                                image: asset_server.load("hud/game_option.png").into(),
+                                ..default()
                             })
-                            .insert(PhraseValue(key.clone()))
+                            // .insert(PhraseValue(key.clone()))
                             .with_children(|parent| {
-                                parent.spawn_bundle(TextBundle {
-                                    text: Text::from_section(
-                                        verbose.as_str(),
-                                        TextStyle {
-                                            font: text_font.clone(),
-                                            font_size: 40.0,
-                                            color: Color::BLACK,
+                                parent
+                                    .spawn_bundle(ButtonBundle {
+                                        style: Style {
+                                            size: SIZE_ALL,
+                                            padding: UiRect::all(Val::Px(10.0)),
+                                            align_items: AlignItems::Center,
+                                            justify_content: JustifyContent::Center,
+                                            ..default()
                                         },
-                                    ).with_alignment(TextAlignment {
-                                        vertical: VerticalAlign::Center,
-                                        horizontal: HorizontalAlign::Center,
-                                    }),
-                                    ..Default::default()
-                                });
+                                        ..default()
+                                    })
+                                    .insert(PhraseValue(key.clone()))
+                                    .with_children(|parent| {
+                                        parent.spawn_bundle(TextBundle {
+                                            text: Text::from_section(
+                                                verbose.as_str(),
+                                                TextStyle {
+                                                    font: text_font.clone(),
+                                                    font_size: 30.0,
+                                                    color: Color::BLACK,
+                                                },
+                                            ).with_alignment(TextAlignment {
+                                                vertical: VerticalAlign::Center,
+                                                horizontal: HorizontalAlign::Center,
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    });
                             })
                             .id()
                     })
@@ -503,7 +541,8 @@ pub fn step_init(
                 commands.entity(game_ui.phrase.root).despawn_descendants();
                 commands.entity(game_ui.phrase.root).push_children(phrase_options.as_slice());
 
-                game_control_state.set(GameControlState::Phrase).unwrap_or_else(|e| warn!("{e:?}"));
+                game_control_state.overwrite_set(GameControlState::Phrase)
+                    .unwrap_or_else(|e| warn!("{e:?}"));
             }
             Steps::ImageSelect { .. } => {
                 todo!("ImageSelect")
@@ -520,10 +559,14 @@ pub fn input_text_pass(
     mut mouse_button_input: ResMut<Input<MouseButton>>,
 )
 {
+    let span = span!(Level::WARN, "input_text_pass");
+    let _enter = span.enter();
+
     if key_input.clear_just_pressed(KeyCode::Space)
         || key_input.clear_just_pressed(KeyCode::Return)
         || mouse_button_input.clear_just_pressed(MouseButton::Left) {
-        game_control_state.set(GameControlState::Text).unwrap_or_else(|e| warn!("{e:?}"));
+        game_control_state.set(GameControlState::Text)
+            .unwrap_or_else(|e| warn!("{e:?}"));
     }
 }
 
@@ -534,6 +577,9 @@ pub fn input_text_next(
     mut next_step_event: EventWriter<NextStepEvent>,
 )
 {
+    let span = span!(Level::WARN, "input_text_next");
+    let _enter = span.enter();
+
     if key_input.clear_just_pressed(KeyCode::Space)
         || key_input.clear_just_pressed(KeyCode::Return)
         || mouse_button_input.clear_just_pressed(MouseButton::Left) {
@@ -550,24 +596,28 @@ pub fn input_phrase(
     mut next_step_event: EventWriter<NextStepEvent>,
 )
 {
+    let span = span!(Level::WARN, "input_phrase");
+    let _enter = span.enter();
+
     for (interaction, phrase, color) in phrase_query.iter_mut() {
         let interaction: &Interaction = interaction;
         let phrase: &PhraseValue = phrase;
         let mut color: Mut<UiColor> = color;
         match interaction {
             Interaction::Clicked => {
-                *color = BTN_PRESSED.into();
+                *color = TRANSPARENT.into();
 
                 let step = aerugo_state.step(aerugo.as_ref());
                 aerugo_state.select_unique(step.id, phrase.0.clone());
-                game_control_state.set(GameControlState::None).unwrap_or_else(|e| warn!("{e:?}"));
+                game_control_state.set(GameControlState::None)
+                    .unwrap_or_else(|e| warn!("{e:?}"));
                 next_step_event.send(NextStepEvent);
             }
             Interaction::Hovered => {
-                *color = BTN_HOVERED.into();
+                *color = Color::rgba(1.0, 1.0, 1.0, 0.1).into();
             }
             Interaction::None => {
-                *color = BTN_NORMAL.into();
+                *color = TRANSPARENT.into();
             }
         }
     }
@@ -591,6 +641,9 @@ pub fn animate(
     )>,
 )
 {
+    let span = span!(Level::WARN, "animate");
+    let _enter = span.enter();
+
     let mut unmute_control = true;
     let pass = game_control_state.current().eq(&GameControlState::Text);
 
@@ -731,6 +784,8 @@ pub fn hide_menu(
 }
 
 pub fn input_menu(
+    mut commands: Commands,
+    state: Res<AerugoState>,
     mut ui_state: ResMut<State<UiState>>,
     mut game_state: ResMut<State<GameState>>,
     mut query: Query<
@@ -740,8 +795,13 @@ pub fn input_menu(
     mut input: ResMut<Input<KeyCode>>,
 )
 {
+    let span = span!(Level::WARN, "input_menu");
+    let _enter = span.enter();
+
     if input.clear_just_released(KeyCode::Escape) {
-        game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+        game_state.set(GameState::Init)
+            .unwrap_or_else(|e| warn!("{e:?}"));
+        commands.insert_resource(AerugoLoaded(state.clone().reload()));
         return;
     }
 
@@ -752,20 +812,26 @@ pub fn input_menu(
 
                 match btn.target {
                     OverlayButtons::Close => {
-                        game_state.set(GameState::Active).unwrap_or_else(|e| warn!("{e:?}"));
+                        game_state.set(GameState::Active)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     OverlayButtons::Settings => {
-                        ui_state.set(UiState::Settings).unwrap_or_else(|e| warn!("{e:?}"));
+                        ui_state.set(UiState::Settings)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     OverlayButtons::Save => {
-                        ui_state.set(UiState::Save).unwrap_or_else(|e| warn!("{e:?}"));
+                        ui_state.set(UiState::Save)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     OverlayButtons::Load => {
-                        ui_state.set(UiState::Load).unwrap_or_else(|e| warn!("{e:?}"));
+                        ui_state.set(UiState::Load)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     OverlayButtons::MainMenu => {
-                        game_state.set(GameState::None).unwrap_or_else(|e| warn!("{e:?}"));
-                        ui_state.set(UiState::MainMenu).unwrap_or_else(|e| warn!("{e:?}"));
+                        game_state.set(GameState::None)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
+                        ui_state.set(UiState::MainMenu)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                 }
             }
@@ -781,6 +847,9 @@ pub fn input_menu(
 
 pub fn enable_game_input(mut state: ResMut<State<GameControlState>>)
 {
+    let span = span!(Level::WARN, "enable_game_input");
+    let _enter = span.enter();
+
     state.pop().unwrap_or_else(|e| warn!("{e:?}"));
 }
 

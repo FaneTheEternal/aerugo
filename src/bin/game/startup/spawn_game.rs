@@ -58,7 +58,7 @@ pub(crate) fn spawn_game(
                         flex_direction: FlexDirection::ColumnReverse,
                         ..Default::default()
                     },
-                    color: Color::rgba(0.5, 0.5, 0.5, 0.5).into(),
+                    color: TRANSPARENT.into(),
                     ..Default::default()
                 })
                 .id();

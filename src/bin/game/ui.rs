@@ -2,15 +2,11 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
-pub use {
-    game::GameUI,
-    game::PhraseUI,
-    game::TextUI,
-    game::NarratorUI,
-    load::LoadUI,
-    main_menu::MainMenuUI,
-    save::SaveUI,
-};
+pub use game::*;
+pub use load::*;
+pub use main_menu::*;
+pub use save::*;
+
 use game::*;
 use load::*;
 use main_menu::*;

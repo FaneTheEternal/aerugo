@@ -1,15 +1,17 @@
 #![allow(unused_imports)]
 
-mod components;
-mod systems;
-
 use std::collections::HashMap;
+
 use bevy::prelude::*;
 
 use aerugo::*;
-
-use systems::*;
 use components::*;
+use systems::*;
+
+use crate::ui::game_show;
+
+mod components;
+mod systems;
 
 pub struct GamePlugin;
 
@@ -53,7 +55,7 @@ impl Plugin for GamePlugin {
                 SystemSet::on_enter(GameState::Paused)
                     .with_system(disable_game_input)
                     .with_system(show_menu)
-                    // .with_system(hide_game)
+                    .with_system(hide_game)
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Paused)

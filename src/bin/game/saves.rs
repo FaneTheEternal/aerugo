@@ -74,7 +74,7 @@ fn _save(save_path: String, data: String) {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct LoadMark(pub u8);
 
-pub struct AerugoLoaded(pub aerugo::AerugoState);
+pub struct AerugoLoaded(pub AerugoState);
 
 pub fn load(world: &mut World)
 {

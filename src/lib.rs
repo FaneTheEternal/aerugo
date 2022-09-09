@@ -164,8 +164,12 @@ impl AerugoState {
         if aerugo.steps.iter().find(|s| { s.id == state.current }).is_none() {
             return None;
         }
-        state._pre_collected = Some(state.inspector.extract());
-        Some(state)
+        Some(state.reload())
+    }
+
+    pub fn reload(mut self) -> Self {
+        self._pre_collected = Some(self.inspector.extract());
+        self
     }
 }
 

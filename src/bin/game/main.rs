@@ -23,6 +23,7 @@ fn main() {
         .add_plugin(ui::UiPlugin)
         .add_plugin(game::GamePlugin)
         .add_plugin(saves::SavePlugin)
+        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_startup_system(setup)
         .run();
 }

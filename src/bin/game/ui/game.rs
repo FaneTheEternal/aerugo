@@ -164,9 +164,7 @@ pub struct GameUI {
     pub(crate) sprites: HashMap<String, Entity>,
 
     pub(crate) text: TextUI,
-
     pub(crate) phrase: PhraseUI,
-
     pub(crate) menu: Entity,
 }
 
