@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
@@ -18,8 +19,6 @@ pub(crate) fn spawn_game(
     let w = window.width();
     let h = window.height();
 
-    let mut ui_text = Entity::from_raw(0);
-    let mut narrator_entity = ui_text;
     let mut text_ui = None;
 
     let mut ui_phrase = Entity::from_raw(0);
@@ -189,9 +188,6 @@ pub(crate) fn spawn_game(
         })
         .id();
 
-    let mut narrator_sprites = HashMap::new();
-    narrator_sprites.insert("".to_string(), narrator_entity.clone());
-
     GameUI {
         ui_root: root,
         background,
@@ -319,95 +315,22 @@ fn spawn_text_ui(
 
     let mut narrator_sprites: HashMap<String, NarratorUI> = default();
     root.with_children(|parent| {
-        let mut narrator = NarratorUI {
-            root: flow.clone(),
-            img: flow.clone(),
-        };
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: SIZE_ALL,
-                    position_type: PositionType::Absolute,
-                    flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::FlexStart,
-                    justify_content: JustifyContent::FlexStart,
-                    ..default()
-                },
-                color: TRANSPARENT.into(),
-                ..default()
-            })
-            .with_children(|parent| {
-                let entity = parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: NARRATOR_FRAME,
-                            ..default()
-                        },
-                        image: asset_server
-                            .load("hud/game_narrator_first.png").into(),
-                        ..default()
-                    })
-                    .with_children(|parent| {
-                        narrator.img = parent
-                            .spawn_bundle(NodeBundle {
-                                style: Style {
-                                    size: SIZE_ALL,
-                                    ..default()
-                                },
-                                ..default()
-                            })
-                            .id();
-                    })
-                    .id();
-                narrator.root = entity;
-            });
+        let mut narrator = spawn_narrator_frame(
+            parent,
+            "hud/game_narrator_first.png",
+            JustifyContent::FlexStart,
+            asset_server.deref()
+        );
         narrator_sprites.insert("".into(), narrator.clone());
         narrator_sprites.insert("first".into(), narrator);
     });
     root.with_children(|parent| {
-        let mut narrator = NarratorUI {
-            root: flow.clone(),
-            img: flow.clone(),
-        };
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: SIZE_ALL,
-                    position_type: PositionType::Absolute,
-                    flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::FlexStart,
-                    justify_content: JustifyContent::FlexEnd,
-                    ..default()
-                },
-                color: TRANSPARENT.into(),
-                ..default()
-            })
-            .with_children(|parent| {
-                narrator.root = parent.
-                    spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: NARRATOR_FRAME,
-                            ..default()
-                        },
-                        image: asset_server
-                            .load("hud/game_narrator_second.png").into(),
-                        ..default()
-                    })
-                    .with_children(|parent| {
-                        narrator.img = parent
-                            .spawn_bundle(NodeBundle {
-                                style: Style {
-                                    size: SIZE_ALL,
-                                    ..default()
-                                },
-                                ..default()
-                            })
-                            .id();
-                    })
-                    .id();
-            });
+        let mut narrator = spawn_narrator_frame(
+            parent,
+            "hud/game_narrator_second.png",
+            JustifyContent::FlexEnd,
+            asset_server.deref()
+        );
         narrator_sprites.insert("second".into(), narrator);
     });
 
@@ -421,4 +344,56 @@ fn spawn_text_ui(
         narrator_base,
         text_base,
     }
+}
+
+fn spawn_narrator_frame(
+    builder: &mut ChildBuilder,
+    sprite: &str,
+    justify_content: JustifyContent,
+    asset_server: &AssetServer,
+) -> NarratorUI
+{
+    let mut narrator = NarratorUI {
+        root: Entity::from_raw(0),
+        img: Entity::from_raw(0),
+    };
+    builder
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: SIZE_ALL,
+                position_type: PositionType::Absolute,
+                flex_wrap: FlexWrap::Wrap,
+                flex_direction: FlexDirection::Row,
+                align_items: AlignItems::FlexStart,
+                justify_content,
+                ..default()
+            },
+            color: TRANSPARENT.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            let entity = parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: NARRATOR_FRAME,
+                        ..default()
+                    },
+                    image: asset_server.load(sprite).into(),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    narrator.img = parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: SIZE_ALL,
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .id();
+                })
+                .id();
+            narrator.root = entity;
+        });
+    narrator
 }
