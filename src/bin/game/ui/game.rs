@@ -166,7 +166,6 @@ pub struct GameUI {
 
     pub(crate) text: TextUI,
     pub(crate) phrase: PhraseUI,
-    pub(crate) menu: Entity,
 }
 
 impl GameUI {
@@ -192,12 +191,6 @@ impl GameUI {
             query_2d.get_mut(*e).unwrap().is_visible = false;
         });
     }
-    fn _show_menu(&self, query: &mut Query<&mut Style>) {
-        query.get_mut(self.menu).unwrap().display = Display::Flex;
-    }
-    fn _hide_menu(&self, query: &mut Query<&mut Style>) {
-        query.get_mut(self.menu).unwrap().display = Display::None;
-    }
 
     pub fn show(&self, mut query: Query<&mut Style>, mut query_2d: Query<&mut Visibility>) {
         self._show_game(&mut query, &mut query_2d);
@@ -207,34 +200,27 @@ impl GameUI {
         self._hide_game(&mut query, &mut query_2d);
     }
 
-    pub fn show_menu(&self, mut query: Query<&mut Style>) {
-        self._show_menu(&mut query);
-    }
-
-    pub fn hide_menu(&self, mut query: Query<&mut Style>) {
-        self._hide_menu(&mut query);
-    }
-
     #[allow(dead_code)]
     pub fn show_all(&self, mut query: Query<&mut Style>, mut query_2d: Query<&mut Visibility>) {
         self._show_game(&mut query, &mut query_2d);
-        self._show_menu(&mut query);
     }
 
     pub fn hide_all(&self, mut query: Query<&mut Style>, mut query_2d: Query<&mut Visibility>) {
         self._hide_game(&mut query, &mut query_2d);
-        self._hide_menu(&mut query);
     }
 
     pub fn smart_show(
         &self,
         mut query: Query<&mut Style>,
         mut query_2d: Query<&mut Visibility>,
-        game_state: &GameState)
+        game_state: &GameState
+    )
     {
-        self._show_game(&mut query, &mut query_2d);
-        if game_state.eq(&GameState::Paused) {
-            self._show_menu(&mut query);
+        match game_state {
+            GameState::None | GameState::Paused => {}
+            GameState::Init | GameState::Active => {
+                self._show_game(&mut query, &mut query_2d);
+            }
         }
     }
 }

@@ -27,6 +27,9 @@ pub fn spawn(
     let game = spawn_game(&mut commands, asset_server.as_ref(), window.as_ref());
     commands.insert_resource(game);
 
+    let game_menu = spawn_game_menu::spawn(&mut commands, asset_server.as_ref());
+    commands.insert_resource(GameMenuUI { root: game_menu });
+
     state.set(MainState::Ready).unwrap_or_else(|e| warn!("{e:?}"));
 }
 

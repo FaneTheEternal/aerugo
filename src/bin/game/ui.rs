@@ -1,11 +1,14 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use bevy::utils::tracing::span;
+use bevy::log::Level;
 
 pub use game::*;
 pub use load::*;
 pub use main_menu::*;
 pub use save::*;
+pub use pause::*;
 
 use crate::game::GameState;
 use crate::saves::{LoadMark, SaveMark, Saves};
@@ -15,6 +18,7 @@ mod main_menu;
 mod save;
 mod game;
 mod load;
+mod pause;
 
 pub struct UiPlugin;
 
@@ -83,6 +87,18 @@ impl Plugin for UiPlugin {
                 SystemSet::on_exit(UiState::Game)
                     .with_system(game_hide)
             )
+            .add_system_set(
+                SystemSet::on_enter(UiState::Pause)
+                    .with_system(show_game_menu)
+            )
+            .add_system_set(
+                SystemSet::on_update(UiState::Pause)
+                    .with_system(game_menu_actions)
+            )
+            .add_system_set(
+                SystemSet::on_exit(UiState::Pause)
+                    .with_system(hide_game_menu)
+            )
         ;
     }
 }
@@ -95,6 +111,7 @@ pub enum UiState {
     Save,
     Load,
     Game,
+    Pause,
 }
 
 
@@ -104,11 +121,14 @@ pub fn generic_break(
     mut input: ResMut<Input<KeyCode>>,
 )
 {
+    let span = span!(Level::WARN, "generic_break");
+    let _ = span.enter();
+
     if input.clear_just_released(KeyCode::Escape) {
         if game_state.current().eq(&GameState::None) {
             ui_state.set(UiState::MainMenu).unwrap_or_else(|e| warn!("{e:?}"));
         } else {
-            ui_state.set(UiState::Game).unwrap_or_else(|e| warn!("{e:?}"));
+            ui_state.set(UiState::Pause).unwrap_or_else(|e| warn!("{e:?}"));
         }
     }
 }

@@ -96,11 +96,6 @@ pub(crate) fn spawn_game(
         })
         .id();
 
-    let menu = spawn_game_menu::spawn(
-        commands,
-        &asset_server,
-    );
-
     GameUI {
         ui_root: root,
         background,
@@ -110,7 +105,6 @@ pub(crate) fn spawn_game(
         sprites: Default::default(),
         text: text_ui.unwrap(),
         phrase: PhraseUI { root: ui_phrase, is_visible: false },
-        menu,
     }
 }
 

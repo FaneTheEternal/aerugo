@@ -70,12 +70,15 @@ pub fn setup_game(
 pub fn open_overlay(
     mut input: ResMut<Input<KeyCode>>,
     mut game_state: ResMut<State<GameState>>,
+    mut ui_state: ResMut<State<UiState>>,
 )
 {
     let span = span!(Level::WARN, "open_overlay");
     let _enter = span.enter();
 
     if input.clear_just_released(KeyCode::Escape) {
+        ui_state.set(UiState::Pause)
+            .unwrap_or_else(|e| warn!("{e:?}"));
         game_state.set(GameState::Paused)
             .unwrap_or_else(|e| warn!("{e:?}"));
     }
@@ -765,83 +768,6 @@ pub fn hide_game(
 {
     if let Some(game_ui) = game_ui {
         game_ui.hide(query, query_2d);
-    }
-}
-
-pub fn show_menu(
-    game_ui: Res<GameUI>,
-    query: Query<&mut Style>,
-)
-{
-    game_ui.show_menu(query);
-}
-
-pub fn hide_menu(
-    game_ui: Res<GameUI>,
-    query: Query<&mut Style>,
-)
-{
-    game_ui.hide_menu(query);
-}
-
-pub fn input_menu(
-    mut commands: Commands,
-    state: Res<AerugoState>,
-    mut ui_state: ResMut<State<UiState>>,
-    mut game_state: ResMut<State<GameState>>,
-    mut query: Query<
-        (&Interaction, &mut UiColor, &GameMenuButtons),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut input: ResMut<Input<KeyCode>>,
-)
-{
-    let span = span!(Level::WARN, "input_menu");
-    let _enter = span.enter();
-
-    if input.clear_just_released(KeyCode::Escape) {
-        game_state.set(GameState::Init)
-            .unwrap_or_else(|e| warn!("{e:?}"));
-        commands.insert_resource(AerugoLoaded(state.clone().reload()));
-        return;
-    }
-
-    for (interaction, mut color, btn) in query.iter_mut() {
-        match *interaction {
-            Interaction::Clicked => {
-                *color = TRANSPARENT.into();
-
-                match btn {
-                    GameMenuButtons::Continue => {
-                        game_state.set(GameState::Init)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                        commands.insert_resource(AerugoLoaded(state.clone().reload()));
-                    }
-                    GameMenuButtons::Load => {
-                        ui_state.set(UiState::Load)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                    }
-                    GameMenuButtons::Save => {
-                        ui_state.set(UiState::Save)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                    }
-                    GameMenuButtons::Gallery => {}
-                    GameMenuButtons::Settings => {}
-                    GameMenuButtons::MainMenu => {
-                        game_state.set(GameState::None)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                        ui_state.set(UiState::MainMenu)
-                            .unwrap_or_else(|e| warn!("{e:?}"));
-                    }
-                }
-            }
-            Interaction::Hovered => {
-                *color = Color::WHITE.into();
-            }
-            Interaction::None => {
-                *color = TRANSPARENT.into();
-            }
-        }
     }
 }
 

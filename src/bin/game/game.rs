@@ -34,7 +34,6 @@ impl Plugin for GamePlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(GameState::Init)
-                    .with_system(hide_menu)
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Active)
@@ -54,18 +53,15 @@ impl Plugin for GamePlugin {
             .add_system_set(
                 SystemSet::on_enter(GameState::Paused)
                     .with_system(disable_game_input)
-                    .with_system(show_menu)
                     .with_system(hide_game)
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Paused)
-                    .with_system(input_menu)
             )
             .add_system_set(
                 SystemSet::on_exit(GameState::Paused)
                     .with_system(enable_game_input)
                     .with_system(show_game)
-                    .with_system(hide_menu)
             )
             .add_plugin(GameControlPlugin)
         ;
