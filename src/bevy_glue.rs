@@ -38,3 +38,7 @@ impl ImageTip {
         Self { name: name.to_string(), loaded: false }
     }
 }
+
+#[derive(Component, Reflect, Default, Clone, Inspectable, Serialize, Deserialize)]
+#[reflect(Component)]
+pub struct SavePageButton(pub String);

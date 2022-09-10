@@ -156,15 +156,11 @@ impl AerugoState {
         ron::to_string(self).unwrap()
     }
 
-    pub fn load(aerugo: &Aerugo, data: &String) -> Option<AerugoState> {
-        let state: AerugoState = match ron::from_str(data) {
-            Ok(r) => { r }
-            Err(_) => return None,
-        };
+    pub fn validate(aerugo: &Aerugo, state: &AerugoState) -> Option<()> {
         if aerugo.steps.iter().find(|s| { s.id == state.current }).is_none() {
             return None;
         }
-        Some(state.reload())
+        Some(())
     }
 
     pub fn reload(mut self) -> Self {

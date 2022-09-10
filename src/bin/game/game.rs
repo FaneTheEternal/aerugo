@@ -34,6 +34,7 @@ impl Plugin for GamePlugin {
             )
             .add_system_set(
                 SystemSet::on_exit(GameState::Init)
+                    .with_system(force_game_ui)
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Active)

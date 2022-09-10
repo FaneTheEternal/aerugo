@@ -16,10 +16,10 @@ pub fn spawn(
     let main_menu = spawn_main_menu::spawn(&mut commands, asset_server.as_ref());
     commands.insert_resource(MainMenuUI { entity_root: main_menu });
 
-    let save = spawn_save(&mut commands, asset_server.as_ref(), saves.as_ref());
-    commands.insert_resource(SaveUI { entity_root: save });
-    let load = spawn_load(&mut commands, asset_server.as_ref(), saves.as_ref());
-    commands.insert_resource(LoadUI { entity_root: load });
+    let save = save_load::spawn_save(
+        &mut commands, asset_server.as_ref(), saves.as_ref()
+    );
+    commands.insert_resource(save);
 
     let settings = spawn_settings(&mut commands, asset_server.as_ref());
     commands.insert_resource(SettingsUI { entity_root: settings });
@@ -51,38 +51,6 @@ fn make_ui_base(
         })
         .with_children(builder)
         .id()
-}
-
-fn spawn_save(mut commands: &mut Commands, asset_server: &AssetServer, saves: &Saves) -> Entity
-{
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let save_items = make_save_items(&mut commands, saves, button_font.clone(), text_font.clone());
-
-    let ui_save = make_ui_base(
-        &mut commands,
-        save_load_base(
-            save_items, text_font.clone(), SaveItemsParentMark, "Save",
-        ),
-    );
-    ui_save
-}
-
-fn spawn_load(mut commands: &mut Commands, asset_server: &AssetServer, saves: &Saves) -> Entity
-{
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    let load_items = make_load_items(&mut commands, saves, button_font.clone(), text_font.clone());
-
-    let ui_save = make_ui_base(
-        &mut commands,
-        save_load_base(
-            load_items, text_font.clone(), LoadItemsParentMark, "Load",
-        ),
-    );
-    ui_save
 }
 
 fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> Entity

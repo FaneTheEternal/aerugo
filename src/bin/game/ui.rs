@@ -5,20 +5,18 @@ use bevy::utils::tracing::span;
 use bevy::log::Level;
 
 pub use game::*;
-pub use load::*;
 pub use main_menu::*;
-pub use save::*;
 pub use pause::*;
+pub use save_load::*;
 
 use crate::game::GameState;
 use crate::saves::{LoadMark, SaveMark, Saves};
-use crate::saves_ui::{LoadItemsParentMark, make_load_items, make_save_items, SaveItemsParentMark};
+use crate::saves_ui::{LoadItemsParentMark, SaveItemsParentMark};
 
 mod main_menu;
-mod save;
 mod game;
-mod load;
 mod pause;
+mod save_load;
 
 pub struct UiPlugin;
 
@@ -51,33 +49,33 @@ impl Plugin for UiPlugin {
             )
             .add_system_set(
                 SystemSet::on_enter(UiState::Save)
-                    .with_system(save_show)
+                    .with_system(save_load::save_show)
             )
-            .add_event::<CleanseSavesEvent>()
-            .add_event::<RespawnSavesEvent>()
             .add_system_set(
                 SystemSet::on_update(UiState::Save)
                     .with_system(generic_break)
+                    .with_system(save_page_actions)
+                    .with_system(new_page)
                     .with_system(save_actions)
-                    .with_system(cleanse_saves_listener)
-                    .with_system(respawn_saves_listener)
             )
             .add_system_set(
                 SystemSet::on_exit(UiState::Save)
-                    .with_system(save_hide)
+                    .with_system(save_load::save_hide)
             )
             .add_system_set(
                 SystemSet::on_enter(UiState::Load)
-                    .with_system(load_show)
+                    .with_system(save_load::save_show)
             )
             .add_system_set(
                 SystemSet::on_update(UiState::Load)
                     .with_system(generic_break)
+                    .with_system(save_page_actions)
+                    .with_system(new_page)
                     .with_system(load_actions)
             )
             .add_system_set(
                 SystemSet::on_exit(UiState::Load)
-                    .with_system(load_hide)
+                    .with_system(save_load::save_hide)
             )
             .add_system_set(
                 SystemSet::on_enter(UiState::Game)

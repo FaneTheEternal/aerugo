@@ -32,13 +32,10 @@ pub fn show_game_menu(
 
 fn back_to_game(
     commands: &mut Commands,
-    ui_state: &mut ResMut<State<UiState>>,
     game_state: &mut ResMut<State<GameState>>,
     state: Res<AerugoState>,
 )
 {
-    ui_state.set(UiState::Game)
-        .unwrap_or_else(|e| warn!("{e:?}"));
     game_state.set(GameState::Init)
         .unwrap_or_else(|e| warn!("{e:?}"));
     commands.insert_resource(AerugoLoaded(state.clone().reload()));
@@ -60,7 +57,7 @@ pub fn game_menu_actions(
     let _enter = span.enter();
 
     if input.clear_just_released(KeyCode::Escape) {
-        back_to_game(&mut commands, &mut ui_state, &mut game_state, state);
+        back_to_game(&mut commands, &mut game_state, state);
         return;
     }
 
@@ -71,7 +68,7 @@ pub fn game_menu_actions(
 
                 match btn {
                     GameMenuButtons::Continue => {
-                        back_to_game(&mut commands, &mut ui_state, &mut game_state, state);
+                        back_to_game(&mut commands, &mut game_state, state);
                         return;
                     }
                     GameMenuButtons::Load => {

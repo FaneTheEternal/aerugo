@@ -783,3 +783,7 @@ pub fn disable_game_input(mut state: ResMut<State<GameControlState>>)
 {
     state.push(GameControlState::None).unwrap_or_else(|e| warn!("{e:?}"));
 }
+
+pub fn force_game_ui(mut state: ResMut<State<UiState>>) {
+    let _ = state.overwrite_set(UiState::Game);
+}

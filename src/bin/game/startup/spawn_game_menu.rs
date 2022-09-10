@@ -161,7 +161,7 @@ fn make_btn(
                                         color: Color::BLACK,
                                     },
                                 ),
-                                ..Default::default()
+                                ..default()
                             });
                     });
             });
