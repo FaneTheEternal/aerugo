@@ -100,6 +100,7 @@ fn ui_system(
                     if let Some(delete) = delete {
                         aerugo.steps.remove(delete);
                     }
+                    ui.allocate_space(egui::Vec2::new(100.0, 500.0));
                 },
             );
         },
