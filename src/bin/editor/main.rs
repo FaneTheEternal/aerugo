@@ -9,6 +9,7 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use aerugo::*;
+use crate::egui::Ui;
 use crate::light::{BackgroundLight, LightInner, NarratorLight, SceneLight, SpriteLight};
 
 fn main() {
@@ -199,6 +200,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                             NarratorCommand::Set { name, sprite } => {
                                 horizontal_text(ui, "Name: ", name);
                                 horizontal_text(ui, "Sprite: ", sprite);
+                                file_pick(ui, sprite);
                             }
                             NarratorCommand::Remove { name } => {
                                 horizontal_text(ui, "Name: ", name);
@@ -214,6 +216,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                             SpriteCommand::None => {}
                             SpriteCommand::Set { sprite, name, position } => {
                                 horizontal_text(ui, "Sprite:", sprite);
+                                file_pick(ui, sprite);
                                 horizontal_text(ui, "Name:", name);
                                 ui.add(egui::DragValue::new(position).speed(0.1));
                             }
@@ -222,6 +225,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                             }
                             SpriteCommand::FadeIn { sprite, name, position } => {
                                 horizontal_text(ui, "Sprite:", sprite);
+                                file_pick(ui, sprite);
                                 horizontal_text(ui, "Name:", name);
                                 ui.add(egui::DragValue::new(position).speed(0.1));
                             }
@@ -230,6 +234,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                             }
                             SpriteCommand::LeftIn { sprite, name, position } => {
                                 horizontal_text(ui, "Sprite:", sprite);
+                                file_pick(ui, sprite);
                                 horizontal_text(ui, "Name:", name);
                                 ui.add(egui::DragValue::new(position).speed(0.1));
                             }
@@ -238,6 +243,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                             }
                             SpriteCommand::RightIn { sprite, name, position } => {
                                 horizontal_text(ui, "Sprite:", sprite);
+                                file_pick(ui, sprite);
                                 horizontal_text(ui, "Name:", name);
                                 ui.add(egui::DragValue::new(position).speed(0.1));
                             }
@@ -256,6 +262,7 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                         match cmd {
                             BackgroundCommand::Change { new, animation } => {
                                 horizontal_text(ui, "Name:", new);
+                                file_pick(ui, new);
                                 ui.label(format!("Animation: {:?}", animation));  // TODO
                             }
                             BackgroundCommand::Shake => {}
@@ -268,10 +275,12 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                         match cmd {
                             SceneCommand::Set { name } => {
                                 horizontal_text(ui, "Name:", name);
+                                file_pick(ui, name);
                             }
                             SceneCommand::Remove => {}
                             SceneCommand::Play { name, is_loop, tile, columns, rows } => {
                                 horizontal_text(ui, "Name:", name);
+                                file_pick(ui, name);
                                 ui.checkbox(is_loop, "Is loop");
                                 ui.horizontal(|ui| {
                                     ui.label("Tile:");
@@ -298,4 +307,22 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                 ui.label(format!("DBG: {:?}", step.inner));
             },
         );
+}
+
+fn file_pick(ui: &mut Ui, target: &mut String) {
+    if ui.button("FILE").clicked() {
+        let path = std::env::current_dir().unwrap().join("assets");
+
+        let res = rfd::FileDialog::new()
+            .add_filter("image", &["png"])
+            .set_directory(&path)
+            .pick_files();
+        if let Some(file) = res {
+            let file = file.first().unwrap();
+            let file = file.strip_prefix(path);
+            if let Ok(file) = file {
+                *target = file.to_string_lossy().to_string();
+            }
+        }
+    }
 }
