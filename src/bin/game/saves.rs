@@ -25,6 +25,11 @@ pub struct SaveMark {
     pub(crate) to: usize,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct LoadMark(pub usize);
+
+pub struct AerugoLoaded(pub AerugoState);
+
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Save {
     pub state: AerugoState,
@@ -82,11 +87,6 @@ fn _save(save_path: String, data: String) {
         .write_all(data.as_bytes())
         .unwrap();
 }
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
-pub struct LoadMark(pub usize);
-
-pub struct AerugoLoaded(pub AerugoState);
 
 pub fn load(world: &mut World)
 {
