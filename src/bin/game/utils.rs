@@ -144,3 +144,16 @@ pub fn run_once_criteria() -> impl FnMut() -> ShouldRun {
         }
     }
 }
+
+
+pub const BTN_FONT: &str = r"fonts/FiraSans-Bold.ttf";
+pub const MAIN_BACK: &str = r"hud/mm_back.png";
+pub const MAIN_BTN_BACK: &str = r"hud/mm_btn_back.png";
+pub const MAIN_BTN_HOVER: &str = r"hud/mm_btn_hover.png";
+
+pub const BTN1: &str = r"hud/mm_btn1.png";
+pub const BTN2: &str = r"hud/mm_btn2.png";
+pub const BTN3: &str = r"hud/mm_btn3.png";
+pub const BTN4: &str = r"hud/mm_btn4.png";
+pub const BTN5: &str = r"hud/mm_btn5.png";
+pub const BTN6: &str = r"hud/mm_btn6.png";

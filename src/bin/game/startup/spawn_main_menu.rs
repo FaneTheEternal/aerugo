@@ -8,13 +8,13 @@ pub fn spawn(
 ) -> Entity
 {
     let button_font = asset_server
-        .load("fonts/FiraSans-Bold.ttf");
+        .load(BTN_FONT);
     let background = asset_server
-        .load("hud/mm_back.png");
+        .load(MAIN_BACK);
     let btn_background = asset_server
-        .load("hud/mm_btn_back.png");
+        .load(MAIN_BTN_BACK);
     let btn_hover = asset_server
-        .load("hud/mm_btn_hover.png");
+        .load(MAIN_BTN_HOVER);
 
     let entity = commands
         .spawn_bundle(NodeBundle {
@@ -57,7 +57,7 @@ pub fn spawn(
                         "New game",
                         button_font.clone(),
                         MainMenuButtons::NewGame,
-                        asset_server.load("hud/mm_btn1.png"),
+                        asset_server.load(BTN1),
                         btn_hover.clone(),
                     )
                 )
@@ -66,7 +66,7 @@ pub fn spawn(
                         "Load",
                         button_font.clone(),
                         MainMenuButtons::Load,
-                        asset_server.load("hud/mm_btn2.png"),
+                        asset_server.load(BTN2),
                         btn_hover.clone(),
                     )
                 )
@@ -75,7 +75,7 @@ pub fn spawn(
                         "Gallery",
                         button_font.clone(),
                         MainMenuButtons::Gallery,
-                        asset_server.load("hud/mm_btn3.png"),
+                        asset_server.load(BTN3),
                         btn_hover.clone(),
                     )
                 )
@@ -84,7 +84,7 @@ pub fn spawn(
                         "Settings",
                         button_font.clone(),
                         MainMenuButtons::Settings,
-                        asset_server.load("hud/mm_btn4.png"),
+                        asset_server.load(BTN4),
                         btn_hover.clone(),
                     )
                 )
@@ -93,7 +93,7 @@ pub fn spawn(
                         "About",
                         button_font.clone(),
                         MainMenuButtons::About,
-                        asset_server.load("hud/mm_btn5.png"),
+                        asset_server.load(BTN5),
                         btn_hover.clone(),
                     )
                 )
@@ -102,7 +102,7 @@ pub fn spawn(
                         "Exit",
                         button_font.clone(),
                         MainMenuButtons::Exit,
-                        asset_server.load("hud/mm_btn6.png"),
+                        asset_server.load(BTN6),
                         btn_hover.clone(),
                     )
                 );
