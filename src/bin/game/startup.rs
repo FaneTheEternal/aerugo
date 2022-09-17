@@ -5,7 +5,9 @@ mod spawn_main_menu;
 pub mod spawn_game_menu;
 pub mod save_load;
 
+use bevy::asset::{Asset, AssetPath};
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 use crate::saves::{pre_load_saves, Saves};
 use crate::saves_ui::{LoadItemsParentMark, SaveItemsParentMark};
 use crate::ui::*;
@@ -34,7 +36,8 @@ impl Plugin for StartupPlugin {
             )
             .add_system_set(
                 SystemSet::on_update(MainState::Load)
-                    .with_system(load)
+                    .with_system(preload_assets)
+                    .with_system(load.after(preload_assets))
             )
             .add_system_set(
                 SystemSet::on_update(MainState::Spawn)
@@ -50,3 +53,16 @@ impl Plugin for StartupPlugin {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct SplashScreen;
+
+pub struct PreloadedAssets {
+    pub assets: HashMap<String, HandleUntyped>,
+}
+
+impl PreloadedAssets {
+    #[must_use = "not using the returned strong handle may result in the unexpected release of the asset"]
+    pub fn load<T: Asset>(&self, path: &str) -> Handle<T> {
+        let asset = self.assets.get(path.into())
+            .expect(&format!("Asset not found: {:?}", path));
+        asset.clone().typed()
+    }
+}

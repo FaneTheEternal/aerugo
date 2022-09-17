@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::startup::PreloadedAssets;
 use crate::utils::{FLOW_DEFAULT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
 
 use super::*;
@@ -30,7 +31,7 @@ impl TextUI {
         image_query: &mut Query<&mut UiImage>,
         name: &str,
         sprite: Option<String>,
-        asset_server: &AssetServer,
+        asset_server: &PreloadedAssets,
     )
     {
         if let Some(narrator) = self.narrator_sprites.get(name) {

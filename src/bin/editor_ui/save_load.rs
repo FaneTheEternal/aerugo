@@ -39,7 +39,7 @@ fn save_listener(world: &mut World) {
 
 fn load_scene_system(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    asset_server: Res<PreloadedAssets>,
     load_signal: Option<Res<LoadSignal>>,
     mut editor_state: ResMut<EditorState>,
 )

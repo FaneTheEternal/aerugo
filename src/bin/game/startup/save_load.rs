@@ -12,7 +12,7 @@ use super::spawn_game::*;
 
 pub fn spawn_save(
     commands: &mut Commands,
-    asset_server: &AssetServer,
+    asset_server: &PreloadedAssets,
     saves: &Saves,
 ) -> SaveLoadUI
 {
@@ -202,7 +202,7 @@ fn spawn_frames(
     button_font: Handle<Font>,
     saves: &[Option<&Save>],
     frame_img: Handle<Image>,
-    asset_server: &AssetServer,
+    asset_server: &PreloadedAssets,
 ) -> Vec<SaveFrameUI>
 {
     let mut save_frames = vec![];

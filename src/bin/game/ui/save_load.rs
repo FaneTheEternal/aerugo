@@ -4,6 +4,7 @@ use bevy::utils::tracing::{Level, span};
 
 use aerugo::bevy_glue::SavePageButton;
 use crate::saves::{LoadMark, SaveMark, Saves};
+use crate::startup::PreloadedAssets;
 use crate::ui::UiState;
 
 use crate::utils::TRANSPARENT;
@@ -31,7 +32,7 @@ impl SaveLoadUI {
         img_query: &mut Query<&mut UiImage>,
         color_query: &mut Query<&mut UiColor>,
         saves: &Saves,
-        asset_server: &AssetServer,
+        asset_server: &PreloadedAssets,
     )
     {
         self.current = page.into();
@@ -155,7 +156,7 @@ pub fn new_page(
     mut img_query: Query<&mut UiImage>,
     mut color_query: Query<&mut UiColor>,
     saves: Res<Saves>,
-    asset_server: Res<AssetServer>,
+    asset_server: Res<PreloadedAssets>,
     mut save_ui: ResMut<SaveLoadUI>,
 )
 {

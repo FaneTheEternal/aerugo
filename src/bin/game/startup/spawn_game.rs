@@ -9,7 +9,7 @@ use super::*;
 
 pub(crate) fn spawn_game(
     commands: &mut Commands,
-    asset_server: &AssetServer,
+    asset_server: &PreloadedAssets,
     window: &Windows,
 ) -> GameUI
 {
@@ -111,7 +111,7 @@ pub(crate) fn spawn_game(
 fn spawn_text_ui(
     builder: &mut ChildBuilder,
     text_font: Handle<Font>,
-    asset_server: &AssetServer,
+    asset_server: &PreloadedAssets,
 ) -> TextUI
 {
     let mut root = builder
@@ -202,6 +202,11 @@ fn spawn_text_ui(
                     .with_children(|parent| {
                         text = parent
                             .spawn_bundle(TextBundle {
+                                style: Style {
+                                    // TODO: percent based
+                                    max_size: Size::new(Val::Px(900.0), Val::Undefined),
+                                    ..default()
+                                },
                                 text: Text::from_section(
                                     "Some text",
                                     TextStyle {
@@ -256,7 +261,7 @@ fn spawn_narrator_frame(
     builder: &mut ChildBuilder,
     sprite: &str,
     justify_content: JustifyContent,
-    asset_server: &AssetServer,
+    asset_server: &PreloadedAssets,
 ) -> NarratorUI
 {
     let mut narrator = NarratorUI {

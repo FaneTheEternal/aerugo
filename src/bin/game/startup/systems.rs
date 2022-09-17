@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use bevy::prelude::*;
 use crate::utils::SIZE_ALL;
 use super::*;
@@ -59,4 +60,37 @@ pub fn load(
     commands.insert_resource(aerugo);
     commands.insert_resource(saves);
     state.set(MainState::Spawn).unwrap_or_else(|e| warn!("{e:?}"));
+}
+
+pub fn preload_assets(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+)
+{
+    // TODO: universal solution
+    let current_dir = std::env::current_dir().unwrap();
+    let assets_dir = current_dir.join("assets");
+    let mut assets: HashMap<String, HandleUntyped> = default();
+
+    fn _load(assets: &mut HashMap<String, HandleUntyped>, path: &PathBuf, base: &PathBuf, asset_server: &AssetServer) {
+        for entry in std::fs::read_dir(path).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+
+            let metadata = std::fs::metadata(&path).unwrap();
+
+            if metadata.is_file() {
+                let asset_path = path.strip_prefix(base).unwrap();
+                let asset = asset_server.load_untyped(asset_path);
+                let asset_path = asset_path.to_string_lossy().to_string();
+                let same = asset_path.replace(r"\", r"/");
+                assets.insert(asset_path, asset.clone());
+                assets.insert(same, asset);
+            } else {
+                _load(assets, &path, base, asset_server);
+            }
+        }
+    }
+    _load(&mut assets, &assets_dir, &assets_dir, asset_server.as_ref());
+    commands.insert_resource(PreloadedAssets { assets });
 }

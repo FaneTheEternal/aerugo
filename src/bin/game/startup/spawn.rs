@@ -7,7 +7,7 @@ use super::spawn_game::*;
 
 pub fn spawn(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    asset_server: Res<PreloadedAssets>,
     saves: Res<Saves>,
     window: Res<Windows>,
     mut state: ResMut<State<MainState>>,
@@ -53,7 +53,7 @@ fn make_ui_base(
         .id()
 }
 
-fn spawn_settings(mut commands: &mut Commands, asset_server: &AssetServer) -> Entity
+fn spawn_settings(mut commands: &mut Commands, asset_server: &PreloadedAssets) -> Entity
 {
     let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
     // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
