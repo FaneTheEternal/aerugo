@@ -286,8 +286,9 @@ pub fn new_sprite_listener(
     const MOVE_DURATION: f32 = 1.0;
 
     let window = window.get_primary().unwrap();
-    let w = window.width() / 2.0;
-    // let h = window.height();
+    let w = window.width();
+    let h = window.height();
+    let w_half = w / 2.0;
 
     for event in new_sprite_event.iter() {
         let cmd: &SpriteCommand = &event.0;
@@ -296,14 +297,21 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        commands.spawn_bundle(SpriteBundle::default())
+                        // TODO: https://github.com/bevyengine/bevy/issues/1490
+                        commands.spawn_bundle(SpriteBundle {
+                            sprite: Sprite {
+                                custom_size: Some(Vec2::new(w, h)),
+                                ..default()
+                            },
+                            ..default()
+                        })
                     }
                     Some(entity) => {
                         commands.entity(*entity)
                     }
                 };
                 entity_cmd.insert(sprite);
-                entity_cmd.insert(Transform::from_xyz(w * position, Y_SPRITE, Z_SPRITE));
+                entity_cmd.insert(Transform::from_xyz(w_half * position, Y_SPRITE, Z_SPRITE));
                 game_ui.sprites.insert(name.clone(), entity_cmd.id());
             }
             SpriteCommand::Remove { name } => {
@@ -326,7 +334,7 @@ pub fn new_sprite_listener(
                 };
                 let entity = entity_cmd
                     .insert(sprite)
-                    .insert(Transform::from_xyz(w * position, Y_SPRITE, Z_SPRITE))
+                    .insert(Transform::from_xyz(w_half * position, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateFadeSprite {
                         timer: Timer::from_seconds(FADE_IN_DURATION, false),
                         fade_in: true,
@@ -356,11 +364,11 @@ pub fn new_sprite_listener(
                 };
                 let entity = entity_cmd
                     .insert(sprite)
-                    .insert(Transform::from_xyz(w * -2.0, Y_SPRITE, Z_SPRITE))
+                    .insert(Transform::from_xyz(w_half * -2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
                         timer: Timer::from_seconds(LEFT_IN_DURATION, false),
                         start_pos: f32::NEG_INFINITY,
-                        end_pos: w * position,
+                        end_pos: w_half * position,
                         name: name.clone(),
                         move_out: false,
                     })
@@ -390,11 +398,11 @@ pub fn new_sprite_listener(
                 };
                 let entity = entity_cmd
                     .insert(sprite)
-                    .insert(Transform::from_xyz(w * 2.0, Y_SPRITE, Z_SPRITE))
+                    .insert(Transform::from_xyz(w_half * 2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
                         timer: Timer::from_seconds(RIGHT_IN_DURATION, false),
                         start_pos: f32::INFINITY,
-                        end_pos: w * position,
+                        end_pos: w_half * position,
                         name: name.clone(),
                         move_out: false,
                     })
@@ -424,7 +432,7 @@ pub fn new_sprite_listener(
                             .insert(AnimateMoveSprite {
                                 timer: Timer::from_seconds(MOVE_DURATION, false),
                                 start_pos: f32::NAN,
-                                end_pos: w * position,
+                                end_pos: w_half * position,
                                 name: name.clone(),
                                 move_out: false,
                             });
