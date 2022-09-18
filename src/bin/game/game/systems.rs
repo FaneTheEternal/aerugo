@@ -53,7 +53,9 @@ pub fn setup_game(
     game_ui.scene_visible = false;
     *image_query.get_mut(game_ui.background).unwrap() = Default::default();
     *image_query.get_mut(game_ui.scene).unwrap() = Default::default();
-    *atlas_query.get_mut(game_ui.scene).unwrap() = Default::default();
+    if let Ok(mut atlas) = atlas_query.get_mut(game_ui.scene) {
+        *atlas = default();
+    }
     visibility_query.get_mut(game_ui.background).unwrap().is_visible = false;
     visibility_query.get_mut(game_ui.scene).unwrap().is_visible = false;
     game_ui.sprites = Default::default();
@@ -208,27 +210,34 @@ pub fn new_scene_listener(
     mut commands: Commands,
     mut game_ui: ResMut<GameUI>,
     mut new_scene_event: EventReader<NewSceneEvent>,
-    mut scene_query: Query<(&mut Handle<Image>, &mut Handle<TextureAtlas>, &mut Visibility)>,
+    mut scene_query: Query<(&mut Handle<Image>, &mut Visibility)>,
     asset_server: Res<PreloadedAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut animate_query: Query<&mut AnimateScene>,
+    window: Res<Windows>,
 )
 {
+    let window = window.get_primary().unwrap();
+    let w = window.width();
+    let h = window.height();
+
     for event in new_scene_event.iter() {
         let cmd: &SceneCommand = &event.0;
-        let (mut scene, mut texture_atlas, mut visibility): (Mut<Handle<Image>>, Mut<Handle<TextureAtlas>>, Mut<Visibility>) =
+        let (mut scene, mut visibility): (Mut<Handle<Image>>, Mut<Visibility>) =
             scene_query.get_mut(game_ui.scene).unwrap();
         match cmd {
             SceneCommand::Set { name } => {
                 *scene = asset_server.load(name);
                 visibility.is_visible = true;
                 game_ui.scene_visible = true;
+                commands.entity(game_ui.scene).remove::<Handle<TextureAtlas>>();
+                commands.entity(game_ui.scene).remove::<AnimateScene>();
             }
             SceneCommand::Remove => {
                 *scene = Default::default();
-                *texture_atlas = default();
                 visibility.is_visible = false;
                 game_ui.scene_visible = false;
+                commands.entity(game_ui.scene).remove::<Handle<TextureAtlas>>();
                 commands.entity(game_ui.scene).remove::<AnimateScene>();
             }
             SceneCommand::Play { name, is_loop, tile, columns, rows } => {
@@ -238,7 +247,6 @@ pub fn new_scene_listener(
                     Vec2::new(tile.0 as f32, tile.1 as f32),
                     *columns, *rows,
                 );
-                *texture_atlas = texture_atlases.add(new_texture_atlas);
                 visibility.is_visible = true;
                 game_ui.scene_visible = true;
                 commands
@@ -247,6 +255,11 @@ pub fn new_scene_listener(
                         timer: Timer::from_seconds(0.042, true),
                         is_loop: *is_loop,
                         is_paused: false,
+                    })
+                    .insert(texture_atlases.add(new_texture_atlas))
+                    .insert(TextureAtlasSprite {
+                        custom_size: Some(Vec2::new(w, h)),
+                        ..default()
                     });
             }
             SceneCommand::Pause => {
@@ -290,6 +303,11 @@ pub fn new_sprite_listener(
     let h = window.height();
     let w_half = w / 2.0;
 
+    let sprite_def = Sprite {
+        custom_size: Some(Vec2::new(w, h)),
+        ..default()
+    };
+
     for event in new_sprite_event.iter() {
         let cmd: &SpriteCommand = &event.0;
         match cmd {
@@ -297,12 +315,8 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        // TODO: https://github.com/bevyengine/bevy/issues/1490
                         commands.spawn_bundle(SpriteBundle {
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(w, h)),
-                                ..default()
-                            },
+                            sprite: sprite_def.clone(),
                             ..default()
                         })
                     }
@@ -329,7 +343,12 @@ pub fn new_sprite_listener(
             SpriteCommand::FadeIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
-                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    None => {
+                        commands.spawn_bundle(SpriteBundle {
+                            sprite: sprite_def.clone(),
+                            ..default()
+                        })
+                    }
                     Some(entity) => { commands.entity(*entity) }
                 };
                 let entity = entity_cmd
@@ -359,7 +378,12 @@ pub fn new_sprite_listener(
             SpriteCommand::LeftIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
-                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    None => {
+                        commands.spawn_bundle(SpriteBundle {
+                            sprite: sprite_def.clone(),
+                            ..default()
+                        })
+                    }
                     Some(entity) => { commands.entity(*entity) }
                 };
                 let entity = entity_cmd
@@ -393,7 +417,12 @@ pub fn new_sprite_listener(
             SpriteCommand::RightIn { sprite, name, position } => {
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
-                    None => { commands.spawn_bundle(SpriteBundle::default()) }
+                    None => {
+                        commands.spawn_bundle(SpriteBundle {
+                            sprite: sprite_def.clone(),
+                            ..default()
+                        })
+                    }
                     Some(entity) => { commands.entity(*entity) }
                 };
                 let entity = entity_cmd

@@ -204,7 +204,7 @@ fn spawn_text_ui(
                             .spawn_bundle(TextBundle {
                                 style: Style {
                                     // TODO: percent based
-                                    max_size: Size::new(Val::Px(900.0), Val::Undefined),
+                                    max_size: FLOW_MAX_DEFAULT,
                                     ..default()
                                 },
                                 text: Text::from_section(

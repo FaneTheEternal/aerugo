@@ -1,11 +1,9 @@
 use bevy::prelude::*;
-use bevy::utils::HashMap;
 use bevy::utils::tracing::{Level, span};
 
 use aerugo::bevy_glue::SavePageButton;
 use crate::saves::{LoadMark, SaveMark, Saves};
 use crate::startup::PreloadedAssets;
-use crate::ui::UiState;
 
 use crate::utils::TRANSPARENT;
 
@@ -175,7 +173,7 @@ pub fn new_page(
 
 pub fn save_actions(
     mut commands: Commands,
-    mut save_ui: ResMut<SaveLoadUI>,
+    save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
         (&Interaction, &mut UiColor, &SaveMark),
         (Changed<Interaction>, With<Button>),
@@ -205,12 +203,11 @@ pub fn save_actions(
 
 pub fn load_actions(
     mut commands: Commands,
-    mut save_ui: ResMut<SaveLoadUI>,
+    save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
         (&Interaction, &mut UiColor, &LoadMark),
         (Changed<Interaction>, With<Button>),
     >,
-    mut ui_state: ResMut<State<UiState>>,
 )
 {
     let span = span!(Level::WARN, "load_actions");

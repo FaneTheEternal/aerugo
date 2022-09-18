@@ -39,17 +39,19 @@ fn setup(mut command: Commands) {
     // })
 }
 
+#[allow(dead_code)]
 struct DGBStates {
     pub timer: Timer,
 }
 
+#[allow(dead_code)]
 fn dbg_states(
     time: Res<Time>,
     mut dbg: ResMut<DGBStates>,
-    mut main_state: ResMut<State<crate::startup::MainState>>,
-    mut ui_state: ResMut<State<crate::ui::UiState>>,
-    mut game_state: ResMut<State<crate::game::GameState>>,
-    mut control_state: ResMut<State<crate::game::GameControlState>>,
+    main_state: Res<State<crate::startup::MainState>>,
+    ui_state: Res<State<crate::ui::UiState>>,
+    game_state: Res<State<crate::game::GameState>>,
+    control_state: Res<State<crate::game::GameControlState>>,
 )
 {
     if dbg.timer.tick(time.delta()).just_finished() {

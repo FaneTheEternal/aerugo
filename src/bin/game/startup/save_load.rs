@@ -1,14 +1,12 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
-use bevy::utils::HashMap;
 use aerugo::bevy_glue::SavePageButton;
 use crate::saves::{LoadMark, Save, SaveMark};
 
 use crate::utils::*;
 
 use super::*;
-use super::spawn_game::*;
 
 pub fn spawn_save(
     commands: &mut Commands,
@@ -77,7 +75,7 @@ pub fn spawn_save(
             spawn_pages_row(parent, button_font.clone(), page_btn, page_btn_hover)
         })
         .with_children(|parent| {
-            let mut saves = (0..20usize)
+            let saves = (0..20usize)
                 .map(|i| saves.saves.get(&i))
                 .collect::<Vec<_>>();
             let mut entity = parent

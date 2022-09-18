@@ -8,7 +8,6 @@ use serde::{Serialize, Deserialize};
 use aerugo::{Aerugo, AerugoState};
 
 use crate::game::GameState;
-use crate::ui::UiState;
 
 pub struct SavePlugin;
 

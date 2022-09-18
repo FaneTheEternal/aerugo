@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::startup::PreloadedAssets;
-use crate::utils::{FLOW_DEFAULT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
+use crate::utils::{FLOW_DEFAULT, FLOW_MAX_DEFAULT, FLOW_MAX_SHIFT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
 
 use super::*;
 
@@ -71,12 +71,16 @@ impl TextUI {
                 .margin = NARRATOR_SHIFT;
             style_query.get_mut(self.text_base).unwrap()
                 .padding = FLOW_SHIFT;
+            style_query.get_mut(self.text).unwrap()
+                .max_size = FLOW_MAX_SHIFT;
         } else {
             style_query.get_mut(self.narrator_base).unwrap()
                 .margin = NARRATOR_DEFAULT;
             style_query.get_mut(self.text_base).unwrap()
                 .padding = FLOW_DEFAULT;
-        }
+            style_query.get_mut(self.text).unwrap()
+                .max_size = FLOW_MAX_DEFAULT;
+        };
     }
 
     pub fn clean_narrators(
@@ -214,7 +218,7 @@ impl GameUI {
         &self,
         mut query: Query<&mut Style>,
         mut query_2d: Query<&mut Visibility>,
-        game_state: &GameState
+        game_state: &GameState,
     )
     {
         match game_state {
