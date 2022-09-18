@@ -251,6 +251,14 @@ impl Step {
         }
     }
 
+    pub fn new_text() -> Step {
+        Step {
+            id: Uuid::new_v4(),
+            name: "".to_string(),
+            inner: Steps::Text { author: "".to_string(), texts: "".to_string() },
+        }
+    }
+
     pub fn with_inner(mut self, inner: Steps) -> Step {
         self.inner = inner;
         self

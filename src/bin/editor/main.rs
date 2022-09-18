@@ -3,6 +3,7 @@ mod light;
 use std::fmt::Debug;
 use std::io::{Read, Write};
 use bevy::prelude::*;
+use bevy::utils::HashSet;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use uuid::Uuid;
 use strum::IntoEnumIterator;
@@ -59,11 +60,32 @@ fn ui_system(
     mut aerugo: ResMut<Aerugo>,
 )
 {
-    let targets = aerugo.steps.iter()
-        .map(|step| {
-            (step.id.clone(), step.name.clone())
-        })
-        .collect::<Vec<_>>();
+    let mut targets = Vec::new();
+    let mut narrator_names = Vec::new();
+    let mut narrator_sprites = Vec::new();
+    for step in &aerugo.steps {
+        targets.push((step.id.clone(), step.name.clone()));
+        match &step.inner {
+            Steps::Text { author, .. } => {
+                if !narrator_names.contains(author) {
+                    narrator_names.push(author.clone());
+                }
+            }
+            Steps::SpriteNarrator(cmd) => {
+                match &cmd {
+                    NarratorCommand::Set { name, .. } => {
+                        if !narrator_sprites.contains(name) {
+                            narrator_sprites.push(name.clone());
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Steps::Sprite(_) => {}
+            Steps::None => {}
+            _ => {}
+        }
+    }
 
     egui::TopBottomPanel::top("my_panel")
         .show(e_ctx.ctx_mut(), |ui| {
@@ -89,13 +111,13 @@ fn ui_system(
                                 delete = Some(i);
                             }
                         });
-                        step_widget(ui, step, &targets);
+                        step_widget(ui, step, &targets, &narrator_names, &narrator_sprites);
                     }
                     if let Some(insert) = insert {
-                        aerugo.steps.insert(insert, Step::new());
+                        aerugo.steps.insert(insert, Step::new_text());
                     }
                     if ui.button("+").clicked() {
-                        aerugo.steps.push(Step::new());
+                        aerugo.steps.push(Step::new_text());
                     }
                     if let Some(delete) = delete {
                         aerugo.steps.remove(delete);
@@ -138,7 +160,14 @@ pub fn light_edit<O, L>(ui: &mut egui::Ui, origin: &mut O, label: &str)
     }
 }
 
-fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>) {
+fn step_widget(
+    ui: &mut egui::Ui,
+    step: &mut Step,
+    targets: &Vec<(Uuid, String)>,
+    narrator_names: &Vec<String>,
+    narrator_sprites: &Vec<String>,
+)
+{
     egui::CollapsingHeader::new(format!("{} - {:?}", step.id, step.name))
         .default_open(true)
         .show(
@@ -154,7 +183,19 @@ fn step_widget(ui: &mut egui::Ui, step: &mut Step, targets: &Vec<(Uuid, String)>
                 match &mut step.inner {
                     Steps::Text { author, texts } => {
                         ui.heading("Text");
-                        horizontal_text(ui, "Author:", author);
+                        ui.horizontal(|ui| {
+                            egui::ComboBox::from_label("Author:").width(200.0)
+                                .show_ui(ui, |ui| {
+                                    for narrator in narrator_names {
+                                        ui.selectable_value(
+                                            author,
+                                            narrator.clone(),
+                                            narrator,
+                                        );
+                                    }
+                                });
+                            ui.text_edit_singleline(author);
+                        });
                         ui.horizontal(|ui| {
                             ui.label("Text:");
                             ui.text_edit_multiline(texts);
