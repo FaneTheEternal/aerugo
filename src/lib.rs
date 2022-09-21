@@ -1,19 +1,22 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::fmt::Debug;
+use std::hash::Hasher;
+
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+pub use condition::*;
+pub use simple_sprite::*;
+
+use crate::inspect::Inspector;
+
 mod simple_sprite;
 mod condition;
 mod inspect;
 pub mod bevy_glue;
-
-use std::collections::HashMap;
-use std::fmt::{Debug};
-use std::hash::Hasher;
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-
-pub use simple_sprite::*;
-pub use condition::*;
-use crate::inspect::Inspector;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AerugoState {
@@ -184,6 +187,27 @@ impl Default for AerugoState {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Aerugo {
     pub steps: Vec<Step>,
+}
+
+impl Aerugo {
+    // TODO: Aerugo Errors
+    pub fn validate(&self) -> Result<(), String> {
+        let mut ids = HashSet::new();
+        let mut duplicates = HashSet::new();
+        for step in &self.steps {
+            if ids.contains(&step.id) {
+                duplicates.insert(step.id.clone());
+            } else {
+                ids.insert(step.id.clone());
+            }
+        }
+        if !duplicates.is_empty() {
+            let duplicates = duplicates.into_iter()
+                .map(|id| id.to_string()).collect::<Vec<_>>();
+            return Err(format!("Found duplicates: {}", duplicates.join(", ")));
+        }
+        Ok(())
+    }
 }
 
 impl Default for Aerugo {
