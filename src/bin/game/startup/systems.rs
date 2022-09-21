@@ -56,6 +56,7 @@ pub fn load(
 )
 {
     let aerugo = crate::utils::load_aerugo();
+    aerugo.validate().expect("Invalid aerugo scenario");
     let saves = pre_load_saves(&aerugo);
     commands.insert_resource(aerugo);
     commands.insert_resource(saves);
