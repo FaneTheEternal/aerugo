@@ -7,7 +7,7 @@ macro_rules! str {
     ($s:expr) => {format!("{}", $s)};
 }
 
-const SCENARIO_PATH: &str = "scenario.ron";
+const SCENARIO_PATH: &str = "scenario_demo.ron";
 
 fn main() {
     let story_flow = Uuid::new_v4();
