@@ -102,6 +102,7 @@ fn ui_system(
                 |mut ui| {
                     let mut insert = None;
                     let mut delete = None;
+                    let mut mc = None;
                     for (i, step) in aerugo.steps.iter_mut().enumerate() {
                         ui.horizontal(|ui| {
                             if ui.button("INSERT").clicked() {
@@ -110,19 +111,56 @@ fn ui_system(
                             if ui.button("DELETE").clicked() {
                                 delete = Some(i);
                             }
+                            if ui.button("PRE").clicked() {
+                                mc = Some((i, true));
+                            }
+                            if ui.button("POST").clicked() {
+                                mc = Some((i, false));
+                            }
                         });
                         step_widget(ui, step, &targets, &narrator_names, &narrator_sprites);
                     }
+                    ui.horizontal(|ui| {
+                        if ui.button("+").clicked() {
+                            aerugo.steps.push(Step::new_text());
+                        }
+                        if ui.button("+MC").clicked() {
+                            aerugo.steps.push(Step::new().with_inner(
+                                Steps::SpriteNarrator(NarratorCommand::Set {
+                                    name: "".to_string(),
+                                    sprite: "textures\\main_char\\default.png".to_string(),
+                                })
+                            ));
+                            aerugo.steps.push(Step::new().with_inner(
+                                Steps::Text { author: "Ты".to_string(), texts: "".to_string() }
+                            ));
+                            aerugo.steps.push(Step::new().with_inner(
+                                Steps::SpriteNarrator(NarratorCommand::Clean)
+                            ));
+                        }
+                    });
                     if let Some(insert) = insert {
                         aerugo.steps.insert(insert, Step::new_text());
-                    }
-                    if ui.button("+").clicked() {
-                        aerugo.steps.push(Step::new_text());
                     }
                     if let Some(delete) = delete {
                         aerugo.steps.remove(delete);
                     }
                     ui.allocate_space(egui::Vec2::new(100.0, 500.0));
+                    if let Some(mc) = mc {
+                        let mut step = Step::new();
+                        if mc.1 {
+                            step.inner = Steps::SpriteNarrator(NarratorCommand::Set {
+                                name: "".to_string(),
+                                sprite: "textures\\main_char\\default.png".to_string(),
+                            });
+                        } else {
+                            step.inner = Steps::SpriteNarrator(NarratorCommand::Clean);
+                        }
+                        aerugo.steps.insert(
+                            mc.0 + if mc.1 { 0 } else { 1 },
+                            step,
+                        )
+                    }
                 },
             );
         },
