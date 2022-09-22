@@ -6,7 +6,7 @@ use crate::utils::{CachedAssetServer, SIZE_ALL};
 
 use super::*;
 
-const SPLASH_FONT: &str = "fonts/FiraMono-Medium.ttf";
+const SPLASH_FONT: &str = "fonts/Orbitron Black.ttf";
 
 pub fn spawn_splash_screen(
     mut commands: Commands,
@@ -53,7 +53,7 @@ pub fn update_splash_screen<const S: MainState>(
 )
 {
     splash_screen.timer.tick(time.delta());
-    if asset_server.all_loaded() & splash_screen.timer.just_finished() {
+    if asset_server.all_loaded() & splash_screen.timer.finished() {
         main_state.set(S)
             .unwrap_or_else(|e| warn!("{e:?}"));
         splash_screen.timer.reset();
