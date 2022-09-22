@@ -31,7 +31,7 @@ pub fn spawn_splash_screen(
                         "Aerugo",
                         TextStyle {
                             font: asset_server.load(SPLASH_FONT),
-                            font_size: 50.0,
+                            font_size: 60.0,
                             color: Color::WHITE,
                         },
                     ),
@@ -39,10 +39,14 @@ pub fn spawn_splash_screen(
                 });
         })
         .id();
+
     commands.insert_resource(SplashScreen {
         timer: Timer::from_seconds(1.5, false),
         root,
     });
+
+    // simple preload big picture
+    let _ = asset_server.load::<Image>("logo.png");
 }
 
 pub fn update_splash_screen<const S: MainState>(
@@ -76,22 +80,8 @@ pub fn game_splash_screen(
                 align_items: AlignItems::Center,
                 ..default()
             },
-            // image: TODO: game splash_screen img
+            image: asset_server.load("logo.png").into(),
             ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
-                    text: Text::from_section(
-                        "Deep Dark Fantasy",
-                        TextStyle {
-                            font: asset_server.load(SPLASH_FONT),
-                            font_size: 50.0,
-                            color: Color::CRIMSON,
-                        },
-                    ).with_alignment(TextAlignment::CENTER),
-                    ..default()
-                });
         })
         .id();
     commands.insert_resource(SplashScreen {
