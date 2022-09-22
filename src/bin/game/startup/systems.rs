@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use bevy::prelude::*;
+use aerugo::{Aerugo, BackgroundCommand, NarratorCommand, SceneCommand, SpriteCommand, Steps};
 
 use crate::utils::{CachedAssetServer, SIZE_ALL};
 
@@ -114,34 +115,57 @@ pub fn load(
 
 pub fn preload_assets(
     mut asset_server: CachedAssetServer,
+    aerugo: Res<Aerugo>,
 )
 {
-    // TODO: universal solution
-    let current_dir = std::env::current_dir().unwrap();
-    let assets_dir = current_dir.join("assets");
-    let mut assets: HashMap<String, HandleUntyped> = default();
-
-    fn _load(
-        assets: &mut HashMap<String, HandleUntyped>,
-        path: &PathBuf,
-        base: &PathBuf,
-        asset_server: &mut CachedAssetServer,
-    )
-    {
-        for entry in std::fs::read_dir(path).unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-
-            let metadata = std::fs::metadata(&path).unwrap();
-
-            if metadata.is_file() {
-                let asset_path = path.strip_prefix(base).unwrap();
-                let asset_path = asset_path.to_string_lossy().to_string();
-                let _ = asset_server.load_untyped(&asset_path);
-            } else {
-                _load(assets, &path, base, asset_server);
+    for step in &aerugo.steps {
+        match &step.inner {
+            Steps::ImageSelect { .. } => {}
+            Steps::SpriteNarrator(cmd) => {
+                match cmd {
+                    NarratorCommand::Set { name, sprite } => {
+                        let _ = asset_server.load_untyped(sprite);
+                    }
+                    _ => {}
+                }
             }
+            Steps::Sprite(cmd) => {
+                match cmd {
+                    SpriteCommand::Set { sprite, .. } => {
+                        let _ = asset_server.load_untyped(sprite);
+                    }
+                    SpriteCommand::FadeIn { sprite, .. } => {
+                        let _ = asset_server.load_untyped(sprite);
+                    }
+                    SpriteCommand::LeftIn { sprite, .. } => {
+                        let _ = asset_server.load_untyped(sprite);
+                    }
+                    SpriteCommand::RightIn { sprite, .. } => {
+                        let _ = asset_server.load_untyped(sprite);
+                    }
+                    _ => {}
+                }
+            }
+            Steps::Background(cmd) => {
+                match cmd {
+                    BackgroundCommand::Change { new, .. } => {
+                        let _ = asset_server.load_untyped(new);
+                    }
+                    _ => {}
+                }
+            }
+            Steps::Scene(cmd) => {
+                match cmd {
+                    SceneCommand::Set { name } => {
+                        let _ = asset_server.load_untyped(name);
+                    }
+                    SceneCommand::Play { name, .. } => {
+                        let _ = asset_server.load_untyped(name);
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
         }
     }
-    _load(&mut assets, &assets_dir, &assets_dir, &mut asset_server);
 }

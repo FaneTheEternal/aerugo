@@ -40,7 +40,6 @@ impl Plugin for StartupPlugin {
             .add_system_set(
                 SystemSet::on_enter(MainState::Load)
                     .with_system(game_splash_screen)
-                    .with_system(preload_assets)
                     .with_system(load)
             )
             .add_system_set(
@@ -50,6 +49,7 @@ impl Plugin for StartupPlugin {
             .add_system_set(
                 SystemSet::on_enter(MainState::Spawn)
                     .with_system(spawn)
+                    .with_system(preload_assets)
             )
             .add_system_set(
                 SystemSet::on_update(MainState::Spawn)
