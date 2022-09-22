@@ -234,7 +234,7 @@ fn spawn_frames(
                     ui.has_save = save.is_some();
                     let back = save
                         .and_then(|save| save.state.inspector.background.as_ref());
-                    let (back, color) = match back {
+                    let (back_img, color) = match back {
                         None => { (UiImage::default(), TRANSPARENT) }
                         Some(name) => { (asset_server.load(name).into(), Color::WHITE) }
                     };
@@ -247,12 +247,13 @@ fn spawn_frames(
                                 flex_direction: FlexDirection::ColumnReverse,
                                 ..default()
                             },
-                            image: back,
+                            image: back_img,
                             color: color.into(),
                             ..default()
                         })
                         .insert(SaveMark { to: i })
                         .insert(LoadMark(i))
+                        .insert(HasBackground(back.is_some()))
                         .with_children(|parent| {
                             parent
                                 .spawn_bundle(NodeBundle {

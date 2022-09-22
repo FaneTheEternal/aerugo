@@ -13,6 +13,9 @@ pub struct SaveLoadUI {
     pub save_frames: Vec<SaveFrameUI>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+pub struct HasBackground(pub bool);
+
 impl SaveLoadUI {
     pub fn show(&self, style_query: &mut Query<&mut Style>) {
         style_query.get_mut(self.root).unwrap().display = Display::Flex;
@@ -174,7 +177,7 @@ pub fn save_actions(
     mut commands: Commands,
     save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &SaveMark),
+        (&Interaction, &mut UiColor, &SaveMark, &HasBackground),
         (Changed<Interaction>, With<Button>),
     >,
 )
@@ -182,19 +185,19 @@ pub fn save_actions(
     let span = span!(Level::WARN, "save_actions");
     let _enter = span.enter();
 
-    for (interaction, mut color, mark) in interactions_query.iter_mut() {
+    for (interaction, mut color, mark, has_back) in interactions_query.iter_mut() {
         let interaction: &Interaction = interaction;
         match interaction {
             Interaction::Clicked => {
-                *color = TRANSPARENT.into();
+                *color = if has_back.0 { Color::WHITE.into() } else { TRANSPARENT.into() };
                 commands.insert_resource(save_ui.fix_save_mark(mark.clone()));
                 commands.insert_resource(NewPage(save_ui.current.clone()));
             }
             Interaction::Hovered => {
-                *color = Color::rgba(1.0, 1.0, 1.0, 0.01).into();
+                *color = Color::rgba(1.0, 1.0, 1.0, 0.5).into()
             }
             Interaction::None => {
-                *color = TRANSPARENT.into();
+                *color = if has_back.0 { Color::WHITE.into() } else { TRANSPARENT.into() };
             }
         }
     }
@@ -204,7 +207,7 @@ pub fn load_actions(
     mut commands: Commands,
     save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &LoadMark),
+        (&Interaction, &mut UiColor, &LoadMark, &HasBackground),
         (Changed<Interaction>, With<Button>),
     >,
 )
@@ -212,18 +215,22 @@ pub fn load_actions(
     let span = span!(Level::WARN, "load_actions");
     let _enter = span.enter();
 
-    for (interaction, mut color, mark) in interactions_query.iter_mut() {
+    for (interaction, mut color, mark, has_back) in interactions_query.iter_mut() {
         let interaction: &Interaction = interaction;
         match interaction {
             Interaction::Clicked => {
-                *color = TRANSPARENT.into();
+                *color = if has_back.0 { Color::WHITE.into() } else { TRANSPARENT.into() };
                 commands.insert_resource(save_ui.fix_load_mark(mark.clone()));
             }
             Interaction::Hovered => {
-                *color = Color::rgba(1.0, 1.0, 1.0, 0.01).into();
+                *color = if has_back.0 {
+                    Color::rgba(1.0, 1.0, 1.0, 0.5).into()
+                } else {
+                    TRANSPARENT.into()
+                };
             }
             Interaction::None => {
-                *color = TRANSPARENT.into();
+                *color = if has_back.0 { Color::WHITE.into() } else { TRANSPARENT.into() };
             }
         }
     }
