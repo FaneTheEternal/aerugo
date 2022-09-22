@@ -1,20 +1,21 @@
 use std::io::Read;
-use substring::Substring;
+
 use bevy::{
     prelude::*,
 };
 use bevy::ecs::schedule::IntoRunCriteria;
 use bevy::log::Level;
 use bevy::utils::tracing::span;
+use substring::Substring;
 
 use aerugo::*;
 use aerugo::bevy_glue::GameMenuButtons;
+
 use crate::saves::AerugoLoaded;
-use crate::startup::PreloadedAssets;
+use crate::ui::{GameUI, UiState};
+use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, CachedAssetServer, load_aerugo, SIZE_ALL, TRANSPARENT, Y_SPRITE, Z_SPRITE};
 
 use super::*;
-use crate::ui::{GameUI, UiState};
-use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, load_aerugo, SIZE_ALL, TRANSPARENT, Y_SPRITE, Z_SPRITE};
 
 pub fn setup_game(
     mut commands: Commands,
@@ -141,7 +142,7 @@ pub fn new_narrator_listener(
     mut style_query: Query<&mut Style>,
     mut image_query: Query<&mut UiImage>,
     mut new_narrator_event: EventReader<NewNarratorEvent>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
 )
 {
     for event in new_narrator_event.iter() {
@@ -154,7 +155,7 @@ pub fn new_narrator_listener(
                     &mut image_query,
                     name,
                     Some(sprite.clone()),
-                    asset_server.as_ref(),
+                    &mut asset_server,
                 );
             }
             NarratorCommand::Remove { name } => {
@@ -163,7 +164,7 @@ pub fn new_narrator_listener(
                     &mut image_query,
                     name,
                     None,
-                    asset_server.as_ref(),
+                    &mut asset_server,
                 );
             }
             NarratorCommand::Clean => {
@@ -181,7 +182,7 @@ pub fn new_background_listener(
     mut game_ui: ResMut<GameUI>,
     mut new_background_event: EventReader<NewBackgroundEvent>,
     mut background_query: Query<(&mut Handle<Image>, &mut Visibility)>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
 )
 {
     for event in new_background_event.iter() {
@@ -211,7 +212,7 @@ pub fn new_scene_listener(
     mut game_ui: ResMut<GameUI>,
     mut new_scene_event: EventReader<NewSceneEvent>,
     mut scene_query: Query<(&mut Handle<Image>, &mut Visibility)>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut animate_query: Query<&mut AnimateScene>,
     window: Res<Windows>,
@@ -286,7 +287,7 @@ pub fn new_sprite_listener(
     mut commands: Commands,
     mut game_ui: ResMut<GameUI>,
     mut new_sprite_event: EventReader<NewSpriteEvent>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
     window: Res<Windows>,
 )
 {
@@ -475,7 +476,7 @@ pub fn new_sprite_listener(
 
 pub fn step_init(
     mut commands: Commands,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
     mut game_control_state: ResMut<State<GameControlState>>,
     step: Option<Res<Step>>,
     mut style_query: Query<&mut Style>,

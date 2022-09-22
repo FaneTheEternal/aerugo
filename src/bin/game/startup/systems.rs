@@ -1,15 +1,19 @@
 use std::path::PathBuf;
+
 use bevy::prelude::*;
-use crate::utils::SIZE_ALL;
+
+use crate::utils::{CachedAssetServer, SIZE_ALL};
+
 use super::*;
+
+const SPLASH_FONT: &str = "fonts/FiraMono-Medium.ttf";
 
 pub fn spawn_splash_screen(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut state: ResMut<State<MainState>>,
+    mut asset_server: CachedAssetServer,
 )
 {
-    commands
+    let root = commands
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: SIZE_ALL,
@@ -20,39 +24,95 @@ pub fn spawn_splash_screen(
             color: Color::BLACK.into(),
             ..Default::default()
         })
-        .insert(SplashScreen)
         .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
                     text: Text::from_section(
                         "Aerugo",
                         TextStyle {
-                            font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                            font: asset_server.load(SPLASH_FONT),
                             font_size: 50.0,
                             color: Color::WHITE,
                         },
                     ),
                     ..Default::default()
                 });
-        });
-    state.set(MainState::Load).unwrap_or_else(|e| warn!("{e:?}"));
+        })
+        .id();
+    commands.insert_resource(SplashScreen {
+        timer: Timer::from_seconds(1.5, false),
+        root,
+    });
+}
+
+pub fn update_splash_screen<const S: MainState>(
+    asset_server: CachedAssetServer,
+    mut main_state: ResMut<State<MainState>>,
+    mut splash_screen: ResMut<SplashScreen>,
+    time: Res<Time>,
+)
+{
+    splash_screen.timer.tick(time.delta());
+    if asset_server.all_loaded() & splash_screen.timer.just_finished() {
+        main_state.set(S)
+            .unwrap_or_else(|e| warn!("{e:?}"));
+        splash_screen.timer.reset();
+    }
+}
+
+pub fn game_splash_screen(
+    mut commands: Commands,
+    mut asset_server: CachedAssetServer,
+    splash_screen: Res<SplashScreen>,
+)
+{
+    commands.entity(splash_screen.root).despawn_recursive();
+    let root = commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: SIZE_ALL,
+                flex_wrap: FlexWrap::Wrap,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            // image: TODO: game splash_screen img
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text::from_section(
+                        "Deep Dark Fantasy",
+                        TextStyle {
+                            font: asset_server.load(SPLASH_FONT),
+                            font_size: 50.0,
+                            color: Color::CRIMSON,
+                        },
+                    ).with_alignment(TextAlignment::CENTER),
+                    ..default()
+                });
+        })
+        .id();
+    commands.insert_resource(SplashScreen {
+        timer: Timer::from_seconds(3.0, false),
+        root,
+    });
 }
 
 pub fn remove_splash_screen(
     mut commands: Commands,
-    query: Query<Entity, With<SplashScreen>>,
     mut ui_state: ResMut<State<UiState>>,
+    splash_screen: Res<SplashScreen>,
 )
 {
-    for entity in query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-    ui_state.set(UiState::MainMenu).unwrap_or_else(|e| warn!("{e:?}"));
+    commands.entity(splash_screen.root).despawn_recursive();
+    ui_state.set(UiState::MainMenu)
+        .unwrap_or_else(|e| warn!("{e:?}"));
 }
 
 pub fn load(
     mut commands: Commands,
-    mut state: ResMut<State<MainState>>,
 )
 {
     let aerugo = crate::utils::load_aerugo();
@@ -60,12 +120,10 @@ pub fn load(
     let saves = pre_load_saves(&aerugo);
     commands.insert_resource(aerugo);
     commands.insert_resource(saves);
-    state.set(MainState::Spawn).unwrap_or_else(|e| warn!("{e:?}"));
 }
 
 pub fn preload_assets(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    mut asset_server: CachedAssetServer,
 )
 {
     // TODO: universal solution
@@ -73,7 +131,13 @@ pub fn preload_assets(
     let assets_dir = current_dir.join("assets");
     let mut assets: HashMap<String, HandleUntyped> = default();
 
-    fn _load(assets: &mut HashMap<String, HandleUntyped>, path: &PathBuf, base: &PathBuf, asset_server: &AssetServer) {
+    fn _load(
+        assets: &mut HashMap<String, HandleUntyped>,
+        path: &PathBuf,
+        base: &PathBuf,
+        asset_server: &mut CachedAssetServer,
+    )
+    {
         for entry in std::fs::read_dir(path).unwrap() {
             let entry = entry.unwrap();
             let path = entry.path();
@@ -82,16 +146,12 @@ pub fn preload_assets(
 
             if metadata.is_file() {
                 let asset_path = path.strip_prefix(base).unwrap();
-                let asset = asset_server.load_untyped(asset_path);
                 let asset_path = asset_path.to_string_lossy().to_string();
-                let same = asset_path.replace(r"\", r"/");
-                assets.insert(asset_path, asset.clone());
-                assets.insert(same, asset);
+                let _ = asset_server.load_untyped(&asset_path);
             } else {
                 _load(assets, &path, base, asset_server);
             }
         }
     }
-    _load(&mut assets, &assets_dir, &assets_dir, asset_server.as_ref());
-    commands.insert_resource(PreloadedAssets { assets });
+    _load(&mut assets, &assets_dir, &assets_dir, &mut asset_server);
 }

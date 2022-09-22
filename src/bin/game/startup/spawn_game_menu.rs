@@ -1,11 +1,12 @@
-use aerugo::bevy_glue::*;
 use bevy::prelude::*;
-use crate::startup::PreloadedAssets;
+
+use aerugo::bevy_glue::*;
+
 use crate::utils::*;
 
 pub fn spawn(
     commands: &mut Commands,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
 ) -> Entity
 {
     let button_font = asset_server

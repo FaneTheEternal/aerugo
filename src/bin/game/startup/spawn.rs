@@ -7,30 +7,27 @@ use super::spawn_game::*;
 
 pub fn spawn(
     mut commands: Commands,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
     saves: Res<Saves>,
     window: Res<Windows>,
-    mut state: ResMut<State<MainState>>,
 )
 {
-    let main_menu = spawn_main_menu::spawn(&mut commands, asset_server.as_ref());
+    let main_menu = spawn_main_menu::spawn(&mut commands, &mut asset_server);
     commands.insert_resource(MainMenuUI { entity_root: main_menu });
 
     let save = save_load::spawn_save(
-        &mut commands, asset_server.as_ref(), saves.as_ref()
+        &mut commands, &mut asset_server, saves.as_ref()
     );
     commands.insert_resource(save);
 
-    let settings = spawn_settings(&mut commands, asset_server.as_ref());
+    let settings = spawn_settings(&mut commands, &mut asset_server);
     commands.insert_resource(SettingsUI { entity_root: settings });
 
-    let game = spawn_game(&mut commands, asset_server.as_ref(), window.as_ref());
+    let game = spawn_game(&mut commands, &mut asset_server, window.as_ref());
     commands.insert_resource(game);
 
-    let game_menu = spawn_game_menu::spawn(&mut commands, asset_server.as_ref());
+    let game_menu = spawn_game_menu::spawn(&mut commands, &mut asset_server);
     commands.insert_resource(GameMenuUI { root: game_menu });
-
-    state.set(MainState::Ready).unwrap_or_else(|e| warn!("{e:?}"));
 }
 
 fn make_ui_base(
@@ -53,7 +50,7 @@ fn make_ui_base(
         .id()
 }
 
-fn spawn_settings(mut commands: &mut Commands, asset_server: &PreloadedAssets) -> Entity
+fn spawn_settings(mut commands: &mut Commands, asset_server: &mut CachedAssetServer) -> Entity
 {
     let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
     // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");

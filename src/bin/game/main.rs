@@ -1,4 +1,7 @@
 #![feature(unboxed_closures)]
+#![feature(adt_const_params)]
+
+use bevy::prelude::*;
 
 mod utils;
 mod game;
@@ -6,8 +9,6 @@ mod saves;
 mod startup;
 mod ui;
 mod saves_ui;
-
-use bevy::prelude::*;
 
 fn main() {
     App::new()

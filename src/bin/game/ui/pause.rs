@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use aerugo::*;
 use aerugo::bevy_glue::GameMenuButtons;
-use crate::saves::AerugoLoaded;
 
+use crate::saves::AerugoLoaded;
 use crate::utils::*;
 
 use super::*;

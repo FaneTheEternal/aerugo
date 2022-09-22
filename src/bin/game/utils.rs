@@ -2,10 +2,16 @@
 
 use std::io::Read;
 
-use bevy::ecs::schedule::ShouldRun;
+use bevy::asset::{Asset, LoadState};
+use bevy::ecs::{
+    schedule::ShouldRun,
+    system::SystemParam,
+};
 use bevy::prelude::*;
 
 use aerugo::Aerugo;
+
+use crate::startup::AssetCache;
 
 pub const BTN_NORMAL: Color = Color::WHITE;
 pub const BTN_HOVERED: Color = Color::GRAY;
@@ -165,3 +171,38 @@ pub const BTN3: &str = r"hud/mm_btn3.png";
 pub const BTN4: &str = r"hud/mm_btn4.png";
 pub const BTN5: &str = r"hud/mm_btn5.png";
 pub const BTN6: &str = r"hud/mm_btn6.png";
+
+#[derive(SystemParam)]
+pub struct CachedAssetServer<'w, 's> {
+    asset_server: Res<'w, AssetServer>,
+    cache: ResMut<'w, AssetCache>,
+    _s: Query<'w, 's, ()>,
+}
+
+impl<'w, 's> CachedAssetServer<'w, 's> {
+    pub fn load_untyped(&mut self, path: &str) -> HandleUntyped {
+        if let Some(handle) = self.cache.assets.get(path) {
+            handle.clone()
+        } else {
+            let handle = self.asset_server.load_untyped(path);
+            self.cache.assets.insert(path.replace(r"/", r"\"), handle.clone());
+            self.cache.assets.insert(path.replace(r"\", r"/"), handle.clone());
+            handle
+        }
+    }
+
+    pub fn load<T: Asset>(&mut self, path: &str) -> Handle<T> {
+        self.load_untyped(path).typed()
+    }
+
+    pub fn all_loaded(&self) -> bool {
+        let id_iter = self.cache.assets.values().map(|h| h.id);
+        match self.asset_server.get_group_load_state(id_iter) {
+            LoadState::NotLoaded => { false }
+            LoadState::Loading => { false }
+            LoadState::Loaded => { true }
+            LoadState::Failed => { true }  // maybe false
+            LoadState::Unloaded => { unreachable!() }
+        }
+    }
+}

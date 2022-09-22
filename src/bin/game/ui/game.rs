@@ -1,9 +1,8 @@
 use bevy::prelude::*;
-use crate::startup::PreloadedAssets;
-use crate::utils::{FLOW_DEFAULT, FLOW_MAX_DEFAULT, FLOW_MAX_SHIFT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
+
+use crate::utils::{CachedAssetServer, FLOW_DEFAULT, FLOW_MAX_DEFAULT, FLOW_MAX_SHIFT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
 
 use super::*;
-
 
 #[derive(Debug, Clone)]
 pub struct NarratorUI {
@@ -31,7 +30,7 @@ impl TextUI {
         image_query: &mut Query<&mut UiImage>,
         name: &str,
         sprite: Option<String>,
-        asset_server: &PreloadedAssets,
+        asset_server: &mut CachedAssetServer,
     )
     {
         if let Some(narrator) = self.narrator_sprites.get(name) {

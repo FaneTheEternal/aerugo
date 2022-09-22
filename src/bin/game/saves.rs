@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 
 use bevy::prelude::*;
 use chrono::DateTime;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use aerugo::{Aerugo, AerugoState};
 

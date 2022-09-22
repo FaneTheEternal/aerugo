@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 
-
 // region text flow
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 pub struct TextFlowBase;

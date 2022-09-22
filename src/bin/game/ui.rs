@@ -1,8 +1,8 @@
 use bevy::app::AppExit;
+use bevy::log::Level;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::tracing::span;
-use bevy::log::Level;
 
 pub use game::*;
 pub use main_menu::*;

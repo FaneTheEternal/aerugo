@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
@@ -9,7 +7,7 @@ use super::*;
 
 pub(crate) fn spawn_game(
     commands: &mut Commands,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
     window: &Windows,
 ) -> GameUI
 {
@@ -111,7 +109,7 @@ pub(crate) fn spawn_game(
 fn spawn_text_ui(
     builder: &mut ChildBuilder,
     text_font: Handle<Font>,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
 ) -> TextUI
 {
     let mut root = builder
@@ -230,7 +228,7 @@ fn spawn_text_ui(
             parent,
             "hud/game_narrator_first.png",
             JustifyContent::FlexStart,
-            asset_server.deref(),
+            asset_server,
         );
         narrator_sprites.insert("".into(), narrator.clone());
         narrator_sprites.insert("first".into(), narrator);
@@ -240,7 +238,7 @@ fn spawn_text_ui(
             parent,
             "hud/game_narrator_second.png",
             JustifyContent::FlexEnd,
-            asset_server.deref(),
+            asset_server,
         );
         narrator_sprites.insert("second".into(), narrator);
     });
@@ -261,7 +259,7 @@ fn spawn_narrator_frame(
     builder: &mut ChildBuilder,
     sprite: &str,
     justify_content: JustifyContent,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
 ) -> NarratorUI
 {
     let mut narrator = NarratorUI {

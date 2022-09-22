@@ -1,11 +1,12 @@
 use bevy::prelude::*;
+
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::startup::PreloadedAssets;
+
 use crate::utils::*;
 
 pub fn spawn(
     commands: &mut Commands,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
 ) -> Entity
 {
     let button_font = asset_server

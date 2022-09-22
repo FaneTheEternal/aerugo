@@ -1,16 +1,17 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
-use aerugo::bevy_glue::SavePageButton;
-use crate::saves::{LoadMark, Save, SaveMark};
 
+use aerugo::bevy_glue::SavePageButton;
+
+use crate::saves::{LoadMark, Save, SaveMark};
 use crate::utils::*;
 
 use super::*;
 
 pub fn spawn_save(
     commands: &mut Commands,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
     saves: &Saves,
 ) -> SaveLoadUI
 {
@@ -200,7 +201,7 @@ fn spawn_frames(
     button_font: Handle<Font>,
     saves: &[Option<&Save>],
     frame_img: Handle<Image>,
-    asset_server: &PreloadedAssets,
+    asset_server: &mut CachedAssetServer,
 ) -> Vec<SaveFrameUI>
 {
     let mut save_frames = vec![];

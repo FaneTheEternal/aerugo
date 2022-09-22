@@ -2,10 +2,9 @@ use bevy::prelude::*;
 use bevy::utils::tracing::{Level, span};
 
 use aerugo::bevy_glue::SavePageButton;
-use crate::saves::{LoadMark, SaveMark, Saves};
-use crate::startup::PreloadedAssets;
 
-use crate::utils::TRANSPARENT;
+use crate::saves::{LoadMark, SaveMark, Saves};
+use crate::utils::{CachedAssetServer, TRANSPARENT};
 
 pub struct SaveLoadUI {
     pub root: Entity,
@@ -30,7 +29,7 @@ impl SaveLoadUI {
         img_query: &mut Query<&mut UiImage>,
         color_query: &mut Query<&mut UiColor>,
         saves: &Saves,
-        asset_server: &PreloadedAssets,
+        asset_server: &mut CachedAssetServer,
     )
     {
         self.current = page.into();
@@ -154,7 +153,7 @@ pub fn new_page(
     mut img_query: Query<&mut UiImage>,
     mut color_query: Query<&mut UiColor>,
     saves: Res<Saves>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
     mut save_ui: ResMut<SaveLoadUI>,
 )
 {
@@ -166,7 +165,7 @@ pub fn new_page(
             &mut img_query,
             &mut color_query,
             saves.as_ref(),
-            asset_server.as_ref(),
+            &mut asset_server,
         );
     }
 }

@@ -125,7 +125,7 @@ fn make_default_ui(commands: &mut Commands) {
 
 fn fix_images(
     mut image_query: Query<(&mut ImageTip, &mut Handle<Image>)>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
 )
 {
     for (tip, handle) in image_query.iter_mut() {
@@ -140,7 +140,7 @@ fn fix_images(
 
 fn fix_ui_images(
     mut ui_image_query: Query<(&mut ImageTip, &mut UiImage)>,
-    asset_server: Res<PreloadedAssets>,
+    mut asset_server: CachedAssetServer,
 )
 {
     for (tip, handle) in ui_image_query.iter_mut() {
