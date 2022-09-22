@@ -41,7 +41,7 @@ pub fn spawn_splash_screen(
         .id();
 
     commands.insert_resource(SplashScreen {
-        timer: Timer::from_seconds(1.5, false),
+        timer: Timer::from_seconds(1.0, false),
         root,
     });
 
@@ -85,7 +85,7 @@ pub fn game_splash_screen(
         })
         .id();
     commands.insert_resource(SplashScreen {
-        timer: Timer::from_seconds(3.0, false),
+        timer: Timer::from_seconds(1.0, false),
         root,
     });
 }
