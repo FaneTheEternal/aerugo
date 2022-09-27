@@ -228,6 +228,16 @@ fn spawn_text_ui(
             parent,
             "hud/game_narrator_first.png",
             JustifyContent::FlexStart,
+            Style {
+                size: NARRATOR_FRAME,
+                padding: UiRect {
+                    left: Val::Undefined,
+                    right: Val::Px(20.0),
+                    top: Val::Px(10.0),
+                    bottom: Val::Undefined,
+                },
+                ..default()
+            },
             asset_server,
         );
         narrator_sprites.insert("".into(), narrator.clone());
@@ -238,6 +248,16 @@ fn spawn_text_ui(
             parent,
             "hud/game_narrator_second.png",
             JustifyContent::FlexEnd,
+            Style {
+                size: NARRATOR_FRAME,
+                padding: UiRect {
+                    left: Val::Px(20.0),
+                    right: Val::Undefined,
+                    top: Val::Px(10.0),
+                    bottom: Val::Undefined,
+                },
+                ..default()
+            },
             asset_server,
         );
         narrator_sprites.insert("second".into(), narrator);
@@ -259,6 +279,7 @@ fn spawn_narrator_frame(
     builder: &mut ChildBuilder,
     sprite: &str,
     justify_content: JustifyContent,
+    img_style: Style,
     asset_server: &mut CachedAssetServer,
 ) -> NarratorUI
 {
@@ -283,10 +304,7 @@ fn spawn_narrator_frame(
         .with_children(|parent| {
             let entity = parent
                 .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: NARRATOR_FRAME,
-                        ..default()
-                    },
+                    style: img_style,
                     image: asset_server.load(sprite).into(),
                     ..default()
                 })
