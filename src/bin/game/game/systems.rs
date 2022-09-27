@@ -518,7 +518,7 @@ pub fn step_init(
                         timer: Timer::from_seconds(0.1, true),
                         style: TextStyle {
                             font: asset_server.load(FONT_FLOW),
-                            font_size: 30.0,
+                            font_size: 31.0,
                             color: Color::BLACK,
                         },
                         chars: 0,
