@@ -13,7 +13,7 @@ use aerugo::bevy_glue::GameMenuButtons;
 
 use crate::saves::AerugoLoaded;
 use crate::ui::{GameUI, UiState};
-use crate::utils::{BTN_HOVERED, BTN_NORMAL, BTN_PRESSED, CachedAssetServer, load_aerugo, SIZE_ALL, TRANSPARENT, Y_SPRITE, Z_SPRITE};
+use crate::utils::*;
 
 use super::*;
 
@@ -487,8 +487,6 @@ pub fn step_init(
     let _enter = span.enter();
 
     if let Some(step) = step {
-        let text_font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
-
         // game_ui.text.force_hide(&mut style_query);
         game_ui.phrase.force_hide(&mut style_query);
 
@@ -507,7 +505,7 @@ pub fn step_init(
                         .insert(Text::from_section(
                             author.as_str(),
                             TextStyle {
-                                font: text_font.clone(),
+                                font: asset_server.load(FONT_NAME),
                                 font_size: 30.0,
                                 color: Color::BLACK,
                             },
@@ -519,7 +517,7 @@ pub fn step_init(
                         text: texts.clone(),
                         timer: Timer::from_seconds(0.1, true),
                         style: TextStyle {
-                            font: text_font.clone(),
+                            font: asset_server.load(FONT_FLOW),
                             font_size: 30.0,
                             color: Color::BLACK,
                         },
@@ -566,7 +564,7 @@ pub fn step_init(
                                             text: Text::from_section(
                                                 verbose.as_str(),
                                                 TextStyle {
-                                                    font: text_font.clone(),
+                                                    font: asset_server.load(FONT_DIALOG),
                                                     font_size: 30.0,
                                                     color: Color::BLACK,
                                                 },

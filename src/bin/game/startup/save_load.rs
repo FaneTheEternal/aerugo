@@ -15,8 +15,8 @@ pub fn spawn_save(
     saves: &Saves,
 ) -> SaveLoadUI
 {
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = asset_server.load(FONT_DEFAULT);
+    let button_font = asset_server.load(FONT_DEFAULT);
     let background = asset_server
         .load("hud/save_back.png");
     let page_btn = asset_server

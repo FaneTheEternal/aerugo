@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use bevy::prelude::*;
 use aerugo::{Aerugo, BackgroundCommand, NarratorCommand, SceneCommand, SpriteCommand, Steps};
 
@@ -123,7 +121,7 @@ pub fn preload_assets(
             Steps::ImageSelect { .. } => {}
             Steps::SpriteNarrator(cmd) => {
                 match cmd {
-                    NarratorCommand::Set { name, sprite } => {
+                    NarratorCommand::Set { sprite, .. } => {
                         let _ = asset_server.load_untyped(sprite);
                     }
                     _ => {}

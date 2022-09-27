@@ -10,7 +10,7 @@ pub fn spawn(
 ) -> Entity
 {
     let button_font = asset_server
-        .load(BTN_FONT);
+        .load(FONT_MAIN_MENU);
     let background = asset_server
         .load(MAIN_BACK);
     let btn_background = asset_server

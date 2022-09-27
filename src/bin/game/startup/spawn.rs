@@ -55,8 +55,7 @@ fn make_ui_base(
 
 fn spawn_settings(mut commands: &mut Commands, asset_server: &mut CachedAssetServer) -> Entity
 {
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = asset_server.load(FONT_DEFAULT);
 
     make_ui_base(&mut commands, |parent| {
         parent

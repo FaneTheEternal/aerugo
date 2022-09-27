@@ -1,8 +1,6 @@
 use bevy::prelude::*;
-use ron::de::Position;
 
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::saves::load;
 
 use crate::utils::*;
 
@@ -218,10 +216,6 @@ impl NoticeUI {
                 }
             }
         }
-    }
-
-    pub fn hide(ui: Res<NoticeUI>, mut style_query: Query<&mut Style>) {
-        style_query.get_mut(ui.root).unwrap().display = Display::None;
     }
 
     pub fn exit(ui: Res<NoticeUI>, mut commands: Commands) {

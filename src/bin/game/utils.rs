@@ -167,3 +167,9 @@ impl<'w, 's> CachedAssetServer<'w, 's> {
         }
     }
 }
+
+pub const FONT_DIALOG: &str = "fonts/CormorantGaramond-Medium.ttf";
+pub const FONT_NAME: &str = "fonts/CormorantGaramond-Medium.ttf";
+pub const FONT_FLOW: &str = "fonts/CormorantGaramond-Medium.ttf";
+pub const FONT_MAIN_MENU: &str = "fonts/Bitter-Bold.ttf";
+pub const FONT_DEFAULT: &str = "fonts/Bitter-Medium.ttf";

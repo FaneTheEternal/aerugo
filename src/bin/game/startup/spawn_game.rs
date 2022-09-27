@@ -11,8 +11,7 @@ pub(crate) fn spawn_game(
     window: &Windows,
 ) -> GameUI
 {
-    let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-    // let button_font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = asset_server.load(FONT_DEFAULT);
 
     let window = window.get_primary().unwrap();
     let w = window.width();
