@@ -15,6 +15,9 @@ pub fn spawn(
     let main_menu = spawn_main_menu::spawn(&mut commands, &mut asset_server);
     commands.insert_resource(MainMenuUI { entity_root: main_menu });
 
+    let notice = NoticeUI::spawn(&mut commands, &mut asset_server);
+    commands.insert_resource(notice);
+
     let save = save_load::spawn_save(
         &mut commands, &mut asset_server, saves.as_ref()
     );

@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use ron::de::Position;
 
 use aerugo::bevy_glue::MainMenuButtons;
+use crate::saves::load;
 
 use crate::utils::*;
 
@@ -69,3 +71,163 @@ pub fn main_menu_actions(
         }
     }
 }
+
+pub struct NoticeUI {
+    root: Entity,
+}
+
+impl NoticeUI {
+    pub fn spawn(
+        commands: &mut Commands,
+        asset_server: &mut CachedAssetServer,
+    ) -> NoticeUI
+    {
+        let root = commands
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: SIZE_ALL,
+                    display: Display::None,
+                    position_type: PositionType::Absolute,
+                    ..default()
+                },
+                color: TRANSPARENT.into(),
+                ..default()
+            })
+            .with_children(|parent| {
+                grow_z_index(
+                    10,
+                    parent,
+                    Style {
+                        size: SIZE_ALL,
+                        flex_wrap: FlexWrap::Wrap,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    },
+                    |parent| {
+                        parent
+                            .spawn_bundle(NodeBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Px(400.0),
+                                        Val::Px(200.0),
+                                    ),
+                                    flex_wrap: FlexWrap::Wrap,
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    align_content: AlignContent::Center,
+                                    flex_direction: FlexDirection::ColumnReverse,
+                                    ..default()
+                                },
+                                color: Color::rgba(0.0, 0.0, 0.0, 0.5).into(),
+                                ..default()
+                            })
+                            .with_children(|parent| {
+                                parent.spawn_bundle(TextBundle {
+                                    text: Text::from_section(
+                                        "NSFW content",
+                                        TextStyle {
+                                            font: asset_server.load("fonts/CormorantGaramond-BoldItalic.ttf"),
+                                            font_size: 40.0,
+                                            color: Color::PURPLE,
+                                        },
+                                    ),
+                                    ..default()
+                                });
+                            })
+                            .with_children(|parent| {
+                                parent
+                                    .spawn_bundle(NodeBundle {
+                                        style: Style {
+                                            size: Size::new(
+                                                Val::Percent(50.0),
+                                                Val::Percent(25.0),
+                                            ),
+                                            margin: UiRect::all(Val::Px(20.0)),
+                                            ..default()
+                                        },
+                                        image: asset_server.load("hud/save_return.png").into(),
+                                        ..default()
+                                    })
+                                    .with_children(|parent| {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: Style {
+                                                    size: SIZE_ALL,
+                                                    flex_wrap: FlexWrap::Wrap,
+                                                    align_items: AlignItems::Center,
+                                                    justify_content: JustifyContent::Center,
+                                                    ..default()
+                                                },
+                                                image: asset_server.load("hud/save_return_hover.png").into(),
+                                                ..default()
+                                            })
+                                            .insert(NoticeAccept)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle {
+                                                    text: Text::from_section(
+                                                        "I'm accept",
+                                                        TextStyle {
+                                                            font: asset_server.load("fonts/CormorantGaramond-Italic.ttf"),
+                                                            font_size: 30.0,
+                                                            color: Color::PURPLE,
+                                                        },
+                                                    ),
+                                                    ..default()
+                                                });
+                                            });
+                                    });
+                            });
+                    },
+                )
+            })
+            .id();
+        NoticeUI {
+            root
+        }
+    }
+
+    pub fn show(ui: Res<NoticeUI>, mut style_query: Query<&mut Style>) {
+        style_query.get_mut(ui.root).unwrap().display = Display::Flex;
+    }
+
+    pub fn actions(
+        mut ui_state: ResMut<State<UiState>>,
+        mut asset_server: CachedAssetServer,
+        mut query: Query<
+            (&Interaction, &mut UiColor, &mut UiImage),
+            (Changed<Interaction>, With<Button>, With<NoticeAccept>)
+        >,
+    )
+    {
+        for (interaction, mut color, mut img) in query.iter_mut() {
+            match *interaction {
+                Interaction::Clicked => {
+                    *color = TRANSPARENT.into();
+                    *img = default();
+                    ui_state.set(UiState::MainMenu)
+                        .unwrap_or_else(|e| warn!("{e:?}"));
+                }
+                Interaction::Hovered => {
+                    *color = Color::WHITE.into();
+                    *img = asset_server.load("hud/save_return_hover.png").into();
+                }
+                Interaction::None => {
+                    *color = TRANSPARENT.into();
+                    *img = default();
+                }
+            }
+        }
+    }
+
+    pub fn hide(ui: Res<NoticeUI>, mut style_query: Query<&mut Style>) {
+        style_query.get_mut(ui.root).unwrap().display = Display::None;
+    }
+
+    pub fn exit(ui: Res<NoticeUI>, mut commands: Commands) {
+        commands.entity(ui.root).despawn_recursive();
+    }
+}
+
+#[derive(Debug, Clone, Component)]
+pub struct NoticeAccept;

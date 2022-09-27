@@ -98,7 +98,7 @@ pub fn remove_splash_screen(
 )
 {
     commands.entity(splash_screen.root).despawn_recursive();
-    ui_state.set(UiState::MainMenu)
+    ui_state.set(UiState::Notice)
         .unwrap_or_else(|e| warn!("{e:?}"));
 }
 

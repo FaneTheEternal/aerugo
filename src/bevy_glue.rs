@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use serde::{Deserialize, Serialize};
 
-#[derive(Component, Reflect, Default, Clone, Inspectable, Serialize, Deserialize)]
+#[derive(Component, Reflect, Default, Clone, Debug, Inspectable, Serialize, Deserialize)]
 #[reflect(Component)]
 pub enum MainMenuButtons {
     #[default]

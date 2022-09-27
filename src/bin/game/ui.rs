@@ -22,6 +22,19 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_state(UiState::None)
             .add_system_set(
+                SystemSet::on_enter(UiState::Notice)
+                    .with_system(main_menu_show)
+                    .with_system(NoticeUI::show)
+            )
+            .add_system_set(
+                SystemSet::on_update(UiState::Notice)
+                    .with_system(NoticeUI::actions)
+            )
+            .add_system_set(
+                SystemSet::on_exit(UiState::Notice)
+                    .with_system(NoticeUI::exit)
+            )
+            .add_system_set(
                 SystemSet::on_enter(UiState::MainMenu)
                     .with_system(main_menu_show)
             )
@@ -102,6 +115,7 @@ impl Plugin for UiPlugin {
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum UiState {
     None,
+    Notice,
     MainMenu,
     Settings,
     Save,

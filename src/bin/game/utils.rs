@@ -68,45 +68,6 @@ pub const FLOW_MAX_SHIFT: Size<Val> = Size {
     height: Val::Undefined,
 };
 
-pub fn make_button_closure<B>(
-    text: &str,
-    font: Handle<Font>,
-    button: B,
-    button_color: Color,
-) -> impl FnOnce(&mut ChildBuilder) + '_
-    where B: Component
-{
-    move |parent| {
-        parent
-            .spawn_bundle(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(200.0), Val::Px(60.0)),
-                    margin: UiRect::all(Val::Px(20.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                color: button_color.into(),
-                ..Default::default()
-            })
-            .insert(button)
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle(TextBundle {
-                        text: Text::from_section(
-                            text,
-                            TextStyle {
-                                font,
-                                font_size: 40.0,
-                                color: Color::BLACK,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-            });
-    }
-}
-
 pub fn grow_z_index<'closure>(
     deep: u8,
     builder: &mut ChildBuilder,
