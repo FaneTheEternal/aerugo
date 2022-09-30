@@ -3,6 +3,7 @@ use bevy::log::Level;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::tracing::span;
+use bevy::window::WindowResized;
 
 pub use game::*;
 pub use main_menu::*;
@@ -165,3 +166,16 @@ pub fn settings_hide(settings: Res<SettingsUI>, query: Query<&mut Style>) {
     settings.hide(query);
 }
 
+pub fn relative(
+    game_ui: Res<GameUI>,
+    mut style_query: Query<&mut Style>,
+    mut sprite_query: Query<&mut Sprite>,
+    mut atlas_query: Query<&mut TextureAtlasSprite>,
+    mut resize_event: EventReader<WindowResized>,
+)
+{
+    for event in resize_event.iter() {
+        game_ui.resize_relative(&mut sprite_query, &mut atlas_query, event.width, event.height);
+        game_ui.text.resize_relative(&mut style_query, event.width, event.height);
+    }
+}

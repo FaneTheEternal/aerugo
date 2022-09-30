@@ -59,6 +59,10 @@ impl Plugin for StartupPlugin {
                 SystemSet::on_enter(MainState::Ready)
                     .with_system(remove_splash_screen)
             )
+            .add_system_set(
+                SystemSet::on_update(MainState::Ready)
+                    .with_system(relative)
+            )
         ;
     }
 }

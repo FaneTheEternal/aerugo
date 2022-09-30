@@ -30,10 +30,13 @@ pub fn setup_game(
     mut image_query: Query<&mut Handle<Image>>,
     mut atlas_query: Query<&mut Handle<TextureAtlas>>,
     mut game_control_state: ResMut<State<GameControlState>>,
+    windows: Res<Windows>,
 )
 {
     let span = span!(Level::WARN, "setup_game");
     let _enter = span.enter();
+
+    let window = windows.get_primary().unwrap();
 
     let aerugo_state = aerugo_loaded
         .map(|loaded| { loaded.0.to_owned() })
@@ -63,6 +66,7 @@ pub fn setup_game(
     game_ui.text.clean_narrators(
         &mut style_query,
         &mut ui_image_query,
+        window
     );
     commands.entity(game_ui.scene).remove::<AnimateScene>();
     if !game_control_state.current().eq(&GameControlState::None) {
@@ -143,8 +147,10 @@ pub fn new_narrator_listener(
     mut image_query: Query<&mut UiImage>,
     mut new_narrator_event: EventReader<NewNarratorEvent>,
     mut asset_server: CachedAssetServer,
+    windows: Res<Windows>,
 )
 {
+    let window = windows.get_primary().unwrap();
     for event in new_narrator_event.iter() {
         let cmd: &NarratorCommand = &event.0;
 
@@ -156,6 +162,7 @@ pub fn new_narrator_listener(
                     name,
                     Some(sprite.clone()),
                     &mut asset_server,
+                    window
                 );
             }
             NarratorCommand::Remove { name } => {
@@ -165,12 +172,14 @@ pub fn new_narrator_listener(
                     name,
                     None,
                     &mut asset_server,
+                    window
                 );
             }
             NarratorCommand::Clean => {
                 game_ui.text.clean_narrators(
                     &mut style_query,
                     &mut image_query,
+                    window
                 )
             }
             NarratorCommand::None => {}

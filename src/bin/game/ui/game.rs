@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::utils::{CachedAssetServer, FLOW_DEFAULT, FLOW_MAX_DEFAULT, FLOW_MAX_SHIFT, FLOW_SHIFT, NARRATOR_DEFAULT, NARRATOR_SHIFT};
+use crate::utils::*;
 
 use super::*;
 
@@ -31,6 +31,7 @@ impl TextUI {
         name: &str,
         sprite: Option<String>,
         asset_server: &mut CachedAssetServer,
+        window: &Window,
     )
     {
         if let Some(narrator) = self.narrator_sprites.get(name) {
@@ -48,44 +49,47 @@ impl TextUI {
                         .0 = asset_server.load(&sprite).into();
                 }
             };
-            self._fix_narrator_and_flow(style_query);
+            self._fix_narrator_and_flow(style_query, window);
         } else {
             warn!("Unknown narrator name: {:?}", name);
         }
     }
 
-    fn _fix_narrator_and_flow(
-        &self,
-        style_query: &mut Query<&mut Style>,
-    )
-    {
+    fn narrator_visible(&self, style_query: &mut Query<&mut Style>) -> bool {
         let mut not_hide = false;
         for (name, narrator) in &self.narrator_sprites {
             if name.eq("second") { continue; }
             let style = style_query.get(narrator.root).unwrap();
             not_hide |= style.display == Display::Flex;
         }
-        if not_hide {
+        not_hide
+    }
+
+    fn _fix_narrator_and_flow(
+        &self,
+        style_query: &mut Query<&mut Style>,
+        window: &Window,
+    )
+    {
+        if self.narrator_visible(style_query) {
             style_query.get_mut(self.narrator_base).unwrap()
                 .margin = NARRATOR_SHIFT;
             style_query.get_mut(self.text_base).unwrap()
                 .padding = FLOW_SHIFT;
-            style_query.get_mut(self.text).unwrap()
-                .max_size = FLOW_MAX_SHIFT;
         } else {
             style_query.get_mut(self.narrator_base).unwrap()
                 .margin = NARRATOR_DEFAULT;
             style_query.get_mut(self.text_base).unwrap()
                 .padding = FLOW_DEFAULT;
-            style_query.get_mut(self.text).unwrap()
-                .max_size = FLOW_MAX_DEFAULT;
         };
+        self.resize_relative(style_query, window.width(), window.height());
     }
 
     pub fn clean_narrators(
         &self,
         style_query: &mut Query<&mut Style>,
         image_query: &mut Query<&mut UiImage>,
+        window: &Window,
     )
     {
         for (_, narrator) in &self.narrator_sprites {
@@ -94,7 +98,7 @@ impl TextUI {
             image_query.get_mut(narrator.img.clone()).unwrap()
                 .0 = default();
         }
-        self._fix_narrator_and_flow(style_query);
+        self._fix_narrator_and_flow(style_query, window);
     }
 
     fn _show(&self, query: &mut Query<&mut Style>) {
@@ -123,6 +127,19 @@ impl TextUI {
     pub fn force_hide(&mut self, query: &mut Query<&mut Style>) {
         self.is_visible = false;
         self._hide(query);
+    }
+
+    pub fn resize_relative(&self, style_query: &mut Query<&mut Style>, width: f32, _height: f32)
+    {
+        let flow_width = Self::get_flow_width(width, self.narrator_visible(style_query));
+        style_query.get_mut(self.text).unwrap()
+            .max_size.width = Val::Px(flow_width);
+    }
+
+    fn get_flow_width(width: f32, expanded: bool) -> f32 {
+        let width = width * 0.75 - 30.0;
+        let shift = if expanded { NARRATOR_SIDE + 10.0 } else { 0.0 };
+        width - shift
     }
 }
 
@@ -225,6 +242,25 @@ impl GameUI {
             GameState::Init | GameState::Active => {
                 self._show_game(&mut query, &mut query_2d);
             }
+        }
+    }
+
+    pub fn resize_relative(
+        &self,
+        sprite_query: &mut Query<&mut Sprite>,
+        atlas_query: &mut Query<&mut TextureAtlasSprite>,
+        width: f32,
+        height: f32,
+    )
+    {
+        sprite_query.get_mut(self.background).unwrap()
+            .custom_size = Some(Vec2::new(width, height));
+        if let Ok(mut atlas_sprite) = atlas_query.get_mut(self.scene) {
+            atlas_sprite.custom_size = Some(Vec2::new(width, height));
+        }
+        for sprite in self.sprites.values() {
+            sprite_query.get_mut(*sprite).unwrap()
+                .custom_size = Some(Vec2::new(width, height));
         }
     }
 }

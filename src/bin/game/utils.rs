@@ -54,17 +54,13 @@ pub const FLOW_SHIFT: UiRect<Val> = UiRect {
     top: Val::Px(40.0),
     bottom: Val::Px(10.0),
 };
-const NARRATOR_SIDE: f32 = 200.0;
+pub const NARRATOR_SIDE: f32 = 200.0;
 pub const NARRATOR_FRAME: Size<Val> = Size {
     width: Val::Px(NARRATOR_SIDE),
     height: Val::Px(NARRATOR_SIDE),
 };
 pub const FLOW_MAX_DEFAULT: Size<Val> = Size {
     width: Val::Px(900.0),
-    height: Val::Undefined,
-};
-pub const FLOW_MAX_SHIFT: Size<Val> = Size {
-    width: Val::Px(900.0 - NARRATOR_SIDE),
     height: Val::Undefined,
 };
 
