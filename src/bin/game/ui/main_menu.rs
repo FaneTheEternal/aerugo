@@ -139,7 +139,7 @@ impl NoticeUI {
                                     .with_children(|parent| {
                                         parent.spawn_bundle(TextBundle {
                                             text: Text::from_section(
-                                                "I'm 18 years of age and older",
+                                                "I am 18 years of age or older",
                                                 TextStyle {
                                                     font: asset_server.load("fonts/CormorantGaramond-BoldItalic.ttf"),
                                                     font_size: 40.0,
