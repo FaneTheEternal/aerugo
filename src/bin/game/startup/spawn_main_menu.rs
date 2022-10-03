@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use aerugo::bevy_glue::MainMenuButtons;
+use crate::translator::{TranslatableText};
 
 use crate::utils::*;
 
@@ -163,7 +164,8 @@ fn make_btn(
                                     },
                                 ),
                                 ..Default::default()
-                            });
+                            })
+                            .insert(TranslatableText);
                     });
             });
     }

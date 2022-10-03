@@ -9,6 +9,8 @@ mod saves;
 mod startup;
 mod ui;
 mod saves_ui;
+mod settings;
+pub mod translator;
 
 fn main() {
     App::new()

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use aerugo::bevy_glue::*;
+use crate::translator::TranslatableText;
 
 use crate::utils::*;
 
@@ -164,7 +165,7 @@ fn make_btn(
                                     },
                                 ),
                                 ..default()
-                            });
+                            }).insert(TranslatableText);
                     });
             });
     }

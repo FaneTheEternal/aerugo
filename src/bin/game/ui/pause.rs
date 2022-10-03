@@ -80,7 +80,10 @@ pub fn game_menu_actions(
                             .unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     GameMenuButtons::Gallery => {}
-                    GameMenuButtons::Settings => {}
+                    GameMenuButtons::Settings => {
+                        ui_state.set(UiState::Settings)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
+                    }
                     GameMenuButtons::MainMenu => {
                         game_state.set(GameState::None)
                             .unwrap_or_else(|e| warn!("{e:?}"));

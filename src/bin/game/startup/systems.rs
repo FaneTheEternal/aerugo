@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use aerugo::{Aerugo, BackgroundCommand, NarratorCommand, SceneCommand, SpriteCommand, Steps};
+use crate::translator::Translator;
+use crate::settings::Settings;
 
 use crate::utils::{CachedAssetServer, SIZE_ALL};
 
@@ -109,6 +111,8 @@ pub fn load(
     let saves = pre_load_saves(&aerugo);
     commands.insert_resource(aerugo);
     commands.insert_resource(saves);
+    commands.insert_resource(Settings::load());
+    commands.insert_resource(Translator::load());
 }
 
 pub fn preload_assets(

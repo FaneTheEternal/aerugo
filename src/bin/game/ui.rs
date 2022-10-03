@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::tracing::span;
 use bevy::window::WindowResized;
+use bevy_egui::{egui, EguiPlugin};
 
 pub use game::*;
 pub use main_menu::*;
@@ -11,6 +12,8 @@ pub use pause::*;
 pub use save_load::*;
 
 use crate::game::GameState;
+use crate::settings::Settings;
+use crate::translator::{Lang, NewLang, Translator};
 
 mod main_menu;
 mod game;
@@ -21,7 +24,9 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(UiState::None)
+        app
+            .add_plugin(EguiPlugin)
+            .add_state(UiState::None)
             .add_system_set(
                 SystemSet::on_enter(UiState::Notice)
                     .with_system(main_menu_show)
@@ -49,15 +54,14 @@ impl Plugin for UiPlugin {
             )
             .add_system_set(
                 SystemSet::on_enter(UiState::Settings)
-                    .with_system(settings_show)
             )
             .add_system_set(
                 SystemSet::on_update(UiState::Settings)
+                    .with_system(settings_ui)
                     .with_system(generic_break)
             )
             .add_system_set(
                 SystemSet::on_exit(UiState::Settings)
-                    .with_system(settings_hide)
             )
             .add_system_set(
                 SystemSet::on_enter(UiState::Save)
@@ -178,4 +182,46 @@ pub fn relative(
         game_ui.resize_relative(&mut sprite_query, &mut atlas_query, event.width, event.height);
         game_ui.text.resize_relative(&mut style_query, event.width, event.height);
     }
+}
+
+pub fn settings_ui(
+    mut e_ctx: ResMut<bevy_egui::EguiContext>,
+    mut settings: ResMut<Settings>,
+    mut translator: ResMut<Translator>,
+    mut new_lang: EventWriter<NewLang>,
+)
+{
+    egui::TopBottomPanel::top("my_panel")
+        .show(e_ctx.ctx_mut(), |ui| {
+            ui.heading(translator.get(&settings.lang, "Settings"));
+        });
+    egui::CentralPanel::default().show(
+        e_ctx.ctx_mut(),
+        |mut ui| {
+            ui.horizontal(|ui| {
+                ui.label(translator.get(&settings.lang, "Selected"));
+                let curr_lang = settings.lang.clone();
+                egui::ComboBox::from_label(
+                    translator.get(&settings.lang, "language")
+                )
+                    .selected_text(format!("{:?}", settings.lang))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut settings.lang,
+                            Lang::En,
+                            format!("{:?}", Lang::En),
+                        );
+                        ui.selectable_value(
+                            &mut settings.lang,
+                            Lang::Ru,
+                            format!("{:?}", Lang::Ru),
+                        );
+                    });
+                if curr_lang != settings.lang {
+                    new_lang.send(NewLang(settings.lang.clone()));
+                    settings.dump();
+                }
+            });
+        },
+    );
 }

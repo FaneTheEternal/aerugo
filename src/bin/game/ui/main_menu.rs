@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
 use aerugo::bevy_glue::MainMenuButtons;
+use crate::translator::{TranslatableText, Translator};
+use crate::settings::Settings;
 
 use crate::utils::*;
 
@@ -53,7 +55,10 @@ pub fn main_menu_actions(
                         ui_state.set(UiState::Load).unwrap_or_else(|e| warn!("{e:?}"));
                     }
                     MainMenuButtons::Gallery => {}
-                    MainMenuButtons::Settings => {}
+                    MainMenuButtons::Settings => {
+                        ui_state.set(UiState::Settings)
+                            .unwrap_or_else(|e| warn!("{e:?}"));
+                    }
                     MainMenuButtons::About => {}
                     MainMenuButtons::Exit => {
                         exit.send(AppExit);
@@ -147,7 +152,7 @@ impl NoticeUI {
                                                 },
                                             ).with_alignment(TextAlignment::CENTER),
                                             ..default()
-                                        });
+                                        }).insert(TranslatableText);
                                     });
                             })
                             .with_children(|parent| {
@@ -207,7 +212,7 @@ impl NoticeUI {
                                                                 },
                                                             ),
                                                             ..default()
-                                                        });
+                                                        }).insert(TranslatableText);
                                                     });
                                             });
                                     })
@@ -250,7 +255,7 @@ impl NoticeUI {
                                                                 },
                                                             ),
                                                             ..default()
-                                                        });
+                                                        }).insert(TranslatableText);
                                                     });
                                             });
                                     });

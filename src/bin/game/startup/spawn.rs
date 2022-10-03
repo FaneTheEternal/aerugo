@@ -1,4 +1,7 @@
+use std::ops::DerefMut;
 use bevy::prelude::*;
+use crate::translator::{TranslatableText, Translator};
+use crate::settings::Settings;
 
 use crate::utils::*;
 

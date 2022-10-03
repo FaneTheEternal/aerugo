@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 
 use aerugo::bevy_glue::SavePageButton;
+use crate::translator::TranslatableText;
 
 use crate::saves::{LoadMark, Save, SaveMark};
 use crate::utils::*;
@@ -47,7 +48,7 @@ pub fn spawn_save(
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
                 text: Text::from_section(
-                    "Save",
+                    "Saves",
                     TextStyle {
                         font: button_font.clone(),
                         font_size: 40.0,
@@ -55,13 +56,13 @@ pub fn spawn_save(
                     },
                 ),
                 ..Default::default()
-            });
+            }).insert(TranslatableText);
         })
         .with_children(|parent| {
             page_header = parent
                 .spawn_bundle(TextBundle {
                     text: Text::from_section(
-                        "Page 0",
+                        "Page 0", // TODO: patterns
                         TextStyle {
                             font: text_font.clone(),
                             font_size: 30.0,

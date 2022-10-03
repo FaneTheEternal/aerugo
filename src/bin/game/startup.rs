@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use bevy::utils::tracing::Event;
 
 use spawn::*;
 use systems::*;
@@ -29,6 +30,7 @@ impl Plugin for StartupPlugin {
         app
             .add_state(MainState::Init)
             .init_resource::<AssetCache>()
+            .add_event::<crate::translator::NewLang>()
             .add_system_set(
                 SystemSet::on_enter(MainState::Init)
                     .with_system(spawn_splash_screen)
@@ -56,12 +58,17 @@ impl Plugin for StartupPlugin {
                     .with_system(update_splash_screen::<{ MainState::Ready }>)
             )
             .add_system_set(
+                SystemSet::on_exit(MainState::Spawn)
+                    .with_system(crate::translator::setup_text)
+            )
+            .add_system_set(
                 SystemSet::on_enter(MainState::Ready)
                     .with_system(remove_splash_screen)
             )
             .add_system_set(
                 SystemSet::on_update(MainState::Ready)
                     .with_system(relative)
+                    .with_system(crate::translator::translate_text)
             )
         ;
     }
