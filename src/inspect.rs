@@ -14,7 +14,7 @@ pub struct Inspector {
 }
 
 impl Inspector {
-    pub fn keep(&mut self, steps: &Vec<Steps>) {
+    pub fn keep(&mut self, steps: &[Steps]) {
         for step in steps {
             match step {
                 Steps::SpriteNarrator(cmd) => {

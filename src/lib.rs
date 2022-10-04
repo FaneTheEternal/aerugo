@@ -17,6 +17,7 @@ mod simple_sprite;
 mod condition;
 mod inspect;
 pub mod bevy_glue;
+pub mod international;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AerugoState {
