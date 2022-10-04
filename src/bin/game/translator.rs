@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::io::Write;
 use bevy::prelude::*;
 use serde::{Serialize, Deserialize};
+use aerugo::Aerugo;
+use aerugo::international::{AerugoImanity, ImanityLangs, Internationale};
 use crate::settings::Settings;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -91,6 +93,15 @@ pub enum Lang {
     En,
 }
 
+impl From<Lang> for ImanityLangs {
+    fn from(l: Lang) -> Self {
+        match l {
+            Lang::Ru => { ImanityLangs::Ru }
+            Lang::En => { ImanityLangs::En }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Component)]
 pub struct TranslatableText;
 
@@ -105,8 +116,11 @@ pub fn setup_text(
     mut query: Query<(Entity, &mut Text), With<TranslatableText>>,
     settings: Res<Settings>,
     mut translator: ResMut<Translator>,
+    mut aerugo: ResMut<Aerugo>,
+    mut internationale: Res<Internationale>,
 )
 {
+    internationale.adapt(settings.lang.clone().into(), aerugo.as_mut());
     for (entity, text) in query.iter_mut() {
         let mut text: Mut<Text> = text;
         let origin = text.sections.get_mut(0).unwrap();
@@ -124,10 +138,13 @@ pub fn translate_text(
     mut settings: ResMut<Settings>,
     mut translator: ResMut<Translator>,
     mut events: EventReader<NewLang>,
+    mut aerugo: ResMut<Aerugo>,
+    mut internationale: Res<Internationale>,
 )
 {
     for event in events.iter() {
         settings.lang = event.0.clone();
+        internationale.adapt(settings.lang.clone().into(), aerugo.as_mut());
 
         for (origin, text) in query.iter_mut() {
             let mut text: Mut<Text> = text;

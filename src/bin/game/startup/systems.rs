@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use aerugo::{Aerugo, BackgroundCommand, NarratorCommand, SceneCommand, SpriteCommand, Steps};
+use aerugo::international::Internationale;
 use crate::translator::Translator;
 use crate::settings::Settings;
 
@@ -113,6 +114,7 @@ pub fn load(
     commands.insert_resource(saves);
     commands.insert_resource(Settings::load());
     commands.insert_resource(Translator::load());
+    commands.insert_resource(Internationale::load());
 }
 
 pub fn preload_assets(
