@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use aerugo::bevy_glue::MainMenuButtons;
 use crate::translator::{TranslatableText};
+use crate::ui::PatreonBTN;
 
 use crate::utils::*;
 
@@ -43,17 +44,55 @@ pub fn spawn(
                         flex_wrap: FlexWrap::Wrap,
                         flex_direction: FlexDirection::ColumnReverse,
                         align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
+                        justify_content: JustifyContent::FlexEnd,
                         padding: UiRect::new(
                             Val::Percent(8.0),
                             Val::Undefined,
-                            Val::Percent(6.0),
                             Val::Undefined,
+                            Val::Percent(4.5),
                         ),
                         ..default()
                     },
                     image: btn_background.into(),
                     ..default()
+                })
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(
+                                    Val::Percent(84.0),
+                                    Val::Percent(15.0),
+                                ),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                padding: UiRect::new(
+                                    Val::Percent(25.0),
+                                    Val::Undefined,
+                                    Val::Undefined,
+                                    Val::Percent(1.0),
+                                ),
+                                ..default()
+                            },
+                            color: TRANSPARENT.into(),
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent
+                                .spawn_bundle(ButtonBundle {
+                                    style: Style {
+                                        size: Size::new(
+                                            Val::Percent(60.0),
+                                            Val::Percent(100.0),
+                                        ),
+                                        ..default()
+                                    },
+                                    color: Color::WHITE.into(),
+                                    image: asset_server.load("Patreon.png").into(),
+                                    ..default()
+                                })
+                                .insert(PatreonBTN);
+                        });
                 })
                 .with_children(
                     make_btn(

@@ -47,6 +47,7 @@ impl Plugin for UiPlugin {
             .add_system_set(
                 SystemSet::on_update(UiState::MainMenu)
                     .with_system(main_menu_actions)
+                    .with_system(open_patreon)
             )
             .add_system_set(
                 SystemSet::on_exit(UiState::MainMenu)
@@ -160,6 +161,40 @@ pub fn relative(
         game_ui.resize_relative(&mut sprite_query, &mut atlas_query, event.width, event.height);
         game_ui.text.resize_relative(&mut style_query, event.width, event.height);
     }
+}
+
+pub fn open_patreon(
+    mut query: Query<
+        (&Interaction, &mut UiColor),
+        (Changed<Interaction>, With<PatreonBTN>)
+    >,
+)
+{
+    for (interaction, color) in query.iter_mut() {
+        let interaction: &Interaction = interaction;
+        let mut color: Mut<UiColor> = color;
+        match interaction {
+            Interaction::Clicked => {
+                *color = PatreonBTN::DEFAULT.into();
+                open::that("https://www.patreon.com/southsidehood")
+                    .unwrap_or_else(|e| warn!("{e:?}"));
+            }
+            Interaction::Hovered => {
+                *color = PatreonBTN::HOVERED.into();
+            }
+            Interaction::None => {
+                *color = PatreonBTN::DEFAULT.into();
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Component)]
+pub struct PatreonBTN;
+
+impl PatreonBTN {
+    const DEFAULT: Color = Color::rgba(1.0, 1.0, 1.0, 0.9);
+    const HOVERED: Color = Color::rgba(1.0, 1.0, 1.0, 1.0);
 }
 
 pub fn settings_ui(
