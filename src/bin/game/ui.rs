@@ -224,7 +224,7 @@ pub fn settings_ui(
                 }
             });
             ui.horizontal(|ui| {
-                ui.label("Resolution");
+                ui.label(translator.get(&settings.lang, "Resolution"));
                 let current = settings.resolution.clone();
                 egui::ComboBox::from_label("")
                     .selected_text(settings.resolution.verbose())
@@ -253,23 +253,36 @@ pub fn settings_ui(
                 }
             });
             ui.horizontal(|ui| {
-                ui.label("Narrator size");
-                ui.add(egui::DragValue::new(&mut settings.narrator_size));
+                ui.label(translator.get(&settings.lang, "NarratorSize"));
+                ui.add(egui::DragValue::new(&mut settings.narrator_size)
+                    .clamp_range(1.0..=100.0)
+                );
             });
             ui.horizontal(|ui| {
-                ui.label("Flow size");
-                ui.add(egui::DragValue::new(&mut settings.flow_size));
+                ui.label(translator.get(&settings.lang, "FlowSize"));
+                ui.add(egui::DragValue::new(&mut settings.flow_size)
+                    .clamp_range(1.0..=100.0)
+                );
             });
             ui.horizontal(|ui| {
-                ui.label("Flow speed");
+                ui.label(translator.get(&settings.lang, "FlowSpeed"));
                 ui.add(
                     egui::DragValue::new(&mut settings.flow_speed)
                         .clamp_range(0.01..=1.0)
                         .fixed_decimals(2)
                         .speed(0.01)
                 );
-                ui.label("Sec/Char");
+                ui.label(translator.get(&settings.lang, "Sec/Char"));
             });
         },
     );
+    egui::TopBottomPanel::bottom("my_bottom_panel")
+        .show(
+            e_ctx.ctx_mut(),
+            |mut ui| {
+                ui.with_layout(egui::Layout::right_to_left(), |ui| {
+                    ui.hyperlink_to("GUI by egui", "https://github.com/emilk/egui");
+                });
+            },
+        );
 }
