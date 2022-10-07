@@ -19,6 +19,8 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1280.0,
             height: 720.0,
+            title: include_str!("game_name").to_string(),
+            resizable: false,
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)

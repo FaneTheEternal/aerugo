@@ -12,7 +12,7 @@ pub use pause::*;
 pub use save_load::*;
 
 use crate::game::GameState;
-use crate::settings::Settings;
+use crate::settings::{Resolution, Settings};
 use crate::translator::{Lang, NewLang, Translator};
 
 mod main_menu;
@@ -189,6 +189,7 @@ pub fn settings_ui(
     mut settings: ResMut<Settings>,
     mut translator: ResMut<Translator>,
     mut new_lang: EventWriter<NewLang>,
+    mut windows: ResMut<Windows>,
 )
 {
     egui::TopBottomPanel::top("my_panel")
@@ -221,6 +222,53 @@ pub fn settings_ui(
                     new_lang.send(NewLang(settings.lang.clone()));
                     settings.dump();
                 }
+            });
+            ui.horizontal(|ui| {
+                ui.label("Resolution");
+                let current = settings.resolution.clone();
+                egui::ComboBox::from_label("")
+                    .selected_text(settings.resolution.verbose())
+                    .width(200.0)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut settings.resolution,
+                            Resolution::HD,
+                            Resolution::HD.verbose(),
+                        );
+                        ui.selectable_value(
+                            &mut settings.resolution,
+                            Resolution::FHD,
+                            Resolution::FHD.verbose(),
+                        );
+                        ui.selectable_value(
+                            &mut settings.resolution,
+                            Resolution::QHD,
+                            Resolution::QHD.verbose(),
+                        );
+                    });
+                if current != settings.resolution {
+                    let window = windows.get_primary_mut().unwrap();
+                    let (w, h) = settings.resolution.get();
+                    window.set_resolution(w, h);
+                }
+            });
+            ui.horizontal(|ui| {
+                ui.label("Narrator size");
+                ui.add(egui::DragValue::new(&mut settings.narrator_size));
+            });
+            ui.horizontal(|ui| {
+                ui.label("Flow size");
+                ui.add(egui::DragValue::new(&mut settings.flow_size));
+            });
+            ui.horizontal(|ui| {
+                ui.label("Flow speed");
+                ui.add(
+                    egui::DragValue::new(&mut settings.flow_speed)
+                        .clamp_range(0.01..=1.0)
+                        .fixed_decimals(2)
+                        .speed(0.01)
+                );
+                ui.label("Sec/Char");
             });
         },
     );

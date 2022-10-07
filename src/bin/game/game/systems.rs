@@ -12,6 +12,7 @@ use aerugo::*;
 use aerugo::bevy_glue::GameMenuButtons;
 
 use crate::saves::AerugoLoaded;
+use crate::settings::Settings;
 use crate::ui::{GameUI, UiState};
 use crate::utils::*;
 
@@ -490,6 +491,7 @@ pub fn step_init(
     step: Option<Res<Step>>,
     mut style_query: Query<&mut Style>,
     mut game_ui: ResMut<GameUI>,
+    settings: Res<Settings>,
 )
 {
     let span = span!(Level::WARN, "step_init");
@@ -524,10 +526,10 @@ pub fn step_init(
                     .entity(game_ui.text.text)
                     .insert(AnimateText {
                         text: texts.clone(),
-                        timer: Timer::from_seconds(0.1, true),
+                        timer: Timer::from_seconds(settings.flow_speed, true),
                         style: TextStyle {
                             font: asset_server.load(FONT_FLOW),
-                            font_size: 31.0,
+                            font_size: settings.flow_size,
                             color: Color::BLACK,
                         },
                         chars: 0,
