@@ -148,28 +148,6 @@ pub fn generic_break(
     }
 }
 
-pub struct SettingsUI {
-    pub(crate) entity_root: Entity,
-}
-
-impl SettingsUI {
-    pub fn show(&self, mut query: Query<&mut Style>) {
-        query.get_mut(self.entity_root).unwrap().display = Display::Flex;
-    }
-
-    pub fn hide(&self, mut query: Query<&mut Style>) {
-        query.get_mut(self.entity_root).unwrap().display = Display::None;
-    }
-}
-
-pub fn settings_show(settings: Res<SettingsUI>, query: Query<&mut Style>) {
-    settings.show(query);
-}
-
-pub fn settings_hide(settings: Res<SettingsUI>, query: Query<&mut Style>) {
-    settings.hide(query);
-}
-
 pub fn relative(
     game_ui: Res<GameUI>,
     mut style_query: Query<&mut Style>,
@@ -198,7 +176,7 @@ pub fn settings_ui(
         });
     egui::CentralPanel::default().show(
         e_ctx.ctx_mut(),
-        |mut ui| {
+        |ui| {
             ui.horizontal(|ui| {
                 ui.label(translator.get(&settings.lang, "Selected"));
                 let curr_lang = settings.lang.clone();
@@ -279,7 +257,7 @@ pub fn settings_ui(
     egui::TopBottomPanel::bottom("my_bottom_panel")
         .show(
             e_ctx.ctx_mut(),
-            |mut ui| {
+            |ui| {
                 ui.with_layout(egui::Layout::right_to_left(), |ui| {
                     ui.hyperlink_to("GUI by egui", "https://github.com/emilk/egui");
                 });

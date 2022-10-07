@@ -4,7 +4,7 @@ use std::io::Write;
 use bevy::prelude::*;
 use serde::{Serialize, Deserialize};
 use aerugo::Aerugo;
-use aerugo::international::{AerugoImanity, ImanityLangs, Internationale};
+use aerugo::international::{ImanityLangs, Internationale};
 use crate::settings::Settings;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -117,7 +117,7 @@ pub fn setup_text(
     settings: Res<Settings>,
     mut translator: ResMut<Translator>,
     mut aerugo: ResMut<Aerugo>,
-    mut internationale: Res<Internationale>,
+    internationale: Res<Internationale>,
 )
 {
     internationale.adapt(settings.lang.clone().into(), aerugo.as_mut());
@@ -139,7 +139,7 @@ pub fn translate_text(
     mut translator: ResMut<Translator>,
     mut events: EventReader<NewLang>,
     mut aerugo: ResMut<Aerugo>,
-    mut internationale: Res<Internationale>,
+    internationale: Res<Internationale>,
 )
 {
     for event in events.iter() {

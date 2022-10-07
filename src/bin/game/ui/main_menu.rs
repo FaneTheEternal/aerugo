@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 
 use aerugo::bevy_glue::MainMenuButtons;
-use crate::translator::{TranslatableText, Translator};
-use crate::settings::Settings;
+use crate::translator::{TranslatableText};
 
 use crate::utils::*;
 

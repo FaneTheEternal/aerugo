@@ -1,8 +1,6 @@
 use bevy::prelude::*;
-use bevy::utils::HashMap;
-use crate::utils::*;
 use serde::{Serialize, Deserialize};
-use crate::translator::{Lang, Translator};
+use crate::translator::{Lang};
 
 
 #[derive(Debug, Serialize, Deserialize)]
