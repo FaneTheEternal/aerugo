@@ -26,6 +26,7 @@ strum = "0.24.1"
 strum_macros = "0.24.3"
 chrono = { version = "0.4.22", features = ["default", "serde"] }
 rfd = "0.10.0"
+sha3 = "0.10.5"
 
 bevy-inspector-egui = "0.12.1"
 
