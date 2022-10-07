@@ -212,9 +212,10 @@ pub fn settings_ui(
     egui::CentralPanel::default().show(
         e_ctx.ctx_mut(),
         |ui| {
+            let current = settings.clone();
+
             ui.horizontal(|ui| {
                 ui.label(translator.get(&settings.lang, "Selected"));
-                let curr_lang = settings.lang.clone();
                 egui::ComboBox::from_label(
                     translator.get(&settings.lang, "language")
                 )
@@ -231,14 +232,9 @@ pub fn settings_ui(
                             format!("{:?}", Lang::Ru),
                         );
                     });
-                if curr_lang != settings.lang {
-                    new_lang.send(NewLang(settings.lang.clone()));
-                    settings.dump();
-                }
             });
             ui.horizontal(|ui| {
                 ui.label(translator.get(&settings.lang, "Resolution"));
-                let current = settings.resolution.clone();
                 egui::ComboBox::from_label("")
                     .selected_text(settings.resolution.verbose())
                     .width(200.0)
@@ -259,11 +255,6 @@ pub fn settings_ui(
                             Resolution::QHD.verbose(),
                         );
                     });
-                if current != settings.resolution {
-                    let window = windows.get_primary_mut().unwrap();
-                    let (w, h) = settings.resolution.get();
-                    window.set_resolution(w, h);
-                }
             });
             ui.horizontal(|ui| {
                 ui.label(translator.get(&settings.lang, "NarratorSize"));
@@ -287,6 +278,19 @@ pub fn settings_ui(
                 );
                 ui.label(translator.get(&settings.lang, "Sec/Char"));
             });
+
+
+            if current != *settings {
+                if current.lang != settings.lang {
+                    new_lang.send(NewLang(settings.lang.clone()));
+                }
+                if current.resolution != settings.resolution {
+                    let window = windows.get_primary_mut().unwrap();
+                    let (w, h) = settings.resolution.get();
+                    window.set_resolution(w, h);
+                }
+                settings.dump();
+            }
         },
     );
     egui::TopBottomPanel::bottom("my_bottom_panel")

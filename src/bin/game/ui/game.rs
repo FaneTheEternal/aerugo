@@ -73,9 +73,9 @@ impl TextUI {
     {
         if self.narrator_visible(style_query) {
             style_query.get_mut(self.narrator_base).unwrap()
-                .margin = NARRATOR_SHIFT;
+                .margin = get_narrator_shift(window.height());
             style_query.get_mut(self.text_base).unwrap()
-                .padding = FLOW_SHIFT;
+                .padding = get_flow_shift(window.height());
         } else {
             style_query.get_mut(self.narrator_base).unwrap()
                 .margin = NARRATOR_DEFAULT;
@@ -129,16 +129,21 @@ impl TextUI {
         self._hide(query);
     }
 
-    pub fn resize_relative(&self, style_query: &mut Query<&mut Style>, width: f32, _height: f32)
+    pub fn resize_relative(&self, style_query: &mut Query<&mut Style>, width: f32, height: f32)
     {
         let flow_width = Self::get_flow_width(width, self.narrator_visible(style_query));
         style_query.get_mut(self.text).unwrap()
             .max_size.width = Val::Px(flow_width);
+        let narrator_side = get_narrator_side(height);
+        for narrator in self.narrator_sprites.values() {
+            style_query.get_mut(narrator.root).unwrap()
+                .size = Size::new(Val::Px(narrator_side), Val::Px(narrator_side));
+        }
     }
 
     fn get_flow_width(width: f32, expanded: bool) -> f32 {
         let width = width * 0.75 - 30.0;
-        let shift = if expanded { NARRATOR_SIDE + 10.0 } else { 0.0 };
+        let shift = if expanded { get_narrator_side(width) + 10.0 } else { 0.0 };
         width - shift
     }
 }

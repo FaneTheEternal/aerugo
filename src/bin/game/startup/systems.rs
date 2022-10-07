@@ -105,6 +105,7 @@ pub fn remove_splash_screen(
 
 pub fn load(
     mut commands: Commands,
+    mut windows: ResMut<Windows>,
 )
 {
     let aerugo = crate::utils::load_aerugo();
@@ -112,7 +113,12 @@ pub fn load(
     let saves = pre_load_saves(&aerugo);
     commands.insert_resource(aerugo);
     commands.insert_resource(saves);
-    commands.insert_resource(Settings::load());
+    let settings = Settings::load();
+    {
+        let (w, h) = settings.resolution.get();
+        windows.get_primary_mut().unwrap().set_resolution(w, h);
+    }
+    commands.insert_resource(settings);
     commands.insert_resource(Translator::load());
     commands.insert_resource(Internationale::load());
 }

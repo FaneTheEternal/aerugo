@@ -36,25 +36,39 @@ pub const NARRATOR_DEFAULT: UiRect<Val> = UiRect {
     top: Val::Px(10.0),
     bottom: Val::Undefined,
 };
-pub const NARRATOR_SHIFT: UiRect<Val> = UiRect {
-    left: Val::Px(10.0 + NARRATOR_SIDE),
-    right: Val::Px(10.0),
-    top: Val::Px(10.0),
-    bottom: Val::Undefined,
-};
+
+pub fn get_narrator_shift(base: f32) -> UiRect<Val> {
+    UiRect {
+        left: Val::Px(10.0 + get_narrator_side(base)),
+        right: Val::Px(10.0),
+        top: Val::Px(10.0),
+        bottom: Val::Undefined,
+    }
+}
+
 pub const FLOW_DEFAULT: UiRect<Val> = UiRect {
     left: Val::Px(10.0),
     right: Val::Px(10.0),
     top: Val::Px(40.0),
     bottom: Val::Px(10.0),
 };
-pub const FLOW_SHIFT: UiRect<Val> = UiRect {
-    left: Val::Px(10.0 + NARRATOR_SIDE),
-    right: Val::Px(10.0),
-    top: Val::Px(40.0),
-    bottom: Val::Px(10.0),
-};
+
+pub fn get_flow_shift(base: f32) -> UiRect<Val> {
+    UiRect {
+        left: Val::Px(10.0 + get_narrator_side(base)),
+        right: Val::Px(10.0),
+        top: Val::Px(40.0),
+        bottom: Val::Px(10.0),
+    }
+}
+
 pub const NARRATOR_SIDE: f32 = 200.0;
+pub const NARRATOR_BASE: f32 = 720.0;
+
+pub fn get_narrator_side(base: f32) -> f32 {
+    base * NARRATOR_SIDE / NARRATOR_BASE
+}
+
 pub const NARRATOR_FRAME: Size<Val> = Size {
     width: Val::Px(NARRATOR_SIDE),
     height: Val::Px(NARRATOR_SIDE),
