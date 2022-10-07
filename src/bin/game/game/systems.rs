@@ -517,7 +517,7 @@ pub fn step_init(
                             author.as_str(),
                             TextStyle {
                                 font: asset_server.load(FONT_NAME),
-                                font_size: 30.0,
+                                font_size: settings.narrator_size,
                                 color: Color::BLACK,
                             },
                         ));
