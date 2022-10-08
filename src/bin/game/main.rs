@@ -1,6 +1,8 @@
 #![feature(unboxed_closures)]
 #![feature(adt_const_params)]
 
+// #![windows_subsystem = "windows"]
+
 use bevy::prelude::*;
 
 mod utils;
