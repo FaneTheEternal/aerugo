@@ -3,6 +3,7 @@
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use bevy::utils::default;
 use aerugo::*;
 use aerugo::international::*;
 use sha3::{Digest, Sha3_256};
@@ -53,8 +54,8 @@ fn obfuscation() {
         }
         println!(
             "{} -> {}",
-            new_assets.join(path).to_string_lossy(),
-            new_assets.join(&new_path).to_string_lossy()
+            path.to_string_lossy(),
+            new_path,
         );
         fs::rename(new_assets.join(path), new_assets.join(&new_path)).unwrap();
     };
@@ -134,11 +135,23 @@ fn obfuscation() {
                     SceneCommand::None => {}
                 }
             }
+            Steps::Text { author, texts } => {
+                *author = default();
+                *texts = default();
+            }
+            Steps::Phrase { phrases } => {
+                phrases.iter_mut().for_each(|phrase| { phrase.1 = default() });
+            }
             _ => {}
         }
     }
+    println!("Flatten Aerugo");
     let aerugo = ron::to_string(&aerugo).unwrap();
     std::fs::write(dst.join(SCENARIO_PATH), aerugo.as_bytes()).unwrap();
+    println!("Flatten AerugoImanity");
+    flat_aerugo_imanity(&new_assets).unwrap();
+    println!("Cleanup");
+    remove_if_empty(new_assets).unwrap();
 }
 
 fn _sha3(s: &mut String) {
@@ -196,5 +209,44 @@ pub fn copy_folder<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(),
         }
     }
 
+    Ok(())
+}
+
+pub fn remove_if_empty<F: AsRef<Path>>(folder: F) -> Result<(), std::io::Error> {
+    let mut del_self = true;
+    for entry in fs::read_dir(&folder)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() {
+            del_self = false;
+        } else if path.is_dir() {
+            remove_if_empty(&path)?;
+            if path.exists() {
+                del_self = false;
+            }
+        }
+    }
+    if del_self {
+        fs::remove_dir(folder)?;
+    }
+    Ok(())
+}
+
+pub fn flat_aerugo_imanity<F: AsRef<Path>>(assets: F) -> Result<(), std::io::Error> {
+    let base = Path::new(assets.as_ref()).join("lang");
+    for entry in std::fs::read_dir(&base).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if fs::metadata(&path)?.is_file() {
+            let name = path.strip_prefix(&base).unwrap();
+            let name = name.to_string_lossy();
+            if let Some(_) = name.strip_suffix(".imanity") {
+                let imanity = fs::read_to_string(&path).unwrap();
+                let imanity: AerugoImanity = ron::from_str(&imanity).unwrap();
+                let imanity = ron::to_string(&imanity).unwrap();
+                fs::write(&path, imanity)?;
+            }
+        }
+    }
     Ok(())
 }
