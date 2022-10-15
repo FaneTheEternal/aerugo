@@ -3,7 +3,7 @@ use bevy::log::Level;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::tracing::span;
-use bevy::window::WindowResized;
+use bevy::window::{WindowId, WindowResized};
 use bevy_egui::{egui, EguiPlugin};
 
 pub use game::*;
@@ -203,6 +203,7 @@ pub fn settings_ui(
     mut translator: ResMut<Translator>,
     mut new_lang: EventWriter<NewLang>,
     mut windows: ResMut<Windows>,
+    mut resize_event: EventWriter<WindowResized>,
 )
 {
     egui::TopBottomPanel::top("my_panel")
@@ -288,6 +289,11 @@ pub fn settings_ui(
                     let window = windows.get_primary_mut().unwrap();
                     let (w, h) = settings.resolution.get();
                     window.set_resolution(w, h);
+                    resize_event.send(WindowResized {
+                        id: WindowId::primary(),
+                        width: w,
+                        height: h,
+                    })
                 }
                 settings.dump();
             }

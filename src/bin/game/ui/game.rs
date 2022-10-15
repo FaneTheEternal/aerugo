@@ -260,6 +260,9 @@ impl GameUI {
     {
         sprite_query.get_mut(self.background).unwrap()
             .custom_size = Some(Vec2::new(width, height));
+        if let Ok(mut sprite) = sprite_query.get_mut(self.scene) {
+            sprite.custom_size = Some(Vec2::new(width, height));
+        }
         if let Ok(mut atlas_sprite) = atlas_query.get_mut(self.scene) {
             atlas_sprite.custom_size = Some(Vec2::new(width, height));
         }
