@@ -38,28 +38,22 @@ pub const NARRATOR_DEFAULT: UiRect<Val> = UiRect {
 };
 
 pub fn get_narrator_shift(base: f32) -> UiRect<Val> {
-    UiRect {
-        left: Val::Px(10.0 + get_narrator_side(base)),
-        right: Val::Px(10.0),
-        top: Val::Px(10.0),
-        bottom: Val::Undefined,
-    }
+    let mut margin = NARRATOR_DEFAULT;
+    margin.left += get_narrator_side(base);
+    margin
 }
 
 pub const FLOW_DEFAULT: UiRect<Val> = UiRect {
     left: Val::Px(10.0),
     right: Val::Px(10.0),
-    top: Val::Px(40.0),
+    top: Val::Percent(2.5),
     bottom: Val::Px(10.0),
 };
 
 pub fn get_flow_shift(base: f32) -> UiRect<Val> {
-    UiRect {
-        left: Val::Px(10.0 + get_narrator_side(base)),
-        right: Val::Px(10.0),
-        top: Val::Px(40.0),
-        bottom: Val::Px(10.0),
-    }
+    let mut padding = FLOW_DEFAULT;
+    padding.left += get_narrator_side(base);
+    padding
 }
 
 pub const NARRATOR_SIDE: f32 = 200.0;
