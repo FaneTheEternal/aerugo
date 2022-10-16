@@ -19,7 +19,7 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::WHITE))
-        .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(ImageSettings::default_linear())
         .insert_resource(WindowDescriptor {
             width: 1280.0,
             height: 720.0,
