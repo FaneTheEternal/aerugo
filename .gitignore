@@ -4,3 +4,6 @@
 /Cargo.lock
 
 /virualenv/
+
+/settings.ron
+/saves/
