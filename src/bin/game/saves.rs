@@ -43,9 +43,12 @@ pub struct Saves {
 pub fn pre_load_saves(aerugo: &Aerugo) -> Saves
 {
     let mut saves: HashMap<usize, Save> = Default::default();
+    let path = std::env::current_dir().unwrap()
+        .join("saves");
+    std::fs::create_dir_all(&path).unwrap();
     for n in 0..200 {
         let save_name = format!("save{n}.ron");
-        let save_path = std::path::Path::new(save_name.as_str());
+        let save_path = path.join(&save_name);
         if let Ok(mut save) = std::fs::File::open(save_path) {
             let mut save_data = String::new();
             save.read_to_string(&mut save_data).unwrap();
@@ -76,7 +79,9 @@ pub fn save(world: &mut World) {
 }
 
 fn _save(save_path: String, data: String) {
-    let save_path = std::path::Path::new(save_path.as_str());
+    let path = std::env::current_dir().unwrap()
+        .join("saves");
+    let save_path = path.join(&save_path);
     let mut save_file = std::fs::File::options()
         .write(true).create(true).truncate(true)
         .open(save_path)
