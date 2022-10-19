@@ -40,7 +40,6 @@ impl Default for Settings {
 impl Settings {
     pub fn load() -> Settings {
         let path = std::env::current_dir().unwrap()
-            .join("assets")
             .join("settings.ron");
         let settings = if let Ok(data) = std::fs::read_to_string(&path) {
             if let Ok(settings) = ron::from_str(&data) {
