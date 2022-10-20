@@ -1,20 +1,17 @@
+cargo-features = ["profile-rustflags"]
+
 [package]
 name = "aerugo"
 version = "0.1.0"
 authors = ["FaneTheEternal <artemyev.vova@gmail.com>"]
 edition = "2021"
 
-[[bin]]
-name = "game"
-
-[[bin]]
-name = "demo"
-
 [profile.release-max]
 inherits = "release"
 strip = true
 lto = true
 codegen-units = 1
+rustflags = ["--cfg", "release_max"]
 
 [dependencies]
 ron = "0.7"

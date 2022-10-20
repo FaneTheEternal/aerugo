@@ -55,14 +55,21 @@ impl Internationale {
             for step in aerugo.steps.iter_mut() {
                 if let Some(local) = localized.localized.iter().find(|s| s.id == step.id) {
                     step.inner = local.inner.clone();
-                } else if let Steps::Text {..} = step.inner {
+                } else if let Steps::Text { .. } = step.inner {
                     println!("Missing localized step({}): {:?}", step.id, step.inner);
-                } else if let Steps::Phrase {..} = step.inner {
+                } else if let Steps::Phrase { .. } = step.inner {
                     println!("Missing localized step({}): {:?}", step.id, step.inner);
                 }
             }
         } else {
             println!("Unknown localization, generated defaults...")
+        }
+    }
+
+    pub fn is_relevant(step: &Steps) -> bool {
+        match step {
+            Steps::Text { .. } | Steps::Phrase { .. } => { true }
+            _ => { false }
         }
     }
 }

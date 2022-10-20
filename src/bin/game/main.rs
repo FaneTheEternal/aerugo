@@ -1,7 +1,7 @@
 #![feature(unboxed_closures)]
 #![feature(adt_const_params)]
+#![cfg_attr(release_max, windows_subsystem = "windows")]
 
-// #![windows_subsystem = "windows"]
 
 use bevy::prelude::*;
 use bevy::render::texture::ImageSettings;
