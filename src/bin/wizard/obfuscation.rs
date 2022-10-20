@@ -1,8 +1,10 @@
 use std::io;
 use std::io::Write;
+use std::process::Stdio;
 use crate::*;
 
 pub fn obfuscation() -> Result<(), Box<dyn Error>> {
+    let game = build_game()?;
     let mut aerugo = get_aerugo();
     let dst = std::env::current_dir().unwrap()
         .join("target")
@@ -14,7 +16,6 @@ pub fn obfuscation() -> Result<(), Box<dyn Error>> {
     let new_assets = dst.join("assets");
     println!("Copying assets...");
     copy_folder(&assets, &new_assets).unwrap();
-    build_game(&dst)?;
     println!("SHA-3...");
     let _sha3f = |s: &mut String| {
         let _s = s.clone();
@@ -127,6 +128,7 @@ pub fn obfuscation() -> Result<(), Box<dyn Error>> {
     flat_aerugo_imanity(&new_assets)?;
     println!("Cleanup...");
     remove_if_empty(new_assets)?;
+    post_build_game(game, dst)?;
     Ok(())
 }
 
@@ -227,14 +229,21 @@ pub fn flat_aerugo_imanity<F: AsRef<Path>>(assets: F) -> Result<(), std::io::Err
     Ok(())
 }
 
-pub fn build_game<F: AsRef<Path>>(dst: F) -> Result<(), Box<dyn Error>> {
-    println!("Building game...");
+pub fn build_game() -> Result<std::process::Child, Box<dyn Error>> {
+    println!("Building game parallel...");
     let output = std::process::Command::new("cargo")
         .arg("build")
         .args(["--profile", "release-max"])
         .args(["--bin", "game"])
-        .output()?;
-    println!("status: {}", output.status);
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    Ok(output)
+}
+
+pub fn post_build_game<F: AsRef<Path>>(process: std::process::Child, dst: F) -> Result<(), Box<dyn Error>> {
+    let output = process.wait_with_output()?;
+    println!("Game build status: {}", output.status);
     io::stdout().write_all(&output.stdout)?;
     io::stderr().write_all(&output.stderr)?;
     let source = std::env::current_dir().unwrap()
