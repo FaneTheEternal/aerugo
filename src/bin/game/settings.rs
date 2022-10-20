@@ -20,8 +20,8 @@ pub struct Settings {
 struct Defs;
 
 impl Defs {
-    fn narrator_size() -> f32 { 30.0 }
-    fn flow_speed() -> f32 { 0.1 }
+    fn narrator_size() -> f32 { 31.0 }
+    fn flow_speed() -> f32 { 0.02 }
     fn flow_size() -> f32 { 31.0 }
 }
 
