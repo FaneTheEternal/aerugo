@@ -46,7 +46,7 @@ const NAME: &'static str = "new_ui.scn.ron";
 const F_NAME: &'static str = const_format::formatcp!("./assets/{}", NAME);
 
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
     make_default_ui(&mut commands);
 }
 
@@ -80,7 +80,7 @@ fn ui_system(
 fn make_default_ui(commands: &mut Commands) {
     let mut root = Entity::from_raw(0);
     let scene = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 ..default()
@@ -89,7 +89,7 @@ fn make_default_ui(commands: &mut Commands) {
         })
         .with_children(|builder| {
             root = builder
-                .spawn_bundle(NodeBundle {
+                .spawn(NodeBundle {
                     style: Style {
                         size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                         ..default()
@@ -99,12 +99,12 @@ fn make_default_ui(commands: &mut Commands) {
                 .insert(UIRoot)
                 .with_children(|builder| {
                     builder
-                        .spawn_bundle(ButtonBundle::default())
+                        .spawn(ButtonBundle::default())
                         .insert(MainMenuButtons::NewGame);
                 })
                 .with_children(|builder| {
                     builder
-                        .spawn_bundle(ImageBundle {
+                        .spawn(ImageBundle {
                             style: Style {
                                 size: Size::new(Val::Px(100.0), Val::Px(100.0)),
                                 ..default()

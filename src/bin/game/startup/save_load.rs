@@ -31,12 +31,12 @@ pub fn spawn_save(
     let mut save_frames = vec![];
 
     let root = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(ImageBundle {
             style: Style {
                 size: SIZE_ALL,
                 display: Display::None,
                 flex_wrap: FlexWrap::Wrap,
-                flex_direction: FlexDirection::ColumnReverse,
+                flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::FlexStart,
                 padding: UiRect::all(Val::Px(10.0)),
@@ -46,7 +46,7 @@ pub fn spawn_save(
             ..default()
         })
         .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
+            parent.spawn(TextBundle {
                 text: Text::from_section(
                     "Saves",
                     TextStyle {
@@ -60,7 +60,7 @@ pub fn spawn_save(
         })
         .with_children(|parent| {
             page_header = parent
-                .spawn_bundle(TextBundle {
+                .spawn(TextBundle {
                     text: Text::from_section(
                         "Page 0", // TODO: patterns
                         TextStyle {
@@ -81,20 +81,21 @@ pub fn spawn_save(
                 .map(|i| saves.saves.get(&i))
                 .collect::<Vec<_>>();
             let mut entity = parent
-                .spawn_bundle(NodeBundle {
+                .spawn(NodeBundle {
                     style: Style {
                         size: Size::new(
                             Val::Percent(100.0),
                             Val::Percent(80.0),
                         ),
+                        direction: Direction::LeftToRight,
                         flex_wrap: FlexWrap::Wrap,
-                        flex_direction: FlexDirection::RowReverse,
+                        flex_direction: FlexDirection::Row,
                         align_items: AlignItems::Center,
                         align_content: AlignContent::Center,
                         justify_content: JustifyContent::Center,
                         ..default()
                     },
-                    color: TRANSPARENT.into(),
+                    background_color: TRANSPARENT.into(),
                     ..default()
                 });
             save_frames = spawn_frames(
@@ -122,7 +123,7 @@ fn spawn_pages_row(
     btn_hover: Handle<Image>,
 )
 {
-    let mut pages = parent.spawn_bundle(NodeBundle {
+    let mut pages = parent.spawn(NodeBundle {
         style: Style {
             size: Size::new(
                 Val::Percent(100.0),
@@ -135,13 +136,13 @@ fn spawn_pages_row(
             padding: UiRect::all(Val::Percent(1.0)),
             ..default()
         },
-        color: TRANSPARENT.into(),
+        background_color: TRANSPARENT.into(),
         ..default()
     });
     for page in 0..10usize {
         pages.with_children(|parent| {
             parent
-                .spawn_bundle(NodeBundle {
+                .spawn(ImageBundle {
                     style: Style {
                         size: Size::new(
                             Val::Percent(3.5),
@@ -164,7 +165,7 @@ fn spawn_pages_row(
                 })
                 .with_children(|parent| {
                     parent
-                        .spawn_bundle(ButtonBundle {
+                        .spawn(ButtonBundle {
                             style: Style {
                                 size: SIZE_ALL,
                                 flex_wrap: FlexWrap::Wrap,
@@ -173,13 +174,13 @@ fn spawn_pages_row(
                                 justify_content: JustifyContent::Center,
                                 ..default()
                             },
-                            color: TRANSPARENT.into(),
+                            background_color: TRANSPARENT.into(),
                             image: btn_hover.clone().into(),
                             ..default()
                         })
                         .insert(SavePageButton(format!("{}", page)))
                         .with_children(|parent| {
-                            parent.spawn_bundle(TextBundle {
+                            parent.spawn(TextBundle {
                                 text: Text::from_section(
                                     format!("{}", page),
                                     TextStyle {
@@ -206,9 +207,7 @@ fn spawn_frames(
 ) -> Vec<SaveFrameUI>
 {
     let mut save_frames = vec![];
-    let mut saves = saves.iter().enumerate().collect::<Vec<_>>();
-    saves.reverse();
-    for (i, save) in saves {
+    for (i, save) in saves.iter().enumerate() {
         let mut ui = SaveFrameUI {
             root: Entity::from_raw(0),
             btn: Entity::from_raw(0),
@@ -218,7 +217,7 @@ fn spawn_frames(
         };
         parent.with_children(|parent| {
             ui.root = parent
-                .spawn_bundle(NodeBundle {
+                .spawn(ImageBundle {
                     style: Style {
                         size: Size::new(
                             Val::Percent(16.0),
@@ -241,15 +240,15 @@ fn spawn_frames(
                     };
 
                     ui.btn = parent
-                        .spawn_bundle(ButtonBundle {
+                        .spawn(ButtonBundle {
                             style: Style {
                                 size: SIZE_ALL,
                                 flex_wrap: FlexWrap::Wrap,
-                                flex_direction: FlexDirection::ColumnReverse,
+                                flex_direction: FlexDirection::Column,
                                 ..default()
                             },
                             image: back_img,
-                            color: color.into(),
+                            background_color: color.into(),
                             ..default()
                         })
                         .insert(SaveMark { to: i })
@@ -257,7 +256,7 @@ fn spawn_frames(
                         .insert(HasBackground(back.is_some()))
                         .with_children(|parent| {
                             parent
-                                .spawn_bundle(NodeBundle {
+                                .spawn(NodeBundle {
                                     style: Style {
                                         size: Size::new(
                                             Val::Percent(100.0),
@@ -269,11 +268,11 @@ fn spawn_frames(
                                         ..default()
                                     },
                                     focus_policy: FocusPolicy::Pass,
-                                    color: TRANSPARENT.into(),
+                                    background_color: TRANSPARENT.into(),
                                     ..default()
                                 })
                                 .with_children(|parent| {
-                                    ui.num = parent.spawn_bundle(TextBundle {
+                                    ui.num = parent.spawn(TextBundle {
                                         text: Text::from_section(
                                             i.to_string(),
                                             TextStyle {
@@ -294,7 +293,7 @@ fn spawn_frames(
                                 })
                                 .unwrap_or_default();
                             parent
-                                .spawn_bundle(NodeBundle {
+                                .spawn(NodeBundle {
                                     style: Style {
                                         size: Size::new(
                                             Val::Percent(100.0),
@@ -306,11 +305,11 @@ fn spawn_frames(
                                         ..default()
                                     },
                                     focus_policy: FocusPolicy::Pass,
-                                    color: TRANSPARENT.into(),
+                                    background_color: TRANSPARENT.into(),
                                     ..default()
                                 })
                                 .with_children(|parent| {
-                                    ui.hint = parent.spawn_bundle(TextBundle {
+                                    ui.hint = parent.spawn(TextBundle {
                                         text: Text::from_section(
                                             hint,
                                             TextStyle {
@@ -330,6 +329,5 @@ fn spawn_frames(
         });
         save_frames.push(ui);
     }
-    save_frames.reverse();
     save_frames
 }

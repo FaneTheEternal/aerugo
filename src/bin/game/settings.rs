@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::translator::{Lang};
 
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Resource)]
 pub struct Settings {
     #[serde(default)]
     pub lang: Lang,

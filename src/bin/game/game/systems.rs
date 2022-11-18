@@ -257,13 +257,14 @@ pub fn new_scene_listener(
                     texture_handle,
                     Vec2::new(tile.0 as f32, tile.1 as f32),
                     *columns, *rows,
+                    None, None,
                 );
                 visibility.is_visible = true;
                 game_ui.scene_visible = true;
                 commands
                     .entity(game_ui.scene)
                     .insert(AnimateScene {
-                        timer: Timer::from_seconds(0.042, true),
+                        timer: Timer::from_seconds(0.042, TimerMode::Repeating),
                         is_loop: *is_loop,
                         is_paused: false,
                     })
@@ -326,7 +327,7 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             sprite: sprite_def.clone(),
                             ..default()
                         })
@@ -355,7 +356,7 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             sprite: sprite_def.clone(),
                             ..default()
                         })
@@ -366,7 +367,7 @@ pub fn new_sprite_listener(
                     .insert(sprite)
                     .insert(Transform::from_xyz(w_half * position, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateFadeSprite {
-                        timer: Timer::from_seconds(FADE_IN_DURATION, false),
+                        timer: Timer::from_seconds(FADE_IN_DURATION, TimerMode::Once),
                         fade_in: true,
                         name: name.clone(),
                     })
@@ -379,7 +380,7 @@ pub fn new_sprite_listener(
                         commands
                             .entity(e.clone())
                             .insert(AnimateFadeSprite {
-                                timer: Timer::from_seconds(FADE_OUT_DURATION, false),
+                                timer: Timer::from_seconds(FADE_OUT_DURATION, TimerMode::Once),
                                 fade_in: false,
                                 name: name.clone(),
                             });
@@ -390,7 +391,7 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             sprite: sprite_def.clone(),
                             ..default()
                         })
@@ -401,7 +402,7 @@ pub fn new_sprite_listener(
                     .insert(sprite)
                     .insert(Transform::from_xyz(w_half * -2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
-                        timer: Timer::from_seconds(LEFT_IN_DURATION, false),
+                        timer: Timer::from_seconds(LEFT_IN_DURATION, TimerMode::Once),
                         start_pos: f32::NEG_INFINITY,
                         end_pos: w_half * position,
                         name: name.clone(),
@@ -416,7 +417,7 @@ pub fn new_sprite_listener(
                         commands
                             .entity(e.clone())
                             .insert(AnimateMoveSprite {
-                                timer: Timer::from_seconds(LEFT_OUT_DURATION, false),
+                                timer: Timer::from_seconds(LEFT_OUT_DURATION, TimerMode::Once),
                                 start_pos: f32::NAN,
                                 end_pos: f32::NEG_INFINITY,
                                 name: name.clone(),
@@ -429,7 +430,7 @@ pub fn new_sprite_listener(
                 let sprite: Handle<Image> = asset_server.load(sprite);
                 let mut entity_cmd = match game_ui.sprites.get_mut(name) {
                     None => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             sprite: sprite_def.clone(),
                             ..default()
                         })
@@ -440,7 +441,7 @@ pub fn new_sprite_listener(
                     .insert(sprite)
                     .insert(Transform::from_xyz(w_half * 2.0, Y_SPRITE, Z_SPRITE))
                     .insert(AnimateMoveSprite {
-                        timer: Timer::from_seconds(RIGHT_IN_DURATION, false),
+                        timer: Timer::from_seconds(RIGHT_IN_DURATION, TimerMode::Once),
                         start_pos: f32::INFINITY,
                         end_pos: w_half * position,
                         name: name.clone(),
@@ -455,7 +456,7 @@ pub fn new_sprite_listener(
                         commands
                             .entity(e.clone())
                             .insert(AnimateMoveSprite {
-                                timer: Timer::from_seconds(RIGHT_OUT_DURATION, false),
+                                timer: Timer::from_seconds(RIGHT_OUT_DURATION, TimerMode::Once),
                                 start_pos: f32::NAN,
                                 end_pos: f32::INFINITY,
                                 name: name.clone(),
@@ -470,7 +471,7 @@ pub fn new_sprite_listener(
                         commands
                             .entity(e.clone())
                             .insert(AnimateMoveSprite {
-                                timer: Timer::from_seconds(MOVE_DURATION, false),
+                                timer: Timer::from_seconds(MOVE_DURATION, TimerMode::Once),
                                 start_pos: f32::NAN,
                                 end_pos: w_half * position,
                                 name: name.clone(),
@@ -526,7 +527,7 @@ pub fn step_init(
                     .entity(game_ui.text.text)
                     .insert(AnimateText {
                         text: texts.clone(),
-                        timer: Timer::from_seconds(settings.flow_speed, true),
+                        timer: Timer::from_seconds(settings.flow_speed, TimerMode::Repeating),
                         style: TextStyle {
                             font: asset_server.load(FONT_FLOW),
                             font_size: settings.flow_size,
@@ -544,7 +545,7 @@ pub fn step_init(
                     .map(|o| {
                         let (key, verbose) = o;
                         commands
-                            .spawn_bundle(NodeBundle {
+                            .spawn(ImageBundle {
                                 style: Style {
                                     size: Size::new(
                                         Val::Percent(40.0),
@@ -559,7 +560,7 @@ pub fn step_init(
                             // .insert(PhraseValue(key.clone()))
                             .with_children(|parent| {
                                 parent
-                                    .spawn_bundle(ButtonBundle {
+                                    .spawn(ButtonBundle {
                                         style: Style {
                                             size: SIZE_ALL,
                                             padding: UiRect::all(Val::Px(10.0)),
@@ -571,7 +572,7 @@ pub fn step_init(
                                     })
                                     .insert(PhraseValue(key.clone()))
                                     .with_children(|parent| {
-                                        parent.spawn_bundle(TextBundle {
+                                        parent.spawn(TextBundle {
                                             text: Text::from_section(
                                                 verbose.as_str(),
                                                 TextStyle {
@@ -644,7 +645,7 @@ pub fn input_phrase(
     mut aerugo_state: ResMut<AerugoState>,
     aerugo: Res<Aerugo>,
     mut game_control_state: ResMut<State<GameControlState>>,
-    mut phrase_query: Query<(&Interaction, &PhraseValue, &mut UiColor), Changed<Interaction>>,
+    mut phrase_query: Query<(&Interaction, &PhraseValue, &mut BackgroundColor), Changed<Interaction>>,
     mut next_step_event: EventWriter<NextStepEvent>,
 )
 {
@@ -654,7 +655,7 @@ pub fn input_phrase(
     for (interaction, phrase, color) in phrase_query.iter_mut() {
         let interaction: &Interaction = interaction;
         let phrase: &PhraseValue = phrase;
-        let mut color: Mut<UiColor> = color;
+        let mut color: Mut<BackgroundColor> = color;
         match interaction {
             Interaction::Clicked => {
                 *color = TRANSPARENT.into();

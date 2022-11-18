@@ -8,6 +8,7 @@ use crate::utils::*;
 
 use super::*;
 
+#[derive(Debug, Resource)]
 pub struct GameMenuUI {
     pub(crate) root: Entity,
 }
@@ -47,7 +48,7 @@ pub fn game_menu_actions(
     mut ui_state: ResMut<State<UiState>>,
     mut game_state: ResMut<State<GameState>>,
     mut query: Query<
-        (&Interaction, &mut UiColor, &GameMenuButtons),
+        (&Interaction, &mut BackgroundColor, &GameMenuButtons),
         (Changed<Interaction>, With<Button>),
     >,
     mut input: ResMut<Input<KeyCode>>,

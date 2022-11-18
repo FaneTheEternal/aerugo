@@ -25,7 +25,7 @@ impl LangDict {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Resource)]
 pub struct Translator {
     defs: HashMap<Lang, LangDict>,
 }

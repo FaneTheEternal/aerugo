@@ -6,6 +6,7 @@ use aerugo::bevy_glue::SavePageButton;
 use crate::saves::{LoadMark, SaveMark, Saves};
 use crate::utils::{CachedAssetServer, TRANSPARENT};
 
+#[derive(Debug, Resource)]
 pub struct SaveLoadUI {
     pub root: Entity,
     pub page_header: Entity,
@@ -30,7 +31,7 @@ impl SaveLoadUI {
         page: &str,
         text_query: &mut Query<&mut Text>,
         img_query: &mut Query<&mut UiImage>,
-        color_query: &mut Query<&mut UiColor>,
+        color_query: &mut Query<&mut BackgroundColor>,
         saves: &Saves,
         asset_server: &mut CachedAssetServer,
     )
@@ -101,6 +102,7 @@ impl SaveLoadUI {
     }
 }
 
+#[derive(Debug)]
 pub struct SaveFrameUI {
     pub root: Entity,
     pub btn: Entity,
@@ -118,12 +120,13 @@ pub fn save_show(
     ui.show(&mut style_query);
 }
 
+#[derive(Debug, Resource)]
 pub struct NewPage(pub String);
 
 pub fn save_page_actions(
     mut commands: Commands,
     mut page_query: Query<
-        (&Interaction, &mut UiColor, &SavePageButton),
+        (&Interaction, &mut BackgroundColor, &SavePageButton),
         (Changed<Interaction>, With<Button>),
     >,
 )
@@ -154,7 +157,7 @@ pub fn new_page(
     event: Option<Res<NewPage>>,
     mut text_query: Query<&mut Text>,
     mut img_query: Query<&mut UiImage>,
-    mut color_query: Query<&mut UiColor>,
+    mut color_query: Query<&mut BackgroundColor>,
     saves: Res<Saves>,
     mut asset_server: CachedAssetServer,
     mut save_ui: ResMut<SaveLoadUI>,
@@ -177,7 +180,7 @@ pub fn save_actions(
     mut commands: Commands,
     save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &SaveMark, &HasBackground),
+        (&Interaction, &mut BackgroundColor, &SaveMark, &HasBackground),
         (Changed<Interaction>, With<Button>),
     >,
 )
@@ -194,7 +197,11 @@ pub fn save_actions(
                 commands.insert_resource(NewPage(save_ui.current.clone()));
             }
             Interaction::Hovered => {
-                *color = Color::rgba(1.0, 1.0, 1.0, 0.5).into()
+                *color = if has_back.0 {
+                    Color::rgba(1.0, 1.0, 1.0, 0.5).into()
+                } else {
+                    Color::rgba(1.0, 1.0, 1.0, 0.01).into()
+                };
             }
             Interaction::None => {
                 *color = if has_back.0 { Color::WHITE.into() } else { TRANSPARENT.into() };
@@ -207,7 +214,7 @@ pub fn load_actions(
     mut commands: Commands,
     save_ui: Res<SaveLoadUI>,
     mut interactions_query: Query<
-        (&Interaction, &mut UiColor, &LoadMark, &HasBackground),
+        (&Interaction, &mut BackgroundColor, &LoadMark, &HasBackground),
         (Changed<Interaction>, With<Button>),
     >,
 )

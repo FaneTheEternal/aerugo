@@ -25,34 +25,42 @@ pub const Z_BACKGROUND: f32 = 5.0;
 pub const Z_SPRITE: f32 = 10.0;
 pub const Y_SPRITE: f32 = 0.0;
 
-pub const SIZE_ALL: Size<Val> = Size {
+pub const SIZE_ALL: Size = Size {
     width: Val::Percent(100.0),
     height: Val::Percent(100.0),
 };
 
-pub const NARRATOR_DEFAULT: UiRect<Val> = UiRect {
+pub const NARRATOR_DEFAULT: UiRect = UiRect {
     left: Val::Px(10.0),
     right: Val::Px(10.0),
     top: Val::Px(10.0),
     bottom: Val::Undefined,
 };
 
-pub fn get_narrator_shift(base: f32) -> UiRect<Val> {
+pub fn get_narrator_shift(base: f32) -> UiRect {
     let mut margin = NARRATOR_DEFAULT;
-    margin.left += get_narrator_side(base);
+    let left = match margin.left {
+        Val::Px(x) => x,
+        _ => 0.0,
+    };
+    margin.left = Val::Px(left + get_narrator_side(base));
     margin
 }
 
-pub const FLOW_DEFAULT: UiRect<Val> = UiRect {
+pub const FLOW_DEFAULT: UiRect = UiRect {
     left: Val::Px(10.0),
     right: Val::Px(10.0),
     top: Val::Percent(2.5),
     bottom: Val::Px(10.0),
 };
 
-pub fn get_flow_shift(base: f32) -> UiRect<Val> {
+pub fn get_flow_shift(base: f32) -> UiRect {
     let mut padding = FLOW_DEFAULT;
-    padding.left += get_narrator_side(base);
+    let left = match padding.left {
+        Val::Px(x) => x,
+        _ => 0.0,
+    };
+    padding.left = Val::Px(left + get_narrator_side(base));
     padding
 }
 
@@ -63,42 +71,14 @@ pub fn get_narrator_side(base: f32) -> f32 {
     base * NARRATOR_SIDE / NARRATOR_BASE
 }
 
-pub const NARRATOR_FRAME: Size<Val> = Size {
+pub const NARRATOR_FRAME: Size = Size {
     width: Val::Px(NARRATOR_SIDE),
     height: Val::Px(NARRATOR_SIDE),
 };
-pub const FLOW_MAX_DEFAULT: Size<Val> = Size {
+pub const FLOW_MAX_DEFAULT: Size = Size {
     width: Val::Px(900.0),
     height: Val::Undefined,
 };
-
-pub fn grow_z_index<'closure>(
-    deep: u8,
-    builder: &mut ChildBuilder,
-    tree_style: Style,
-    closure: impl FnOnce(&mut ChildBuilder) + 'closure,
-)
-{
-    builder
-        .spawn_bundle(NodeBundle {
-            style: tree_style.clone(),
-            color: TRANSPARENT.into(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            if deep == 0 {
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: tree_style.clone(),
-                        color: TRANSPARENT.into(),
-                        ..Default::default()
-                    })
-                    .with_children(closure);
-            } else {
-                grow_z_index(deep - 1, parent, tree_style, closure);
-            }
-        });
-}
 
 pub fn load_aerugo() -> Aerugo {
     const SCENARIO_PATH: &str = "scenario.ron";

@@ -7,6 +7,7 @@ use crate::utils::*;
 
 use super::*;
 
+#[derive(Debug, Resource)]
 pub struct MainMenuUI {
     pub(crate) entity_root: Entity,
 }
@@ -33,7 +34,7 @@ pub fn main_menu_actions(
     mut ui_state: ResMut<State<UiState>>,
     mut game_state: ResMut<State<GameState>>,
     mut query: Query<
-        (&Interaction, &mut UiColor, &MainMenuButtons),
+        (&Interaction, &mut BackgroundColor, &MainMenuButtons),
         (Changed<Interaction>, With<Button>)
     >,
     mut exit: EventWriter<AppExit>,
@@ -74,6 +75,7 @@ pub fn main_menu_actions(
     }
 }
 
+#[derive(Debug, Resource)]
 pub struct NoticeUI {
     root: Entity,
 }
@@ -85,182 +87,173 @@ impl NoticeUI {
     ) -> NoticeUI
     {
         let root = commands
-            .spawn_bundle(NodeBundle {
+            .spawn(NodeBundle {
                 style: Style {
                     size: SIZE_ALL,
                     display: Display::None,
                     position_type: PositionType::Absolute,
+                    flex_wrap: FlexWrap::Wrap,
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
                     ..default()
                 },
-                color: TRANSPARENT.into(),
+                background_color: TRANSPARENT.into(),
+                z_index: ZIndex::Global(20),
                 ..default()
             })
             .with_children(|parent| {
-                grow_z_index(
-                    10,
-                    parent,
-                    Style {
-                        size: SIZE_ALL,
-                        flex_wrap: FlexWrap::Wrap,
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(400.0),
+                                Val::Px(200.0),
+                            ),
+                            flex_wrap: FlexWrap::Wrap,
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::Center,
+                            align_content: AlignContent::Center,
+                            flex_direction: FlexDirection::Column,
+                            ..default()
+                        },
+                        background_color: Color::rgba(0.0, 0.0, 0.0, 0.5).into(),
                         ..default()
-                    },
-                    |parent| {
+                    })
+                    .with_children(|parent| {
                         parent
-                            .spawn_bundle(NodeBundle {
+                            .spawn(NodeBundle {
                                 style: Style {
                                     size: Size::new(
-                                        Val::Px(400.0),
-                                        Val::Px(200.0),
+                                        Val::Percent(90.0),
+                                        Val::Percent(50.0),
                                     ),
                                     flex_wrap: FlexWrap::Wrap,
                                     align_items: AlignItems::Center,
                                     justify_content: JustifyContent::Center,
-                                    align_content: AlignContent::Center,
-                                    flex_direction: FlexDirection::ColumnReverse,
                                     ..default()
                                 },
-                                color: Color::rgba(0.0, 0.0, 0.0, 0.5).into(),
+                                background_color: TRANSPARENT.into(),
+                                ..default()
+                            })
+                            .with_children(|parent| {
+                                parent.spawn(TextBundle {
+                                    text: Text::from_section(
+                                        "I am 18 years of age or older",
+                                        TextStyle {
+                                            font: asset_server.load("fonts/CormorantGaramond-BoldItalic.ttf"),
+                                            font_size: 40.0,
+                                            color: Color::PURPLE,
+                                        },
+                                    ).with_alignment(TextAlignment::CENTER),
+                                    ..default()
+                                }).insert(TranslatableText);
+                            });
+                    })
+                    .with_children(|parent| {
+                        parent
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Percent(60.0),
+                                        Val::Percent(25.0),
+                                    ),
+                                    flex_wrap: FlexWrap::Wrap,
+                                    flex_direction: FlexDirection::Row,
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::Center,
+                                    align_content: AlignContent::Center,
+                                    ..default()
+                                },
+                                background_color: TRANSPARENT.into(),
                                 ..default()
                             })
                             .with_children(|parent| {
                                 parent
-                                    .spawn_bundle(NodeBundle {
+                                    .spawn(ImageBundle {
                                         style: Style {
                                             size: Size::new(
-                                                Val::Percent(90.0),
-                                                Val::Percent(50.0),
+                                                Val::Percent(40.0),
+                                                Val::Percent(100.0),
                                             ),
-                                            flex_wrap: FlexWrap::Wrap,
-                                            align_items: AlignItems::Center,
-                                            justify_content: JustifyContent::Center,
+                                            margin: UiRect::all(Val::Px(10.0)),
                                             ..default()
                                         },
-                                        color: TRANSPARENT.into(),
+                                        image: asset_server.load("hud/save_return.png").into(),
                                         ..default()
                                     })
                                     .with_children(|parent| {
-                                        parent.spawn_bundle(TextBundle {
-                                            text: Text::from_section(
-                                                "I am 18 years of age or older",
-                                                TextStyle {
-                                                    font: asset_server.load("fonts/CormorantGaramond-BoldItalic.ttf"),
-                                                    font_size: 40.0,
-                                                    color: Color::PURPLE,
+                                        parent
+                                            .spawn(ButtonBundle {
+                                                style: Style {
+                                                    size: SIZE_ALL,
+                                                    flex_wrap: FlexWrap::Wrap,
+                                                    align_items: AlignItems::Center,
+                                                    justify_content: JustifyContent::Center,
+                                                    ..default()
                                                 },
-                                            ).with_alignment(TextAlignment::CENTER),
-                                            ..default()
-                                        }).insert(TranslatableText);
+                                                image: asset_server.load("hud/save_return_hover.png").into(),
+                                                ..default()
+                                            })
+                                            .insert(NoticeAccept::Yes)
+                                            .with_children(|parent| {
+                                                parent.spawn(TextBundle {
+                                                    text: Text::from_section(
+                                                        "Yes",
+                                                        TextStyle {
+                                                            font: asset_server.load("fonts/CormorantGaramond-Italic.ttf"),
+                                                            font_size: 30.0,
+                                                            color: Color::PURPLE,
+                                                        },
+                                                    ),
+                                                    ..default()
+                                                }).insert(TranslatableText);
+                                            });
                                     });
                             })
                             .with_children(|parent| {
                                 parent
-                                    .spawn_bundle(NodeBundle {
+                                    .spawn(ImageBundle {
                                         style: Style {
                                             size: Size::new(
-                                                Val::Percent(60.0),
-                                                Val::Percent(25.0),
+                                                Val::Percent(40.0),
+                                                Val::Percent(100.0),
                                             ),
-                                            flex_wrap: FlexWrap::Wrap,
-                                            flex_direction: FlexDirection::Row,
-                                            align_items: AlignItems::Center,
-                                            justify_content: JustifyContent::Center,
-                                            align_content: AlignContent::Center,
+                                            margin: UiRect::all(Val::Px(10.0)),
                                             ..default()
                                         },
-                                        color: TRANSPARENT.into(),
+                                        image: asset_server.load("hud/save_return.png").into(),
                                         ..default()
                                     })
                                     .with_children(|parent| {
                                         parent
-                                            .spawn_bundle(NodeBundle {
+                                            .spawn(ButtonBundle {
                                                 style: Style {
-                                                    size: Size::new(
-                                                        Val::Percent(40.0),
-                                                        Val::Percent(100.0),
-                                                    ),
-                                                    margin: UiRect::all(Val::Px(10.0)),
+                                                    size: SIZE_ALL,
+                                                    flex_wrap: FlexWrap::Wrap,
+                                                    align_items: AlignItems::Center,
+                                                    justify_content: JustifyContent::Center,
                                                     ..default()
                                                 },
-                                                image: asset_server.load("hud/save_return.png").into(),
+                                                image: asset_server.load("hud/save_return_hover.png").into(),
                                                 ..default()
                                             })
+                                            .insert(NoticeAccept::No)
                                             .with_children(|parent| {
-                                                parent
-                                                    .spawn_bundle(ButtonBundle {
-                                                        style: Style {
-                                                            size: SIZE_ALL,
-                                                            flex_wrap: FlexWrap::Wrap,
-                                                            align_items: AlignItems::Center,
-                                                            justify_content: JustifyContent::Center,
-                                                            ..default()
+                                                parent.spawn(TextBundle {
+                                                    text: Text::from_section(
+                                                        "No",
+                                                        TextStyle {
+                                                            font: asset_server.load("fonts/CormorantGaramond-Italic.ttf"),
+                                                            font_size: 30.0,
+                                                            color: Color::PURPLE,
                                                         },
-                                                        image: asset_server.load("hud/save_return_hover.png").into(),
-                                                        ..default()
-                                                    })
-                                                    .insert(NoticeAccept::Yes)
-                                                    .with_children(|parent| {
-                                                        parent.spawn_bundle(TextBundle {
-                                                            text: Text::from_section(
-                                                                "Yes",
-                                                                TextStyle {
-                                                                    font: asset_server.load("fonts/CormorantGaramond-Italic.ttf"),
-                                                                    font_size: 30.0,
-                                                                    color: Color::PURPLE,
-                                                                },
-                                                            ),
-                                                            ..default()
-                                                        }).insert(TranslatableText);
-                                                    });
-                                            });
-                                    })
-                                    .with_children(|parent| {
-                                        parent
-                                            .spawn_bundle(NodeBundle {
-                                                style: Style {
-                                                    size: Size::new(
-                                                        Val::Percent(40.0),
-                                                        Val::Percent(100.0),
                                                     ),
-                                                    margin: UiRect::all(Val::Px(10.0)),
                                                     ..default()
-                                                },
-                                                image: asset_server.load("hud/save_return.png").into(),
-                                                ..default()
-                                            })
-                                            .with_children(|parent| {
-                                                parent
-                                                    .spawn_bundle(ButtonBundle {
-                                                        style: Style {
-                                                            size: SIZE_ALL,
-                                                            flex_wrap: FlexWrap::Wrap,
-                                                            align_items: AlignItems::Center,
-                                                            justify_content: JustifyContent::Center,
-                                                            ..default()
-                                                        },
-                                                        image: asset_server.load("hud/save_return_hover.png").into(),
-                                                        ..default()
-                                                    })
-                                                    .insert(NoticeAccept::No)
-                                                    .with_children(|parent| {
-                                                        parent.spawn_bundle(TextBundle {
-                                                            text: Text::from_section(
-                                                                "No",
-                                                                TextStyle {
-                                                                    font: asset_server.load("fonts/CormorantGaramond-Italic.ttf"),
-                                                                    font_size: 30.0,
-                                                                    color: Color::PURPLE,
-                                                                },
-                                                            ),
-                                                            ..default()
-                                                        }).insert(TranslatableText);
-                                                    });
+                                                }).insert(TranslatableText);
                                             });
                                     });
                             });
-                    },
-                )
+                    });
             })
             .id();
         NoticeUI {
@@ -276,7 +269,7 @@ impl NoticeUI {
         mut ui_state: ResMut<State<UiState>>,
         mut asset_server: CachedAssetServer,
         mut query: Query<
-            (&Interaction, &mut UiColor, &mut UiImage, &NoticeAccept),
+            (&Interaction, &mut BackgroundColor, &mut UiImage, &NoticeAccept),
             (Changed<Interaction>, With<Button>)
         >,
         mut exit: EventWriter<AppExit>,

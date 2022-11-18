@@ -20,7 +20,7 @@ pub fn spawn(
         .load(MAIN_BTN_HOVER);
 
     let entity = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(ImageBundle {
             style: Style {
                 size: SIZE_ALL,
                 display: Display::None,
@@ -37,11 +37,11 @@ pub fn spawn(
         })
         .with_children(|parent| {
             parent
-                .spawn_bundle(NodeBundle {
+                .spawn(ImageBundle {
                     style: Style {
                         size: Size::new(Val::Percent(33.3), Val::Percent(100.0)),
                         flex_wrap: FlexWrap::Wrap,
-                        flex_direction: FlexDirection::ColumnReverse,
+                        flex_direction: FlexDirection::Column,
                         align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
                         padding: UiRect::new(
@@ -126,7 +126,7 @@ fn make_btn(
 {
     move |parent| {
         parent
-            .spawn_bundle(NodeBundle {
+            .spawn(ImageBundle {
                 style: Style {
                     size: Size::new(
                         Val::Percent(84.0),
@@ -141,7 +141,7 @@ fn make_btn(
             })
             .with_children(|parent| {
                 parent
-                    .spawn_bundle(ButtonBundle {
+                    .spawn(ButtonBundle {
                         style: Style {
                             size: SIZE_ALL,
                             justify_content: JustifyContent::Center,
@@ -149,13 +149,13 @@ fn make_btn(
                             ..default()
                         },
                         image: hover.into(),
-                        color: TRANSPARENT.into(),
+                        background_color: TRANSPARENT.into(),
                         ..default()
                     })
                     .insert(btn)
                     .with_children(|parent| {
                         parent
-                            .spawn_bundle(TextBundle {
+                            .spawn(TextBundle {
                                 text: Text::from_section(
                                     text,
                                     TextStyle {

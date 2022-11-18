@@ -73,11 +73,12 @@ impl Plugin for StartupPlugin {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 pub struct AssetCache {
     pub assets: HashMap<String, HandleUntyped>,
 }
 
+#[derive(Debug, Resource)]
 pub struct SplashScreen {
     timer: Timer,
     root: Entity,

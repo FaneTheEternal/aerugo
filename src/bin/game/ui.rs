@@ -165,14 +165,14 @@ pub fn relative(
 
 pub fn open_patreon(
     mut query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<PatreonBTN>)
     >,
 )
 {
     for (interaction, color) in query.iter_mut() {
         let interaction: &Interaction = interaction;
-        let mut color: Mut<UiColor> = color;
+        let mut color: Mut<BackgroundColor> = color;
         match interaction {
             Interaction::Clicked => {
                 *color = PatreonBTN::DEFAULT.into();
@@ -303,7 +303,7 @@ pub fn settings_ui(
         .show(
             e_ctx.ctx_mut(),
             |ui| {
-                ui.with_layout(egui::Layout::right_to_left(), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::RIGHT), |ui| {
                     ui.hyperlink_to("GUI by egui", "https://github.com/emilk/egui");
                 });
             },

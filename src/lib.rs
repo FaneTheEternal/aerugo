@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hasher;
+use bevy::prelude::Resource;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -19,7 +20,7 @@ mod inspect;
 pub mod bevy_glue;
 pub mod international;
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, Resource)]
 pub struct AerugoState {
     pub current: Uuid,
     pub select_story: Vec<(Uuid, String)>,
@@ -185,7 +186,7 @@ impl Default for AerugoState {
 }
 
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, Resource)]
 pub struct Aerugo {
     pub steps: Vec<Step>,
 }
@@ -250,7 +251,7 @@ impl std::hash::Hash for Steps {
     }
 }
 
-#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Serialize, Deserialize, Resource)]
 pub struct Step {
     pub id: Uuid,
     pub name: String,

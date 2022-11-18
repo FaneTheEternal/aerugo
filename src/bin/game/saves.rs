@@ -14,19 +14,20 @@ pub struct SavePlugin;
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system(save.exclusive_system())
-            .add_system(load.exclusive_system());
+            .add_system(save)
+            .add_system(load);
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component, Resource)]
 pub struct SaveMark {
     pub(crate) to: usize,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Component, Resource)]
 pub struct LoadMark(pub usize);
 
+#[derive(Debug, Resource)]
 pub struct AerugoLoaded(pub AerugoState);
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -35,7 +36,7 @@ pub struct Save {
     pub timestamp: DateTime<chrono::Local>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 pub struct Saves {
     pub saves: HashMap<usize, Save>,
 }

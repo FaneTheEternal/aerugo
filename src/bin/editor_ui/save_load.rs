@@ -47,7 +47,7 @@ fn load_scene_system(
     if load_signal.is_some() {
         commands.entity(editor_state.scene).despawn_recursive();
         editor_state.scene = commands
-            .spawn_bundle(NodeBundle {
+            .spawn(NodeBundle {
                 style: Style {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     ..default()

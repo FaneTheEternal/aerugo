@@ -14,9 +14,9 @@ codegen-units = 1
 rustflags = ["--cfg", "release_max"]
 
 [dependencies]
-ron = "0.7"
+ron = "0.8.0"
 serde = { version = "1", features = ["derive"] }
-uuid = { version = "0.8", features = ["serde", "v4"] }
+uuid = { version = "1.2.2", features = ["serde", "v4"] }
 substring = "1.4.5"
 const_format = "0.2.26"
 strum = "0.24.1"
@@ -26,13 +26,13 @@ rfd = "0.10.0"
 sha3 = "0.10.5"
 open = "3.0.3"
 
-bevy-inspector-egui = "0.12.1"
+bevy-inspector-egui = "0.14.0"
 
 [dependencies.bevy]
 #path = '..\bevy'
-version = '0.8.0'
+version = "0.9.0"
 features = ["bevy_sprite", "jpeg", "tga", "bmp", "dds", "flac", "mp3", "wav"]
 
 [dependencies.bevy_egui]
 #path = '..\bevy_egui'
-version = '0.15.0'
+version = "0.17.1"

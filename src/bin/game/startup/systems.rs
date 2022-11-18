@@ -16,19 +16,19 @@ pub fn spawn_splash_screen(
 )
 {
     let root = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(NodeBundle {
             style: Style {
                 size: SIZE_ALL,
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..Default::default()
             },
-            color: Color::BLACK.into(),
+            background_color: Color::BLACK.into(),
             ..Default::default()
         })
         .with_children(|parent| {
             parent
-                .spawn_bundle(TextBundle {
+                .spawn(TextBundle {
                     text: Text::from_section(
                         "Aerugo",
                         TextStyle {
@@ -43,7 +43,7 @@ pub fn spawn_splash_screen(
         .id();
 
     commands.insert_resource(SplashScreen {
-        timer: Timer::from_seconds(1.0, false),
+        timer: Timer::from_seconds(1.0, TimerMode::Once),
         root,
     });
 
@@ -74,7 +74,7 @@ pub fn game_splash_screen(
 {
     commands.entity(splash_screen.root).despawn_recursive();
     let root = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(ImageBundle {
             style: Style {
                 size: SIZE_ALL,
                 flex_wrap: FlexWrap::Wrap,
@@ -87,7 +87,7 @@ pub fn game_splash_screen(
         })
         .id();
     commands.insert_resource(SplashScreen {
-        timer: Timer::from_seconds(1.0, false),
+        timer: Timer::from_seconds(1.0, TimerMode::Once),
         root,
     });
 }

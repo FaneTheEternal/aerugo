@@ -22,7 +22,7 @@ pub(crate) fn spawn_game(
     let mut ui_phrase = Entity::from_raw(0);
 
     let root = commands
-        .spawn_bundle(NodeBundle {
+        .spawn(NodeBundle {
             style: Style {
                 display: Display::None,
                 size: SIZE_ALL,
@@ -30,7 +30,7 @@ pub(crate) fn spawn_game(
                 flex_wrap: FlexWrap::Wrap,
                 ..Default::default()
             },
-            color: TRANSPARENT.into(),
+            background_color: TRANSPARENT.into(),
             ..Default::default()
         })
         // TextUI
@@ -44,7 +44,7 @@ pub(crate) fn spawn_game(
         // PhraseUI
         .with_children(|parent| {
             ui_phrase = parent
-                .spawn_bundle(NodeBundle {
+                .spawn(NodeBundle {
                     style: Style {
                         size: SIZE_ALL,
                         align_items: AlignItems::Center,
@@ -52,10 +52,10 @@ pub(crate) fn spawn_game(
                         justify_content: JustifyContent::Center,
                         position_type: PositionType::Absolute,
                         flex_wrap: FlexWrap::Wrap,
-                        flex_direction: FlexDirection::ColumnReverse,
+                        flex_direction: FlexDirection::Column,
                         ..Default::default()
                     },
-                    color: TRANSPARENT.into(),
+                    background_color: TRANSPARENT.into(),
                     ..Default::default()
                 })
                 .id();
@@ -63,7 +63,7 @@ pub(crate) fn spawn_game(
         .id();
 
     let background = commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(w, h)),
                 ..Default::default()
@@ -75,14 +75,14 @@ pub(crate) fn spawn_game(
         .id();
 
     let scene = commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(w, h)),
                 ..Default::default()
             },
             ..Default::default()
         })
-        .insert_bundle(SpriteSheetBundle {
+        .insert(SpriteSheetBundle {
             sprite: TextureAtlasSprite {
                 custom_size: Some(Vec2::new(w, h)),
                 ..default()
@@ -112,13 +112,13 @@ fn spawn_text_ui(
 ) -> TextUI
 {
     let mut root = builder
-        .spawn_bundle(NodeBundle {
+        .spawn(NodeBundle {
             style: Style {
                 size: SIZE_ALL,
                 position_type: PositionType::Absolute,
                 ..Default::default()
             },
-            color: TRANSPARENT.into(),
+            background_color: TRANSPARENT.into(),
             ..default()
         });
 
@@ -129,22 +129,22 @@ fn spawn_text_ui(
     let mut text_base = root.id();
     root.with_children(|parent| {
         flow = parent
-            .spawn_bundle(NodeBundle {
+            .spawn(NodeBundle {
                 style: Style {
                     size: SIZE_ALL,
                     position_type: PositionType::Absolute,
                     flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::ColumnReverse,
+                    flex_direction: FlexDirection::Column,
                     align_items: AlignItems::FlexStart,
                     justify_content: JustifyContent::FlexEnd,
                     ..default()
                 },
-                color: TRANSPARENT.into(),
+                background_color: TRANSPARENT.into(),
                 ..default()
             })
             .with_children(|parent| {
                 narrator_base = parent
-                    .spawn_bundle(NodeBundle {
+                    .spawn(ImageBundle {
                         style: Style {
                             size: Size::new(
                                 Val::Percent(25.0),
@@ -163,7 +163,7 @@ fn spawn_text_ui(
                         ..default()
                     })
                     .with_children(|parent| {
-                        narrator = parent.spawn_bundle(TextBundle {
+                        narrator = parent.spawn(TextBundle {
                             text: Text::from_section(
                                 "Narrator",
                                 TextStyle {
@@ -179,7 +179,7 @@ fn spawn_text_ui(
             })
             .with_children(|parent| {
                 text_base = parent
-                    .spawn_bundle(NodeBundle {
+                    .spawn(ImageBundle {
                         style: Style {
                             size: Size::new(
                                 Val::Percent(75.0),
@@ -187,7 +187,7 @@ fn spawn_text_ui(
                             ),
                             flex_wrap: FlexWrap::Wrap,
                             flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::FlexEnd,
+                            align_items: AlignItems::FlexStart,
                             justify_content: JustifyContent::FlexStart,
                             padding: FLOW_DEFAULT,
                             ..default()
@@ -198,7 +198,7 @@ fn spawn_text_ui(
                     })
                     .with_children(|parent| {
                         text = parent
-                            .spawn_bundle(TextBundle {
+                            .spawn(TextBundle {
                                 style: Style {
                                     // TODO: percent based
                                     max_size: FLOW_MAX_DEFAULT,
@@ -287,29 +287,29 @@ fn spawn_narrator_frame(
         img: Entity::from_raw(0),
     };
     builder
-        .spawn_bundle(NodeBundle {
+        .spawn(NodeBundle {
             style: Style {
                 size: SIZE_ALL,
                 position_type: PositionType::Absolute,
                 flex_wrap: FlexWrap::Wrap,
                 flex_direction: FlexDirection::Row,
-                align_items: AlignItems::FlexStart,
+                align_items: AlignItems::FlexEnd,
                 justify_content,
                 ..default()
             },
-            color: TRANSPARENT.into(),
+            background_color: TRANSPARENT.into(),
             ..default()
         })
         .with_children(|parent| {
             let entity = parent
-                .spawn_bundle(NodeBundle {
+                .spawn(ImageBundle {
                     style: img_style,
                     image: asset_server.load(sprite).into(),
                     ..default()
                 })
                 .with_children(|parent| {
                     narrator.img = parent
-                        .spawn_bundle(NodeBundle {
+                        .spawn(ImageBundle {
                             style: Style {
                                 size: SIZE_ALL,
                                 ..default()

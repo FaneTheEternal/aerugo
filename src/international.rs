@@ -15,6 +15,7 @@ pub struct AerugoImanity {
     pub localized: Vec<Step>,
 }
 
+#[derive(Debug, Resource)]
 pub struct Internationale {
     pub defs: Vec<AerugoImanity>,
 }

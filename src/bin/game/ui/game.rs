@@ -11,6 +11,7 @@ pub struct NarratorUI {
 }
 
 #[allow(dead_code)]
+#[derive(Debug, Resource)]
 pub struct TextUI {
     pub(crate) root: Entity,
     pub(crate) is_visible: bool,
@@ -148,6 +149,7 @@ impl TextUI {
     }
 }
 
+#[derive(Debug, Resource)]
 pub struct PhraseUI {
     pub(crate) root: Entity,
     pub(crate) is_visible: bool,
@@ -182,6 +184,7 @@ impl PhraseUI {
     }
 }
 
+#[derive(Debug, Resource)]
 pub struct GameUI {
     pub(crate) ui_root: Entity,
     pub(crate) background: Entity,

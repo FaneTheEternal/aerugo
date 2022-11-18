@@ -79,6 +79,7 @@ pub enum GameState {
 
 pub struct NextStepEvent;
 
+#[derive(Debug, Resource)]
 pub struct JustInit;
 
 pub struct NewNarratorEvent(pub NarratorCommand);
